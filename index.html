@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CNC Edit Pro v5 — Heidenhain Klartext 5-Axis, ISO G-Code &amp; 3D Material Simulator</title>
+<title>CNC Edit Pro v6 — DMG MORI 5-Axis Table-Table (B/C) &amp; Solid Material Simulator</title>
 <style>
 /* ==========================================================================
-   1. DESIGN TOKENS & INDUSTRIAL CAM THEME
+   1. DESIGN TOKENS & INDUSTRIAL CAM THEME (100% OFFLINE / ZERO CDN)
    ========================================================================== */
 :root {
   --bg-app: #101318;
@@ -107,11 +107,11 @@ html, body {
 #ribbon-header {
   display: flex; align-items: center; justify-content: space-between;
   background: var(--bg-app); border-bottom: 1px solid var(--border-color);
-  padding: 0 10px; height: 32px; flex-shrink: 0; user-select: none;
+  padding: 0 10px; height: 34px; flex-shrink: 0; user-select: none;
 }
 .brand-badge { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 12px; }
 .brand-pill {
-  background: linear-gradient(135deg, #2f81f7, #a371f7); color: #fff;
+  background: linear-gradient(135deg, #2f81f7, #39c5cf); color: #fff;
   padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px; font-weight: 800;
 }
 .ribbon-tabs { display: flex; align-items: flex-end; gap: 2px; height: 100%; margin-left: 14px; }
@@ -194,7 +194,7 @@ select.compact-select:focus, input.compact-input:focus {
   background: rgba(47,129,247,0.18); color: var(--accent-blue);
 }
 .doc-tab .dialect-tag.hh {
-  background: rgba(163,113,247,0.22); color: var(--accent-purple);
+  background: rgba(57,197,207,0.22); color: var(--accent-cyan);
 }
 .doc-tab .dirty-dot { color: var(--accent-orange); font-weight: bold; }
 .doc-tab .close-tab {
@@ -215,7 +215,7 @@ select.compact-select:focus, input.compact-input:focus {
 }
 
 #left-dock {
-  width: 260px; flex-shrink: 0;
+  width: 264px; flex-shrink: 0;
   background: var(--bg-panel); border-right: 1px solid var(--border-color);
   display: flex; flex-direction: column; overflow: hidden; user-select: none;
 }
@@ -370,10 +370,10 @@ select.compact-select:focus, input.compact-input:focus {
 .tok-macro { color: var(--tok-macro); }
 
 /* ==========================================================================
-   5. RIGHT PANE: TRUE 3D & 5-AXIS SOLID MATERIAL SIMULATION VIEWPORT
+   5. RIGHT PANE: TRUE 3D & 5-AXIS DMG TABLE-TABLE SIMULATION VIEWPORT
    ========================================================================== */
 #backplot-pane {
-  width: 54%; min-width: 320px; flex-shrink: 0;
+  width: 55%; min-width: 340px; flex-shrink: 0;
   display: flex; flex-direction: column;
   background: #090c12; border-left: 1px solid var(--border-color);
   position: relative; user-select: none;
@@ -383,7 +383,7 @@ select.compact-select:focus, input.compact-input:focus {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;
   padding: 5px 8px; background: var(--bg-ribbon); border-bottom: 1px solid var(--border-color);
 }
-.vp-btn-group { display: flex; align-items: center; gap: 3px; }
+.vp-btn-group { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
 .vp-btn {
   padding: 3px 7px; background: var(--bg-ribbon-group);
   border: 1px solid var(--border-color); border-radius: 3px;
@@ -397,15 +397,15 @@ select.compact-select:focus, input.compact-input:focus {
 #canvas-container:active { cursor: grabbing; }
 #backplot-canvas { display: block; width: 100%; height: 100%; }
 
-/* Telemetry & 5-Axis Kinematic HUD */
+/* Telemetry & DMG 5-Axis Kinematic HUD */
 #hud-telemetry {
   position: absolute; top: 8px; left: 8px;
-  background: rgba(11, 15, 22, 0.88); backdrop-filter: blur(5px);
+  background: rgba(11, 15, 22, 0.89); backdrop-filter: blur(5px);
   border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-md);
   padding: 7px 9px; color: #e6edf3; font-family: var(--font-mono); font-size: 11px;
-  pointer-events: none; min-width: 244px;
+  pointer-events: none; min-width: 262px;
 }
-.hud-row { display: flex; justify-content: space-between; gap: 8px; line-height: 1.42; }
+.hud-row { display: flex; justify-content: space-between; gap: 8px; line-height: 1.4; }
 .hud-label { color: #8b949e; }
 .hud-val-x { color: #ff7b72; font-weight: 700; }
 .hud-val-y { color: #7ee787; font-weight: 700; }
@@ -532,24 +532,24 @@ select.compact-select:focus, input.compact-input:focus {
   <header id="ribbon-header">
     <div style="display:flex; align-items:center; height:100%;">
       <div class="brand-badge">
-        <span class="brand-pill">CNC v5</span>
-        <span>EDIT PRO 5AX</span>
+        <span class="brand-pill">CNC v6</span>
+        <span>DMG MORI 5AX</span>
       </div>
       <nav class="ribbon-tabs" id="ribbon-tabs">
         <button class="ribbon-tab active" data-tab="tab-editor">Editor</button>
         <button class="ribbon-tab" data-tab="tab-nc">NC Functions</button>
-        <button class="ribbon-tab" data-tab="tab-backplot">3D / 5-Axis Simulation</button>
+        <button class="ribbon-tab" data-tab="tab-backplot">DMG 5-Axis Table Sim</button>
         <button class="ribbon-tab" data-tab="tab-compare">File Compare</button>
         <button class="ribbon-tab" data-tab="tab-dnc">Transmission (DNC)</button>
       </nav>
     </div>
     <div class="header-controls">
-      <label style="color:var(--text-secondary); font-size:11px;">Dialect / Kinematics:</label>
-      <select id="kinematics-mode-select" class="compact-select" title="Switch CNC Dialect & Kinematics">
-        <option value="hh-5ax">Heidenhain 5-Axis Simultaneous (TCPM)</option>
-        <option value="hh-3ax">Heidenhain Klartext (3-Axis)</option>
-        <option value="mill">ISO / Fanuc 3-Axis Mill (XYZ)</option>
-        <option value="lathe">2-Axis Lathe (XZ Chuck)</option>
+      <label style="color:var(--text-secondary); font-size:11px; font-weight:600;">Kinematics:</label>
+      <select id="kinematics-mode-select" class="compact-select" title="Switch Machine Kinematic Topology">
+        <option value="dmg-table-bc" selected>DMG 5-Axis Table (B/C Table, X/Y/Z Spindle)</option>
+        <option value="head-tilt">5-Axis Head Tilt (Workpiece Fixed)</option>
+        <option value="vmc-3ax">3-Axis VMC Mill (X/Y/Z)</option>
+        <option value="lathe-2ax">2-Axis CNC Lathe (X/Z)</option>
       </select>
       <select id="machine-profile-select" class="compact-select" title="Active Machine Configuration Profile"></select>
       <button class="vp-btn" id="btn-open-profile-modal" title="Configure Machine & Soft Limits">⚙</button>
@@ -604,7 +604,7 @@ select.compact-select:focus, input.compact-input:focus {
       <div class="ribbon-group">
         <div class="ribbon-group-items">
           <button class="r-btn active" id="btn-toggle-assistant"><span>Inspector Dock</span></button>
-          <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D / 5AX View</span></button>
+          <button class="r-btn active" id="btn-toggle-backplot-main"><span>DMG 3D View</span></button>
           <button class="r-btn" id="btn-stress-test-50k" title="Generate 50,000-line 3D surfacing file"><span>⚡ 50k Stress Test</span></button>
         </div>
         <div class="ribbon-group-title">Workspace &amp; Benchmark</div>
@@ -645,7 +645,7 @@ select.compact-select:focus, input.compact-input:focus {
       </div>
     </div>
 
-    <!-- TAB 3: 3D / 5-AXIS SOLID SIMULATION -->
+    <!-- TAB 3: DMG 5-AXIS TABLE SIMULATION -->
     <div class="ribbon-pane" id="tab-backplot">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
@@ -669,13 +669,15 @@ select.compact-select:focus, input.compact-input:focus {
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn active" id="btn-toggle-3d-tool"><span>5AX Spindle</span></button>
-          <button class="r-btn active" id="btn-toggle-trunnion"><span>5AX Trunnion</span></button>
+          <button class="r-btn active" id="btn-toggle-3d-tool"><span>HSK Spindle</span></button>
+          <button class="r-btn active" id="btn-toggle-trunnion"><span>DMG B/C Table</span></button>
+          <button class="r-btn" id="btn-toggle-dmg-swivel" title="Toggle Orthogonal B-Axis Trunnion vs DMG MORI 45° Swivel B-Axis Geometry"><span>B-Axis: 90° Ortho</span></button>
+          <button class="r-btn active" id="btn-toggle-paths"><span>Toolpaths</span></button>
           <button class="r-btn active" id="btn-toggle-cutter-comp"><span>RL/RR/G41</span></button>
-          <button class="r-btn active" id="btn-toggle-rapids"><span>Show Rapids</span></button>
+          <button class="r-btn active" id="btn-toggle-rapids"><span>Rapids</span></button>
           <button class="r-btn active" id="btn-toggle-coolant"><span>Coolant FX</span></button>
         </div>
-        <div class="ribbon-group-title">5-Axis Machine &amp; Tooling</div>
+        <div class="ribbon-group-title">DMG MORI Machine &amp; Tooling</div>
       </div>
 
       <div class="ribbon-group">
@@ -684,7 +686,7 @@ select.compact-select:focus, input.compact-input:focus {
           <button class="r-btn" data-view="top"><span>Top (XY)</span></button>
           <button class="r-btn" data-view="front"><span>Front (XZ)</span></button>
           <button class="r-btn" data-view="side"><span>Side (YZ)</span></button>
-          <button class="r-btn" id="btn-fit-view"><span>Fit Stock</span></button>
+          <button class="r-btn" id="btn-fit-view"><span>Fit Table</span></button>
         </div>
         <div class="ribbon-group-title">3D Camera Views</div>
       </div>
@@ -750,7 +752,7 @@ select.compact-select:focus, input.compact-input:focus {
         <div style="margin-top:auto; border-top:1px solid var(--border-color); padding-top:8px;">
           <div style="font-size:10px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">ACTIVE KINEMATIC STATE</div>
           <div id="assist-modal-summary" style="font-family:var(--font-mono); font-size:11px; color:var(--text-primary); line-height:1.5;">
-            TCPM ACTIVE | R0 | MM
+            DMG B/C TABLE | TCPM ACTIVE | MM
           </div>
         </div>
       </div>
@@ -801,7 +803,7 @@ select.compact-select:focus, input.compact-input:focus {
       </div>
     </section>
 
-    <!-- RIGHT: TRUE 3D & 5-AXIS SOLID MATERIAL SIMULATION VIEWPORT -->
+    <!-- RIGHT: TRUE 3D & 5-AXIS DMG MORI TABLE-TABLE SIMULATION VIEWPORT -->
     <section id="backplot-pane">
       <div id="viewport-toolbar">
         <div class="vp-btn-group">
@@ -811,7 +813,8 @@ select.compact-select:focus, input.compact-input:focus {
           <button class="vp-btn" data-view="side">YZ</button>
           <button class="vp-btn" id="vp-btn-fit">Fit</button>
           <button class="vp-btn active" id="vp-btn-stock-mode" title="Cycle Solid / Glass / Wireframe Stock">Solid</button>
-          <button class="vp-btn active" id="vp-btn-trunnion-toggle" title="Toggle 5-Axis Swivel Trunnion & Vice">Trunnion</button>
+          <button class="vp-btn active" id="vp-btn-trunnion-toggle" title="Toggle DMG MORI B/C Rotary Table & Vice">Machine / Table</button>
+          <button class="vp-btn active" id="vp-btn-paths-toggle" title="Toggle Toolpath Lines">Paths</button>
           <button class="vp-btn active" id="vp-btn-comp-toggle" title="Toggle RL/RR/G41 Offset Path">RL/RR</button>
         </div>
         <div class="vp-btn-group">
@@ -822,18 +825,17 @@ select.compact-select:focus, input.compact-input:focus {
       <div id="canvas-container">
         <canvas id="backplot-canvas"></canvas>
 
-        <!-- Kinematic 5-Axis Feeds, Speeds & Vector HUD -->
+        <!-- Kinematic DMG MORI 5-Axis Telemetry HUD -->
         <div id="hud-telemetry">
-          <div class="hud-row"><span class="hud-label">MODE:</span><span id="hud-modal" style="color:#d2a8ff; font-weight:700;">HH 5AX | TCPM ON</span></div>
-          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T01 Ø10.0mm Ball</span></div>
+          <div class="hud-row"><span class="hud-label">KINEMATICS:</span><span id="hud-modal" style="color:#39c5cf; font-weight:700;">DMG B/C TABLE | TCPM ON</span></div>
+          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T01 Ø12.0mm Flat</span></div>
           <div class="hud-divider"></div>
-          <div class="hud-row"><span class="hud-label" id="hud-lbl-x">X:</span><span class="hud-val-x" id="hud-x">0.000</span></div>
-          <div class="hud-row"><span class="hud-label">Y:</span><span class="hud-val-y" id="hud-y">0.000</span></div>
-          <div class="hud-row"><span class="hud-label">Z:</span><span class="hud-val-z" id="hud-z">0.000</span></div>
+          <div class="hud-row"><span class="hud-label" id="hud-lbl-wk">WORKPIECE XYZ:</span><span style="color:#e6edf3; font-weight:700;" id="hud-wk-xyz">0.00, 0.00, 0.00</span></div>
+          <div class="hud-row"><span class="hud-label" id="hud-lbl-mach">MACHINE SPINDLE:</span><span style="font-weight:700;"><span class="hud-val-x" id="hud-mx">0.0</span> <span class="hud-val-y" id="hud-my">0.0</span> <span class="hud-val-z" id="hud-mz">0.0</span></span></div>
           <div id="hud-5ax-block">
             <div class="hud-divider"></div>
-            <div class="hud-row"><span class="hud-label">ROTARY A/B/C:</span><span class="hud-val-rot" id="hud-rotary">A0.0° B0.0° C0.0°</span></div>
-            <div class="hud-row"><span class="hud-label">TOOL VEC IJK:</span><span id="hud-ijk" style="color:#56d4dd;">0.000, 0.000, 1.000</span></div>
+            <div class="hud-row"><span class="hud-label">ROTARY TABLE:</span><span class="hud-val-rot" id="hud-rotary">B+0.0°  C+0.0°</span></div>
+            <div class="hud-row"><span class="hud-label">TOOL AXIS IJK:</span><span id="hud-ijk" style="color:#56d4dd;">0.000, 0.000, 1.000</span></div>
             <div class="hud-row"><span class="hud-label">PLANE SPATIAL:</span><span id="hud-plane" style="color:#c9d1d9;">SPA0° SPB0° SPC0°</span></div>
           </div>
           <div class="hud-divider"></div>
@@ -843,14 +845,14 @@ select.compact-select:focus, input.compact-input:focus {
           <div class="gauge-bar-wrap"><div class="gauge-bar-fill" id="gauge-rpm" style="background:#ffa657;"></div></div>
           <div class="hud-row"><span class="hud-label">SURF / LOAD:</span><span id="hud-chipload">0 m/min | 0.000 fz</span></div>
           <div class="hud-divider"></div>
-          <div class="hud-row"><span class="hud-label">TIME:</span><span id="hud-cycle-time">00:00 / 00:00</span></div>
+          <div class="hud-row"><span class="hud-label">CYCLE TIME:</span><span id="hud-cycle-time">00:00 / 00:00</span></div>
         </div>
 
         <!-- Legend HUD -->
         <div id="hud-legend">
           <div class="legend-item"><span class="swatch-rapid"></span><span>Rapid (FMAX / G00)</span></div>
           <div class="legend-item"><span class="swatch-feed"></span><span>3-Axis Linear Cut</span></div>
-          <div class="legend-item"><span class="swatch-5ax"></span><span>5-Axis TCPM Simultaneous</span></div>
+          <div class="legend-item"><span class="swatch-5ax"></span><span>5-Axis TCPM / Tilted Plane</span></div>
           <div class="legend-item"><span class="swatch-arc"></span><span>Circular / Helical (C/CC/G02)</span></div>
           <div class="legend-item"><span class="swatch-comp"></span><span>Radius Comp (RL/RR/G41)</span></div>
           <div class="legend-item"><span class="swatch-coll"></span><span>Rapid Gouge / Collision</span></div>
@@ -972,7 +974,7 @@ select.compact-select:focus, input.compact-input:focus {
     </div>
     <div class="status-group">
       <span id="st-collisions">Collisions: 0</span>
-      <span id="st-machine">Profile: Hermle C42U (Heidenhain TNC 640)</span>
+      <span id="st-machine">Profile: DMG MORI DMU 65 monoBLOCK (TNC 640)</span>
       <span id="st-units">Units: Metric (MM)</span>
     </div>
   </footer>
@@ -987,13 +989,13 @@ select.compact-select:focus, input.compact-input:focus {
     <div class="modal-body">
       <div class="form-row"><label>Auto-Fit Stock (from BLK FORM or Bounds):</label><input type="checkbox" id="stk-autofit" checked></div>
       <div class="form-row"><label>Mill Block Min X / Max X (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-minx" class="compact-input" style="width:75px;" value="-50"><input type="number" id="stk-maxx" class="compact-input" style="width:75px;" value="50"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-minx" class="compact-input" style="width:75px;" value="-55"><input type="number" id="stk-maxx" class="compact-input" style="width:75px;" value="55"></div>
       </div>
       <div class="form-row"><label>Mill Block Min Y / Max Y (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-miny" class="compact-input" style="width:75px;" value="-50"><input type="number" id="stk-maxy" class="compact-input" style="width:75px;" value="50"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-miny" class="compact-input" style="width:75px;" value="-55"><input type="number" id="stk-maxy" class="compact-input" style="width:75px;" value="55"></div>
       </div>
       <div class="form-row"><label>Mill Block Bottom Z / Top Z (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-35"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-32"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0"></div>
       </div>
       <div class="form-row"><label>Lathe Bar Stock Dia / Length (mm):</label>
         <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="66"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="85"></div>
@@ -1043,12 +1045,12 @@ select.compact-select:focus, input.compact-input:focus {
   <div class="modal-card">
     <div class="modal-head"><span>Machine Configuration &amp; Soft Limits</span><button class="vp-btn modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="form-row"><label>Profile Name:</label><input type="text" id="prof-name" class="compact-input" value="Hermle C42U (Heidenhain TNC 640)"></div>
-      <div class="form-row"><label>Rapid Traverse Rate (mm/min):</label><input type="number" id="prof-rapid" class="compact-input" value="30000"></div>
-      <div class="form-row"><label>Max Spindle RPM:</label><input type="number" id="prof-maxrpm" class="compact-input" value="24000"></div>
-      <div class="form-row"><label>Soft Limit X Envelope (+/- mm):</label><input type="number" id="prof-limx" class="compact-input" value="400"></div>
-      <div class="form-row"><label>Soft Limit Y Envelope (+/- mm):</label><input type="number" id="prof-limy" class="compact-input" value="400"></div>
-      <div class="form-row"><label>Soft Limit Z Min (mm):</label><input type="number" id="prof-limz" class="compact-input" value="-300"></div>
+      <div class="form-row"><label>Profile Name:</label><input type="text" id="prof-name" class="compact-input" value="DMG MORI DMU 65 monoBLOCK (TNC 640)"></div>
+      <div class="form-row"><label>Rapid Traverse Rate (mm/min):</label><input type="number" id="prof-rapid" class="compact-input" value="40000"></div>
+      <div class="form-row"><label>Max Spindle RPM:</label><input type="number" id="prof-maxrpm" class="compact-input" value="20000"></div>
+      <div class="form-row"><label>Soft Limit X Envelope (+/- mm):</label><input type="number" id="prof-limx" class="compact-input" value="365"></div>
+      <div class="form-row"><label>Soft Limit Y Envelope (+/- mm):</label><input type="number" id="prof-limy" class="compact-input" value="280"></div>
+      <div class="form-row"><label>Soft Limit Z Min (mm):</label><input type="number" id="prof-limz" class="compact-input" value="-280"></div>
     </div>
     <div class="modal-foot">
       <button class="btn-secondary modal-close">Close</button>
@@ -1074,59 +1076,91 @@ select.compact-select:focus, input.compact-input:focus {
 
 <script>
 /* ==========================================================================
-   1. SAMPLE NC & HEIDENHAIN 5-AXIS KLARTEXT PROGRAMS
+   1. SAMPLE NC & DMG MORI HEIDENHAIN 5-AXIS KLARTEXT PROGRAMS
    ========================================================================== */
 const SAMPLE_PROGRAMS = [
   {
-    id: 'doc-hh-5ax',
-    mode: 'hh-5ax',
+    id: 'doc-dmg-dmu65',
+    mode: 'dmg-table-bc',
     dirty: false,
-    name: '5AX_TURBINE_BLISK_DEMO.h',
-    content: `0 BEGIN PGM 5AX_BLISK MM
-1 ; HEIDENHAIN TNC 640 5-AXIS SIMULTANEOUS & 3+2 DEMO
-2 ; WORKPIECE: 100x100x35MM 6061-T6 ALUMINUM BILLET
-3 BLK FORM 0.1 Z X-50.0 Y-50.0 Z-35.0
-4 BLK FORM 0.2 X+50.0 Y+50.0 Z+0.0
-5 ; --- OP 1: 5-AXIS SIMULTANEOUS TCPM CONTOURED DOME ---
-6 TOOL CALL 3 Z S18000 F4500 ; 10.0MM BALL NOSE ENDMILL
-7 FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS
-8 L X+0.0 Y+0.0 Z+25.0 A+0.0 B+0.0 C+0.0 R0 FMAX M03 M08
-9 L X-36.0 Y-36.0 Z+8.0 A-22.0 B+18.0 C+0.0 FMAX
-10 L Z-4.5 F1200
-11 L X+36.0 Y-36.0 Z-4.5 A-22.0 B-18.0 C+45.0 RL F3400
-12 L X+36.0 Y+36.0 Z-4.5 A+22.0 B-18.0 C+90.0 F3400
-13 L X-36.0 Y+36.0 Z-4.5 A+22.0 B+18.0 C+135.0 F3400
-14 L X-36.0 Y-36.0 Z-4.5 A-22.0 B+18.0 C+180.0 R0 F3400
-15 ; --- OP 2: 5-AXIS SWARF & IMPELLER HUB SCULPTING ---
-16 L X-26.0 Y-26.0 Z-9.0 A-16.0 B+12.0 C+0.0 F2800
-17 L X+26.0 Y-26.0 Z-11.0 A-16.0 B-12.0 C+90.0 F3200
-18 L X+26.0 Y+26.0 Z-11.0 A+16.0 B-12.0 C+180.0 F3200
-19 L X-26.0 Y+26.0 Z-9.0 A+16.0 B+12.0 C+270.0 F3200
-20 L X-26.0 Y-26.0 Z-9.0 A-16.0 B+12.0 C+360.0 F3200
-21 L X-14.0 Y-14.0 Z-14.5 A-8.0 B+6.0 C+0.0 F2600
-22 L X+14.0 Y-14.0 Z-14.5 A-8.0 B-6.0 C+90.0 F2800
-23 L X+14.0 Y+14.0 Z-14.5 A+8.0 B-6.0 C+180.0 F2800
-24 L X-14.0 Y+14.0 Z-14.5 A+8.0 B+6.0 C+270.0 F2800
-25 L X-14.0 Y-14.0 Z-14.5 A-8.0 B+6.0 C+360.0 F2800
-26 M140 MB MAX ; RETRACT ALONG TILTED TOOL AXIS
-27 M129 ; CANCEL TCPM
-28 ; --- OP 3: 3+2 TILTED WORKING PLANE (PLANE SPATIAL) ---
-29 TOOL CALL 1 Z S14000 F3200 ; 12.0MM FLAT CARBIDE ENDMILL
-30 PLANE SPATIAL SPA+24.0 SPB-14.0 SPC+0.0 TURN FMAX
-31 L X+0.0 Y+0.0 Z+15.0 R0 FMAX M03 M08
-32 L Z-8.0 F900
-33 CC X+0.0 Y+0.0
-34 L X+12.0 Y+0.0 RL F2200
-35 C X+12.0 Y+0.0 DR+ F2400
-36 L X+0.0 Y+0.0 R0 F2200
-37 L Z+25.0 FMAX M09
-38 PLANE RESET TURN FMAX
-39 L A+0.0 B+0.0 C+0.0 FMAX M05
-40 END PGM 5AX_BLISK MM`
+    name: 'DMG_DMU65_5AX_DEMO.h',
+    content: `0 BEGIN PGM DMG_DMU65_IMPELLER MM
+1 ; DMG MORI DMU 65 MONOBLOCK — B/C ROTARY TABLE + VERTICAL X/Y/Z SPINDLE
+2 ; WORKPIECE: 110x110x32MM 6061-T6 ALUMINUM BILLET
+3 BLK FORM 0.1 Z X-55.0 Y-55.0 Z-32.0
+4 BLK FORM 0.2 X+55.0 Y+55.0 Z+0.0
+5 TOOL DEF 1 L+0.0 R+6.0 ; 12.0MM FLAT ROUGHING ENDMILL
+6 TOOL DEF 2 L+0.0 R+4.0 ; 8.0MM BALL-NOSE FINISHING CUTTER
+7 ; --- OP 1: TOP POCKET CLEARING AT B+0 C+0 ---
+8 TOOL CALL 1 Z S16000 F4200 ; 12.0MM FLAT ROUGHING ENDMILL
+9 L X+0.0 Y+0.0 Z+35.0 B+0.0 C+0.0 R0 FMAX M03 M08
+10 L X-26.0 Y-26.0 Z+5.0 FMAX
+11 L Z-6.0 F1400
+12 L X+26.0 Y-26.0 RL F3600
+13 L X+26.0 Y+26.0 F3600
+14 L X-26.0 Y+26.0 F3600
+15 L X-26.0 Y-26.0 R0 F3600
+16 L X-14.0 Y-14.0 Z-10.5 F2200
+17 L X+14.0 Y-14.0 F3400
+18 L X+14.0 Y+14.0 F3400
+19 L X-14.0 Y+14.0 F3400
+20 L X-14.0 Y-14.0 F3400
+21 L Z+35.0 FMAX
+22 ; --- OP 2: 3+2 INDEXED SIDE FACES (PLANE SPATIAL B+28° & C INDEXING) ---
+23 ; FACE 1 (C+0°): B-CRADLE TILTS 28° UNDER VERTICAL X/Y/Z SPINDLE
+24 PLANE SPATIAL SPA+0.0 SPB+28.0 SPC+0.0 TURN FMAX SEQ-
+25 L X-22.0 Y-18.0 Z+12.0 R0 FMAX
+26 L Z-4.0 F1200
+27 L X+22.0 Y-18.0 F3200
+28 L X+22.0 Y+18.0 F3200
+29 L X-22.0 Y+18.0 F3200
+30 L X-22.0 Y-18.0 F3200
+31 L Z+18.0 FMAX
+32 ; FACE 2 (C+90°): C-PLATTER ROTATES 90° WHILE B HOLDS 28°
+33 PLANE SPATIAL SPA+0.0 SPB+28.0 SPC+90.0 TURN FMAX SEQ-
+34 L X-22.0 Y-18.0 Z+12.0 R0 FMAX
+35 L Z-4.0 F1200
+36 L X+22.0 Y-18.0 F3200
+37 L X+22.0 Y+18.0 F3200
+38 L X-22.0 Y+18.0 F3200
+39 L X-22.0 Y-18.0 F3200
+40 L Z+18.0 FMAX
+41 ; FACE 3 (C+180°): C-PLATTER ROTATES 180°
+42 PLANE SPATIAL SPA+0.0 SPB+28.0 SPC+180.0 TURN FMAX SEQ-
+43 L X-22.0 Y-18.0 Z+12.0 R0 FMAX
+44 L Z-4.0 F1200
+45 L X+22.0 Y-18.0 F3200
+46 L X+22.0 Y+18.0 F3200
+47 L X-22.0 Y+18.0 F3200
+48 L X-22.0 Y-18.0 F3200
+49 L Z+18.0 FMAX
+50 ; FACE 4 (C+270°): C-PLATTER ROTATES 270°
+51 PLANE SPATIAL SPA+0.0 SPB+28.0 SPC+270.0 TURN FMAX SEQ-
+52 L X-22.0 Y-18.0 Z+12.0 R0 FMAX
+53 L Z-4.0 F1200
+54 L X+22.0 Y-18.0 F3200
+55 L X+22.0 Y+18.0 F3200
+56 L X-22.0 Y+18.0 F3200
+57 L X-22.0 Y-18.0 F3200
+58 M140 MB MAX ; RETRACT ALONG TOOL AXIS
+59 PLANE RESET TURN FMAX
+60 ; --- OP 3: SIMULTANEOUS 5-AXIS FUNCTION TCPM SWARF CONTOURING ---
+61 TOOL CALL 2 Z S20000 F4800 ; 8.0MM BALL-NOSE FINISHING CUTTER
+62 FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS
+63 L X-34.0 Y-34.0 Z+12.0 B+24.0 C+0.0 R0 FMAX M03 M08
+64 L Z-3.5 F1600
+65 L X+34.0 Y-34.0 Z-3.5 B+24.0 C+90.0 F3600
+66 L X+34.0 Y+34.0 Z-3.5 B+24.0 C+180.0 F3600
+67 L X-34.0 Y+34.0 Z-3.5 B+24.0 C+270.0 F3600
+68 L X-34.0 Y-34.0 Z-3.5 B+24.0 C+360.0 F3600
+69 M140 MB MAX
+70 M129 ; CANCEL TCPM
+71 L B+0.0 C+0.0 Z+45.0 FMAX M09 M05
+72 END PGM DMG_DMU65_IMPELLER MM`
   },
   {
     id: 'doc-mill-1',
-    mode: 'mill',
+    mode: 'vmc-3ax',
     dirty: false,
     name: 'O1001_POCKET_G41_MILL.nc',
     content: `%
@@ -1164,11 +1198,11 @@ N270 G01 Y6.000
 N280 G01 X-12.000
 N290 G01 Y-6.000
 N300 G00 Z20.000 M09
-(PECK DRILLING 4X HOLES WITH T02 DRILL)
-N310 T02 M06 (6.0MM CARBIDE DRILL)
+(PECK DRILLING 4X HOLES WITH T03 DRILL)
+N310 T03 M06 (6.0MM CARBIDE DRILL)
 N320 S6500 M03
 N330 G00 X-30.000 Y-16.000
-N340 G43 H02 Z12.000 M08
+N340 G43 H03 Z12.000 M08
 N350 G83 Z-18.000 R2.000 Q3.500 F340.0
 N360 X30.000 Y-16.000
 N370 X30.000 Y16.000
@@ -1180,7 +1214,7 @@ N410 M30
   },
   {
     id: 'doc-lathe-1',
-    mode: 'lathe',
+    mode: 'lathe-2ax',
     dirty: false,
     name: 'O3010_LATHE_STEPPED_SHAFT.nc',
     content: `%
@@ -1213,13 +1247,13 @@ N210 M30
   },
   {
     id: 'doc-collision-demo',
-    mode: 'mill',
+    mode: 'vmc-3ax',
     dirty: false,
     name: 'O9911_COLLISION_CHECK_DEMO.nc',
     content: `%
 O9911 (RAPID-INTO-STOCK COLLISION VERIFICATION DEMO)
 G90 G17 G21 G40
-T01 M06 (10.0MM FLAT ENDMILL)
+T01 M06 (12.0MM FLAT ENDMILL)
 S9000 M03
 G00 X-30.000 Y-20.000 Z15.000
 G00 Z2.000
@@ -1235,10 +1269,10 @@ M30
 ];
 
 const DEFAULT_PROFILES = [
-  { id: 'hermle-c42u', name: 'Hermle C42U (Heidenhain TNC 640 5AX)', rapidRate: 30000, maxRpm: 24000, limX: 400, limY: 400, limZ: -300, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
-  { id: 'haas-vf2', name: 'Haas VF-2 (3-Axis Mill)', rapidRate: 18000, maxRpm: 15000, limX: 350, limY: 250, limZ: -250, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
-  { id: 'haas-st20', name: 'Haas ST-20 (CNC Lathe)', rapidRate: 15000, maxRpm: 4000, limX: 250, limY: 250, limZ: -400, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
-  { id: 'fanuc-0i', name: 'Fanuc 0i-MF (7E2)', rapidRate: 15000, maxRpm: 12000, limX: 300, limY: 200, limZ: -200, baud: '9600', databits: '7', parity: 'even', stopbits: '2', flow: 'hardware' }
+  { id: 'dmg-dmu65', name: 'DMG MORI DMU 65 monoBLOCK (TNC 640 B/C)', rapidRate: 40000, maxRpm: 20000, limX: 365, limY: 280, limZ: -280, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
+  { id: 'dmg-dmu50', name: 'DMG MORI DMU 50 3rd Gen (B/C Swivel)', rapidRate: 42000, maxRpm: 20000, limX: 325, limY: 260, limZ: -240, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
+  { id: 'haas-vf2', name: 'Haas VF-2 (3-Axis VMC Mill)', rapidRate: 18000, maxRpm: 15000, limX: 350, limY: 250, limZ: -250, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
+  { id: 'haas-st20', name: 'Haas ST-20 (CNC Lathe)', rapidRate: 15000, maxRpm: 4000, limX: 250, limY: 250, limZ: -400, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' }
 ];
 
 const MATERIAL_SHADERS = {
@@ -1293,12 +1327,13 @@ const MATERIAL_SHADERS = {
 };
 
 const CODE_DICTIONARY = {
-  // Heidenhain Klartext Keywords
   'BEGIN PGM': 'Heidenhain Program Header & Unit Declaration (MM / INCH)',
   'END PGM': 'Heidenhain End of Program Block',
   'BLK FORM': 'Workpiece Blank Form Definition (0.1 Min Corner, 0.2 Max Corner)',
+  'TOOL DEF': 'Heidenhain Tool Geometry Definition (Length L & Radius R)',
   'TOOL CALL': 'Heidenhain Spindle Tool Call, Axis, RPM (S) & Feed (F)',
-  'L': 'Klartext Linear Interpolation Move (Cartesian / Rotary A B C)',
+  'L': 'Klartext Linear Interpolation Move (Cartesian X/Y/Z & Rotary A/B/C)',
+  'LN': 'Klartext 5-Axis Surface Normal Line Move (X/Y/Z + NX/NY/NZ + TX/TY/TZ)',
   'CC': 'Klartext Circle Center Coordinates (Pole for C / CP)',
   'C': 'Klartext Circular Contour Move around CC (DR+ CCW / DR- CW)',
   'CR': 'Klartext Circular Move with Radius (R) & Direction (DR+/DR-)',
@@ -1306,12 +1341,11 @@ const CODE_DICTIONARY = {
   'PLANE SPATIAL': '3+2 Tilted Working Plane via Spatial Euler Angles (SPA, SPB, SPC)',
   'PLANE RESET': 'Reset Tilted Working Plane back to Machine Home Orientation',
   'FUNCTION TCPM': '5-Axis Tool Center Point Management (RTCP Simultaneous)',
-  'CYCL DEF': 'Heidenhain Canned Cycle Definition (200 Drill, 251 Rect, 252 Circ)',
+  'CYCL DEF': 'Heidenhain Canned Cycle Definition (200 Drill, 203 Univ Drill, 251 Pocket)',
   'CYCL CALL': 'Execute Active Heidenhain Canned Cycle at Current Position',
   'M128': 'Maintain Tool Tip Position during Rotary Tilt (Legacy TCPM On)',
   'M129': 'Cancel M128 / TCPM Tool Center Point Compensation',
   'M140': 'Retract Tool along Current Tilted Tool Axis Vector (MB MAX)',
-  // ISO G/M Codes
   'G00': 'Rapid Positioning (Non-cutting traverse)',
   'G01': 'Linear Interpolation (Controlled feed)',
   'G02': 'Circular / Helical Interpolation (CW)',
@@ -1346,26 +1380,27 @@ const CODE_DICTIONARY = {
 };
 
 /* ==========================================================================
-   2. APPLICATION STATE
+   2. APPLICATION STATE & DMG MORI B/C TABLE KINEMATICS CONFIG
    ========================================================================== */
 const VIRTUAL_THRESHOLD = 15000;
 const ROW_HEIGHT = 20;
 
 const state = {
   docs: JSON.parse(JSON.stringify(SAMPLE_PROGRAMS)),
-  activeDocId: 'doc-hh-5ax',
+  activeDocId: 'doc-dmg-dmu65',
   editorMode: 'direct',
   linesCache: [],
   activeLine: 0,
   profiles: [],
-  activeProfileId: 'hermle-c42u',
-  kinematicsMode: 'hh-5ax', // 'hh-5ax' | 'hh-3ax' | 'mill' | 'lathe'
+  activeProfileId: 'dmg-dmu65',
+  // 'dmg-table-bc' | 'head-tilt' | 'vmc-3ax' | 'lathe-2ax'
+  kinematicsMode: 'dmg-table-bc',
 
   // 3D Tool Library
   tools: {
-    1: { num: 1, name: '12.0mm 3-Flute Endmill', shape: 'flat', dia: 12.0, flutes: 3, holderDia: 34, fluteLen: 26 },
-    2: { num: 2, name: '6.0mm Carbide Drill', shape: 'drill', dia: 6.0, flutes: 2, holderDia: 26, fluteLen: 34 },
-    3: { num: 3, name: '10.0mm Ball Nose Endmill', shape: 'ball', dia: 10.0, flutes: 4, holderDia: 30, fluteLen: 24 }
+    1: { num: 1, name: '12.0mm Flat Roughing Endmill', shape: 'flat', dia: 12.0, flutes: 4, holderDia: 36, fluteLen: 26 },
+    2: { num: 2, name: '8.0mm Ball-Nose Finishing Cutter', shape: 'ball', dia: 8.0, flutes: 4, holderDia: 32, fluteLen: 24 },
+    3: { num: 3, name: '6.0mm Carbide Drill', shape: 'drill', dia: 6.0, flutes: 2, holderDia: 26, fluteLen: 34 }
   },
 
   // Parsed Toolpath & 5-Axis Kinematic Data
@@ -1373,32 +1408,34 @@ const state = {
   compPolylines: [],
   alarms: [],
   collisionLineSet: new Set(),
-  extents: { minX: -50, maxX: 50, minY: -50, maxY: 50, minZ: -35, maxZ: 25 },
+  extents: { minX: -55, maxX: 55, minY: -55, maxY: 55, minZ: -32, maxZ: 35 },
   stats: { cutDist: 0, rapidDist: 0, totalTimeSec: 0 },
 
-  // High-Resolution 3D Solid Workpiece Z-Map Heightfield + Material Shader
+  // High-Resolution 3D Solid Workpiece Z-Map Heightfield + Material Shader (140x140 cells)
   stock: {
     autoFit: true,
     material: 'aluminum',
-    minX: -50, maxX: 50, minY: -50, maxY: 50, minZ: -35, maxZ: 0,
+    minX: -55, maxX: 55, minY: -55, maxY: 55, minZ: -32, maxZ: 0,
     latheDia: 66, latheLen: 80,
-    cols: 56, rows: 48,
+    cols: 140, rows: 140,
     initialZ: null,
     currentZ: null,
     gougeFlags: null
   },
 
-  // 3D Perspective Camera & Display Options
+  // 3D Perspective Camera & DMG MORI Machine Display Options
   cam: {
-    yaw: 0.64,
-    pitch: 0.54,
-    zoom: 3.9,
+    yaw: 0.62,
+    pitch: 0.46,
+    zoom: 3.1,
     panX: 0,
-    panY: 0,
-    fov: 780,
+    panY: 18,
+    fov: 840,
     stockRenderMode: 'solid',
     show3DTool: true,
     showTrunnion: true,
+    dmgSwivel45: false, // Toggle between Orthogonal B-axis trunnion vs DMG 45° swivel B-axis geometry
+    showPaths: true,
     showCutterComp: true,
     showRapids: true,
     showCoolant: true
@@ -1459,15 +1496,136 @@ function getActiveProfile() {
 
 function detectDialect(text, filename = '') {
   if (/\.h$/i.test(filename) || /\bBEGIN\s+PGM\b/i.test(text) || /\bBLK\s+FORM\b/i.test(text)) {
-    const has5Ax = /\b(FUNCTION\s+TCPM|PLANE\s+SPATIAL|M128|[ABC][+-]?\d)/i.test(text);
-    return has5Ax ? 'hh-5ax' : 'hh-3ax';
+    return 'dmg-table-bc';
   }
-  if (/\bG71\b|\bG96\b|\bT0\d0\d\b/i.test(text)) return 'lathe';
-  return 'mill';
+  if (/\bG71\b|\bG96\b|\bT0\d0\d\b/i.test(text)) return 'lathe-2ax';
+  if (/\b(G43\.4|G68\.2|[ABC][+-]?\d)/i.test(text)) return 'dmg-table-bc';
+  return 'vmc-3ax';
 }
 
 /* ==========================================================================
-   4. HYBRID EDITABLE CODE EDITOR (ISO G-CODE + HEIDENHAIN KLARTEXT)
+   4. DMG MORI TABLE-TABLE (B/C) FORWARD & INVERSE KINEMATIC ENGINE
+   ========================================================================== */
+/**
+ * Computes the DMG MORI B/C Table Kinematic Pivot Center in Workpiece Coordinates.
+ * The C-axis platter surface sits directly below the vice/stock (stk.minZ - 26mm).
+ */
+function getTablePivotWorkpiece() {
+  return { x: 0, y: 0, z: state.stock.minZ - 26 };
+}
+
+/**
+ * Forward Kinematic Transform: Workpiece Point (wx, wy, wz) -> Machine Frame (mx, my, mz)
+ * when the DMG MORI rotary table tilts by B (around Y) and rotates by C (around Z).
+ *
+ * Kinematic Chain (Table-Table):
+ *   1. C-axis rotary platter rotates the workpiece around its Z axis by angle -C
+ *      (so a +C command presents the +C side of the workpiece to the spindle).
+ *   2. B-axis trunnion cradle tilts around the Y axis (or 45° DMG swivel axis) by angle -B
+ *      around the trunnion pivot center P_pivot, keeping the spindle strictly vertical along +Z!
+ */
+function workpieceToMachinePoint(pt, rot, plane) {
+  if (state.kinematicsMode !== 'dmg-table-bc') {
+    return { x: pt.x, y: pt.y, z: pt.z };
+  }
+
+  const rad = Math.PI / 180;
+  // Effective table angles combine explicit B/C and active PLANE SPATIAL (SPB, SPC)
+  const bDeg = (rot ? rot.b : 0) + (plane ? plane.spb : 0);
+  const cDeg = (rot ? rot.c : 0) + (plane ? plane.spc : 0);
+  const aDeg = (rot ? rot.a : 0) + (plane ? plane.spa : 0);
+
+  const piv = getTablePivotWorkpiece();
+  // Translate relative to trunnion pivot
+  let x = pt.x - piv.x;
+  let y = pt.y - piv.y;
+  let z = pt.z - piv.z;
+
+  // Step 1: Rotate around C-axis (Z-axis rotary platter)
+  const rc = -cDeg * rad;
+  const cosC = Math.cos(rc), sinC = Math.sin(rc);
+  const x1 = x * cosC - y * sinC;
+  const y1 = x * sinC + y * cosC;
+  const z1 = z;
+
+  // Step 2: Optional A-axis component (if SPA specified)
+  const ra = -aDeg * rad;
+  const cosA = Math.cos(ra), sinA = Math.sin(ra);
+  const x2 = x1;
+  const y2 = y1 * cosA - z1 * sinA;
+  const z2 = y1 * sinA + z1 * cosA;
+
+  // Step 3: Tilt around B-axis trunnion cradle (Y-axis or 45° DMG swivel axis)
+  const rb = -bDeg * rad;
+  const cosB = Math.cos(rb), sinB = Math.sin(rb);
+  let x3, y3, z3;
+
+  if (state.cam.dmgSwivel45) {
+    // DMG MORI DMU 50 / monoBLOCK 45-degree inclined B-axis swivel plane
+    const s45 = Math.SQRT1_2;
+    // Transform into 45-deg swivel frame around X, rotate around Y', transform back
+    const ys = y2 * s45 - z2 * s45;
+    const zs = y2 * s45 + z2 * s45;
+    const xb = x2 * cosB + zs * sinB;
+    const zb = -x2 * sinB + zs * cosB;
+    x3 = xb;
+    y3 = ys * s45 + zb * s45;
+    z3 = -ys * s45 + zb * s45;
+  } else {
+    // Standard Orthogonal B-Axis Trunnion Cradle (DMU 65 monoBLOCK / DMU 80 eVo)
+    x3 = x2 * cosB + z2 * sinB;
+    y3 = y2;
+    z3 = -x2 * sinB + z2 * cosB;
+  }
+
+  return {
+    x: x3 + piv.x,
+    y: y3 + piv.y,
+    z: z3 + piv.z
+  };
+}
+
+/**
+ * Computes the Tool Axis Vector (i, j, k) in Workpiece Coordinates.
+ */
+function computeToolAxisVector(aDeg, bDeg, cDeg, spaDeg, spbDeg, spcDeg) {
+  const rad = Math.PI / 180;
+  const rx = (aDeg + spaDeg) * rad;
+  const ry = (bDeg + spbDeg) * rad;
+  const rz = (cDeg + spcDeg) * rad;
+
+  let x1 = 0, y1 = -Math.sin(rx), z1 = Math.cos(rx);
+  let x2 = x1 * Math.cos(ry) + z1 * Math.sin(ry);
+  let y2 = y1;
+  let z2 = -x1 * Math.sin(ry) + z1 * Math.cos(ry);
+  let vx = x2 * Math.cos(rz) - y2 * Math.sin(rz);
+  let vy = x2 * Math.sin(rz) + y2 * Math.cos(rz);
+  let vz = z2;
+
+  const len = Math.hypot(vx, vy, vz) || 1;
+  return { i: vx / len, j: vy / len, k: vz / len };
+}
+
+/**
+ * Maps local tilted working plane coordinates (PLANE SPATIAL) into Workpiece coordinates.
+ */
+function transformTiltedPlanePoint(lx, ly, lz, spa, spb, spc) {
+  if (Math.abs(spa) < 1e-5 && Math.abs(spb) < 1e-5 && Math.abs(spc) < 1e-5) {
+    return { x: lx, y: ly, z: lz };
+  }
+  const rad = Math.PI / 180;
+  const rx = spa * rad, ry = spb * rad, rz = spc * rad;
+  const y1 = ly * Math.cos(rx) - lz * Math.sin(rx);
+  const z1 = ly * Math.sin(rx) + lz * Math.cos(rx);
+  const x2 = lx * Math.cos(ry) + z1 * Math.sin(ry);
+  const z2 = -lx * Math.sin(ry) + z1 * Math.cos(ry);
+  const x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
+  const y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
+  return { x: x3, y: y3, z: z2 };
+}
+
+/* ==========================================================================
+   5. HYBRID EDITABLE CODE EDITOR (ISO G-CODE + HEIDENHAIN KLARTEXT)
    ========================================================================== */
 function tokenizeLine(line) {
   let codePart = line;
@@ -1487,7 +1645,7 @@ function tokenizeLine(line) {
   let hCode = escapeHtml(codePart);
 
   // Highlight Heidenhain Klartext Keywords First
-  hCode = hCode.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|CYCL\s+DEF|CYCL\s+CALL|CALL\s+LBL|LBL|TURN|STAY|FMAX|MB\s+MAX|PATHCTRL|AXIS|TCP|POS|MM|INCH)\b/gi,
+  hCode = hCode.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+DEF|TOOL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|CYCL\s+DEF|CYCL\s+CALL|CALL\s+LBL|LBL|TURN|STAY|FMAX|MB\s+MAX|PATHCTRL|AXIS|TCP|POS|MM|INCH)\b/gi,
     m => `<span class="tok-hh-kw">${m}</span>`
   );
 
@@ -1495,12 +1653,12 @@ function tokenizeLine(line) {
   hCode = hCode.replace(/^(\s*)(\d+)(\s+)/, '$1<span class="tok-hh-blk">$2</span>$3');
 
   // Standalone Heidenhain Motion / Radius Comp / Direction Words
-  hCode = hCode.replace(/(^|\s)(CC|CR|CP|C|L|RL|RR|R0|DR\+|DR-)(?=\s|$)/g,
+  hCode = hCode.replace(/(^|\s)(LN|CC|CR|CP|C|L|RL|RR|R0|DR\+|DR-)(?=\s|$)/g,
     (m, sp, kw) => `${sp}<span class="tok-g">${kw}</span>`
   );
 
   // Coordinate, Rotary, Feed, Spindle, ISO G/M Words
-  hCode = hCode.replace(/\b(SPA|SPB|SPC|IPA|IZ|Q|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|H|D|P|N|O|#)([+-]?\d*\.?\d+)/gi, (m, l, num) => {
+  hCode = hCode.replace(/\b(SPA|SPB|SPC|SEQ|IPA|IZ|NX|NY|NZ|TX|TY|TZ|Q|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|H|D|P|N|O|#)([+-]?\d*\.?\d+)/gi, (m, l, num) => {
     const up = l.toUpperCase();
     let cls = '';
     if (up === 'G') cls = 'tok-g';
@@ -1508,7 +1666,7 @@ function tokenizeLine(line) {
     else if (up === 'X' || up === 'U') cls = 'tok-x';
     else if (up === 'Y' || up === 'V') cls = 'tok-y';
     else if (up === 'Z' || up === 'W' || up === 'IZ') cls = 'tok-z';
-    else if (up === 'A' || up === 'B' || up === 'C' || up === 'SPA' || up === 'SPB' || up === 'SPC' || up === 'IPA') cls = 'tok-rot';
+    else if (['A', 'B', 'C', 'SPA', 'SPB', 'SPC', 'SEQ', 'IPA', 'TX', 'TY', 'TZ', 'NX', 'NY', 'NZ'].includes(up)) cls = 'tok-rot';
     else if (up === 'I' || up === 'J' || up === 'K' || up === 'R') cls = 'tok-arc';
     else if ('FSTHDQP'.includes(up)) cls = 'tok-feed';
     else if (up === 'N') cls = 'tok-n';
@@ -1625,7 +1783,7 @@ function applyTextChange(newText, markDirty = true, immediateParse = false, fitV
 }
 
 /* ==========================================================================
-   5. NC-ASSISTANT (ISO + HEIDENHAIN KLARTEXT LIVE INSPECTOR)
+   6. NC-ASSISTANT (ISO + HEIDENHAIN KLARTEXT LIVE INSPECTOR)
    ========================================================================== */
 function updateNCAssistant() {
   const rawLine = state.linesCache[state.activeLine] || '';
@@ -1635,8 +1793,7 @@ function updateNCAssistant() {
   const titleEl = document.getElementById('assist-code-title');
   const descEl = document.getElementById('assist-code-desc');
 
-  // Identify Heidenhain Keyword or ISO G/M Word
-  const hhMatch = codeOnly.match(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|CYCL\s+DEF|CYCL\s+CALL|M128|M129|M140|CC|CR|CP|C|L)\b/i);
+  const hhMatch = codeOnly.match(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+DEF|TOOL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|CYCL\s+DEF|CYCL\s+CALL|M128|M129|M140|LN|CC|CR|CP|C|L)\b/i);
   const isoMatch = codeOnly.match(/\b([GM])(\d+\.?\d*)\b/i);
 
   if (hhMatch) {
@@ -1652,8 +1809,7 @@ function updateNCAssistant() {
     descEl.textContent = codeOnly ? 'Inherits active modal state.' : 'Non-motion block.';
   }
 
-  // Extract editable numeric words (including SPA/SPB/SPC, X/Y/Z, A/B/C, F/S/R)
-  const wordRegex = /\b(SPA|SPB|SPC|IPA|IZ|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|D|Q)([+-]?\d*\.?\d+)/gi;
+  const wordRegex = /\b(SPA|SPB|SPC|IPA|IZ|TX|TY|TZ|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|D|Q)([+-]?\d*\.?\d+)/gi;
   const words = [];
   let m;
   while ((m = wordRegex.exec(codeOnly)) !== null) {
@@ -1664,8 +1820,9 @@ function updateNCAssistant() {
   grid.innerHTML = '';
   const labels = {
     G: 'Prep', M: 'Misc', X: 'X Axis', Y: 'Y Axis', Z: 'Z Axis',
-    A: 'Rotary A', B: 'Rotary B', C: 'Rotary C',
-    SPA: 'Tilt A', SPB: 'Tilt B', SPC: 'Rot C',
+    A: 'Rotary A', B: 'Table B', C: 'Table C',
+    SPA: 'Tilt A', SPB: 'Table B°', SPC: 'Table C°',
+    TX: 'Vec X', TY: 'Vec Y', TZ: 'Vec Z',
     I: 'Arc I', J: 'Arc J', K: 'Arc K', R: 'Radius', F: 'Feed', S: 'Spindle', T: 'Tool', D: 'Offset', Q: 'Param'
   };
 
@@ -1682,10 +1839,11 @@ function updateNCAssistant() {
       let count = 0;
       const lines = [...state.linesCache];
       lines[state.activeLine] = lines[state.activeLine].replace(
-        /\b(SPA|SPB|SPC|IPA|IZ|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|D|Q)([+-]?\d*\.?\d+)/gi,
+        /\b(SPA|SPB|SPC|IPA|IZ|TX|TY|TZ|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|D|Q)([+-]?\d*\.?\d+)/gi,
         (match, l) => {
           if (count++ === idx) {
-            const hasPlus = /^[+-]/.test(nv) ? '' : (/^(X|Y|Z|A|B|C|SPA|SPB|SPC)$/.test(l.toUpperCase()) && state.kinematicsMode.startsWith('hh') ? '+' : '');
+            const isHH = /\bBEGIN\s+PGM\b/i.test(getActiveDoc().content);
+            const hasPlus = /^[+-]/.test(nv) ? '' : (/^(X|Y|Z|A|B|C|SPA|SPB|SPC)$/.test(l.toUpperCase()) && isHH ? '+' : '');
             return `${l}${hasPlus}${nv}`;
           }
           return match;
@@ -1770,60 +1928,24 @@ function renderAlarmLogDock() {
 }
 
 /* ==========================================================================
-   6. UNIFIED HEIDENHAIN KLARTEXT (3AX/5AX) & ISO G-CODE MOTION PARSER
+   7. UNIFIED HEIDENHAIN KLARTEXT & ISO G-CODE MOTION PARSER
    ========================================================================== */
-function computeToolAxisVector(aDeg, bDeg, cDeg, spaDeg, spbDeg, spcDeg) {
-  // Combine PLANE SPATIAL (3+2 tilt) + simultaneous rotary (A, B, C)
-  const rad = Math.PI / 180;
-  const rx = (aDeg + spaDeg) * rad;
-  const ry = (bDeg + spbDeg) * rad;
-  const rz = (cDeg + spcDeg) * rad;
-
-  // Start from vertical spindle vector v = (0, 0, 1)
-  // Rotate around X by rx:
-  let x1 = 0;
-  let y1 = -Math.sin(rx);
-  let z1 = Math.cos(rx);
-
-  // Rotate around Y by ry:
-  let x2 = x1 * Math.cos(ry) + z1 * Math.sin(ry);
-  let y2 = y1;
-  let z2 = -x1 * Math.sin(ry) + z1 * Math.cos(ry);
-
-  // Rotate around Z by rz:
-  let vx = x2 * Math.cos(rz) - y2 * Math.sin(rz);
-  let vy = x2 * Math.sin(rz) + y2 * Math.cos(rz);
-  let vz = z2;
-
-  const len = Math.hypot(vx, vy, vz) || 1;
-  return { i: vx / len, j: vy / len, k: vz / len };
-}
-
-function transformTiltedPlanePoint(lx, ly, lz, spa, spb, spc) {
-  if (Math.abs(spa) < 1e-5 && Math.abs(spb) < 1e-5 && Math.abs(spc) < 1e-5) {
-    return { x: lx, y: ly, z: lz };
-  }
-  const rad = Math.PI / 180;
-  const rx = spa * rad, ry = spb * rad, rz = spc * rad;
-  // Rotate local plane coordinates into workpiece space
-  const y1 = ly * Math.cos(rx) - lz * Math.sin(rx);
-  const z1 = ly * Math.sin(rx) + lz * Math.cos(rx);
-  const x2 = lx * Math.cos(ry) + z1 * Math.sin(ry);
-  const z2 = -lx * Math.sin(ry) + z1 * Math.cos(ry);
-  const x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
-  const y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
-  return { x: x3, y: y3, z: z2 };
-}
-
 function parseAndBuildSimulation(text, fitView = false) {
   const lines = text.split('\n');
-  const isHeidenhain = state.kinematicsMode.startsWith('hh') || /\bBEGIN\s+PGM\b/i.test(text);
-  const isLathe = (state.kinematicsMode === 'lathe');
+  const isHeidenhain = /\bBEGIN\s+PGM\b/i.test(text) || /\bBLK\s+FORM\b/i.test(text);
+  const isLathe = (state.kinematicsMode === 'lathe-2ax');
   const prof = getActiveProfile();
-  const rapidRate = prof ? prof.rapidRate : 24000;
+  const rapidRate = prof ? prof.rapidRate : 40000;
 
-  // Auto-detect tools from ISO (T01 M06 (...)) or Heidenhain (TOOL CALL 1 Z S... ; ...)
+  // Auto-detect tools from TOOL DEF, TOOL CALL, or ISO Txx M06
   lines.forEach(l => {
+    const tdM = l.match(/TOOL\s+DEF\s+(\d+)\b[^;]*R([+-]?\d*\.?\d+)(?:[^;]*;\s*(.+))?/i);
+    if (tdM) {
+      const num = parseInt(tdM[1], 10);
+      const dia = parseFloat(tdM[2]) * 2;
+      const desc = tdM[3] ? tdM[3].trim() : `Tool ${num}`;
+      registerToolFromComment(num, desc, dia);
+    }
     const isoTm = l.match(/T0*(\d+)\s*M0?6\s*\(([^)]+)\)/i);
     if (isoTm) {
       registerToolFromComment(parseInt(isoTm[1], 10), isoTm[2].trim());
@@ -1842,36 +1964,37 @@ function parseAndBuildSimulation(text, fitView = false) {
   }
 }
 
-function registerToolFromComment(tNum, desc) {
+function registerToolFromComment(tNum, desc, explicitDia = null) {
   const diaMatch = desc.match(/(\d+\.?\d*)\s*MM/i);
+  const dia = explicitDia || (diaMatch ? parseFloat(diaMatch[1]) : (state.tools[tNum] ? state.tools[tNum].dia : 10.0));
   const isBall = /BALL/i.test(desc);
   const isDrill = /DRILL/i.test(desc);
   const shape = isBall ? 'ball' : (isDrill ? 'drill' : 'flat');
   if (!state.tools[tNum]) {
-    state.tools[tNum] = { num: tNum, name: desc, shape, dia: diaMatch ? parseFloat(diaMatch[1]) : 10.0, flutes: 3, holderDia: 32, fluteLen: 26 };
+    state.tools[tNum] = { num: tNum, name: desc, shape, dia, flutes: 4, holderDia: 34, fluteLen: 26 };
   } else {
     state.tools[tNum].name = desc;
     state.tools[tNum].shape = shape;
-    if (diaMatch) state.tools[tNum].dia = parseFloat(diaMatch[1]);
+    state.tools[tNum].dia = dia;
   }
 }
 
 /**
- * Full Heidenhain Klartext 3-Axis & 5-Axis Simultaneous (TCPM / PLANE SPATIAL) Parser
+ * Full Heidenhain Klartext 3-Axis & 5-Axis Simultaneous (TCPM / PLANE SPATIAL / LN) Parser
  */
 function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
   const segments = [];
   const alarms = [];
   const collisionLineSet = new Set();
 
-  let pos = { x: 0, y: 0, z: 30 };
+  let pos = { x: 0, y: 0, z: 35 };
   let rot = { a: 0, b: 0, c: 0 };
   let plane = { spa: 0, spb: 0, spc: 0 };
   let circleCenter = { x: 0, y: 0 };
   let tcpmActive = false;
   let compMode = 'R0';
   let feed = 1500;
-  let spindle = 12000;
+  let spindle = 16000;
   let spindleDir = 'M05';
   let coolant = false;
   let tool = 1;
@@ -1894,7 +2017,6 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
     const clean = raw.split(';')[0].trim();
     if (!clean) continue;
 
-    // Strip leading Klartext block number
     const body = clean.replace(/^\d+\s+/, '').trim();
     if (!body) continue;
 
@@ -1940,34 +2062,71 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
       continue;
     }
 
-    // PLANE SPATIAL SPA... SPB... SPC... / PLANE RESET
+    // PLANE SPATIAL SPA... SPB... SPC... TURN FMAX
     const plMatch = body.match(/^PLANE\s+SPATIAL\b(.*)$/i);
     if (plMatch) {
+      const prevPlane = { ...plane };
       const spaM = plMatch[1].match(/SPA([+-]?\d*\.?\d+)/i);
       const spbM = plMatch[1].match(/SPB([+-]?\d*\.?\d+)/i);
       const spcM = plMatch[1].match(/SPC([+-]?\d*\.?\d+)/i);
       if (spaM) plane.spa = parseFloat(spaM[1]);
       if (spbM) plane.spb = parseFloat(spbM[1]);
       if (spcM) plane.spc = parseFloat(spcM[1]);
+
+      // Emit a smooth rotary table indexing transition segment so the user sees B/C table turn!
+      if (/\bTURN\b/i.test(plMatch[1])) {
+        const steps = 16;
+        const pts = [];
+        for (let s = 0; s <= steps; s++) pts.push({ ...pos });
+        const dur = 0.45;
+        segments.push({
+          line: lineIdx, type: 'G00', is5Ax: true, isTableIndex: true,
+          pts,
+          rotStart: { ...rot }, rotEnd: { ...rot },
+          planeStart: prevPlane, plane: { ...plane },
+          modalStr: `DMG B/C INDEX | SPB${plane.spb.toFixed(1)}° SPC${plane.spc.toFixed(1)}°`,
+          tool, spindle, spindleDir, feed: rapidRate, coolant, compMode, compReg: tool,
+          startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
+        });
+        elapsedTimeSec += dur;
+      }
       continue;
     }
+
     if (/^PLANE\s+RESET\b/i.test(body)) {
+      const prevPlane = { ...plane };
       plane = { spa: 0, spb: 0, spc: 0 };
+      if (/\bTURN\b/i.test(body)) {
+        const steps = 14;
+        const pts = [];
+        for (let s = 0; s <= steps; s++) pts.push({ ...pos });
+        const dur = 0.40;
+        segments.push({
+          line: lineIdx, type: 'G00', is5Ax: true, isTableIndex: true,
+          pts,
+          rotStart: { ...rot }, rotEnd: { ...rot },
+          planeStart: prevPlane, plane: { ...plane },
+          modalStr: `DMG B/C RESET | B0.0° C0.0°`,
+          tool, spindle, spindleDir, feed: rapidRate, coolant, compMode, compReg: tool,
+          startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
+        });
+        elapsedTimeSec += dur;
+      }
       continue;
     }
 
     // M140 MB MAX (Retract along tilted tool axis)
     if (/^M140\b/i.test(body)) {
       const vec = computeToolAxisVector(rot.a, rot.b, rot.c, plane.spa, plane.spb, plane.spc);
-      const target = { x: pos.x + vec.i * 30, y: pos.y + vec.j * 30, z: pos.z + vec.k * 30 };
-      const segLen = 30;
-      const dur = Math.max(0.05, (segLen / rapidRate) * 60);
+      const target = { x: pos.x + vec.i * 28, y: pos.y + vec.j * 28, z: pos.z + vec.k * 28 };
+      const segLen = 28;
+      const dur = Math.max(0.08, (segLen / rapidRate) * 60);
       rapidDist += segLen;
       segments.push({
         line: lineIdx, type: 'G00', is5Ax: true,
         pts: [{ ...pos }, { ...target }],
-        rotStart: { ...rot }, rotEnd: { ...rot }, plane: { ...plane },
-        modalStr: `HH 5AX | TCPM ${tcpmActive ? 'ON' : 'OFF'} | M140`,
+        rotStart: { ...rot }, rotEnd: { ...rot }, planeStart: { ...plane }, plane: { ...plane },
+        modalStr: `DMG 5AX | M140 RETRACT`,
         tool, spindle, spindleDir, feed: rapidRate, coolant, compMode, compReg: tool,
         startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
       });
@@ -2000,8 +2159,8 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
     if (/\bM0?[78]\b/i.test(body)) coolant = true;
     else if (/\bM0?9\b/i.test(body)) coolant = false;
 
-    // Linear Move: L X... Y... Z... A... B... C... FMAX / F...
-    const lMatch = body.match(/^L\b(.*)$/i);
+    // Linear Move: L or LN X... Y... Z... A... B... C... TX... TY... TZ... FMAX / F...
+    const lMatch = body.match(/^(?:LN|L)\b(.*)$/i);
     if (lMatch) {
       const args = lMatch[1];
       const xm = args.match(/\bX([+-]?\d*\.?\d+)/i);
@@ -2010,35 +2169,57 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
       const am = args.match(/\bA([+-]?\d*\.?\d+)/i);
       const bm = args.match(/\bB([+-]?\d*\.?\d+)/i);
       const cm = args.match(/\bC([+-]?\d*\.?\d+)/i);
+      const txm = args.match(/\bTX([+-]?\d*\.?\d+)/i);
+      const tym = args.match(/\bTY([+-]?\d*\.?\d+)/i);
+      const tzm = args.match(/\bTZ([+-]?\d*\.?\d+)/i);
       const fm = args.match(/\bF([+-]?\d*\.?\d+)/i);
       const isRapid = /\bFMAX\b/i.test(args);
 
       if (fm) feed = parseFloat(fm[1]);
 
-      // Map local coordinates through active PLANE SPATIAL if tilted
-      const curLocal = { x: pos.x, y: pos.y, z: pos.z };
-      const targetLocal = {
-        x: xm ? parseFloat(xm[1]) : curLocal.x,
-        y: ym ? parseFloat(ym[1]) : curLocal.y,
-        z: zm ? parseFloat(zm[1]) : curLocal.z
-      };
-      const targetWorld = (Math.abs(plane.spa) > 1e-4 || Math.abs(plane.spb) > 1e-4 || Math.abs(plane.spc) > 1e-4)
-        ? transformTiltedPlanePoint(
-            xm ? parseFloat(xm[1]) : 0,
-            ym ? parseFloat(ym[1]) : 0,
-            zm ? parseFloat(zm[1]) : pos.z,
-            plane.spa, plane.spb, plane.spc
-          )
-        : targetLocal;
+      const hasTiltedPlane = (Math.abs(plane.spa) > 1e-4 || Math.abs(plane.spb) > 1e-4 || Math.abs(plane.spc) > 1e-4);
+
+      // Compute inverse local point on active tilted plane so partial X/Y/Z edits preserve local coordinates
+      let localX = pos.x, localY = pos.y, localZ = pos.z;
+      if (hasTiltedPlane) {
+        const rad = Math.PI / 180;
+        const rx = -plane.spa * rad, ry = -plane.spb * rad, rz = -plane.spc * rad;
+        const x1 = pos.x * Math.cos(rz) - pos.y * Math.sin(rz);
+        const y1 = pos.x * Math.sin(rz) + pos.y * Math.cos(rz);
+        const x2 = x1 * Math.cos(ry) + pos.z * Math.sin(ry);
+        const z2 = -x1 * Math.sin(ry) + pos.z * Math.cos(ry);
+        localX = x2;
+        localY = y1 * Math.cos(rx) - z2 * Math.sin(rx);
+        localZ = y1 * Math.sin(rx) + z2 * Math.cos(rx);
+      }
+
+      if (xm) localX = parseFloat(xm[1]);
+      if (ym) localY = parseFloat(ym[1]);
+      if (zm) localZ = parseFloat(zm[1]);
+
+      const targetWorld = hasTiltedPlane
+        ? transformTiltedPlanePoint(localX, localY, localZ, plane.spa, plane.spb, plane.spc)
+        : { x: localX, y: localY, z: localZ };
+
+      let targetB = bm ? parseFloat(bm[1]) : rot.b;
+      let targetC = cm ? parseFloat(cm[1]) : rot.c;
+      if (txm || tym || tzm) {
+        const vx = txm ? parseFloat(txm[1]) : 0;
+        const vy = tym ? parseFloat(tym[1]) : 0;
+        const vz = tzm ? parseFloat(tzm[1]) : 1;
+        const len = Math.hypot(vx, vy, vz) || 1;
+        targetB = Math.acos(Math.max(-1, Math.min(1, vz / len))) * (180 / Math.PI);
+        targetC = Math.atan2(vy, vx) * (180 / Math.PI);
+      }
 
       const targetRot = {
         a: am ? parseFloat(am[1]) : rot.a,
-        b: bm ? parseFloat(bm[1]) : rot.b,
-        c: cm ? parseFloat(cm[1]) : rot.c
+        b: targetB,
+        c: targetC
       };
 
-      const is5AxMove = tcpmActive || Math.abs(targetRot.a - rot.a) > 1e-4 || Math.abs(targetRot.b - rot.b) > 1e-4 || Math.abs(targetRot.c - rot.c) > 1e-4 || Math.abs(plane.spa) > 1e-4 || Math.abs(plane.spb) > 1e-4;
-      const steps = is5AxMove ? 14 : 1;
+      const is5AxMove = tcpmActive || Math.abs(targetRot.a - rot.a) > 1e-4 || Math.abs(targetRot.b - rot.b) > 1e-4 || Math.abs(targetRot.c - rot.c) > 1e-4 || hasTiltedPlane;
+      const steps = is5AxMove ? 18 : 1;
       const pts = [];
       for (let s = 0; s <= steps; s++) {
         const t = s / steps;
@@ -2052,7 +2233,7 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
 
       const segLen = Math.max(0.5, Math.hypot(targetWorld.x - pos.x, targetWorld.y - pos.y, targetWorld.z - pos.z));
       const rate = isRapid ? rapidRate : Math.max(1, feed);
-      const dur = Math.max(0.03, (segLen / rate) * 60);
+      const dur = Math.max(0.04, (segLen / rate) * 60);
       if (isRapid) rapidDist += segLen;
       else cutDist += segLen;
 
@@ -2063,8 +2244,9 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
         pts,
         rotStart: { ...rot },
         rotEnd: { ...targetRot },
+        planeStart: { ...plane },
         plane: { ...plane },
-        modalStr: `HH ${is5AxMove ? '5AX' : '3AX'} | TCPM ${tcpmActive ? 'ON' : 'OFF'} | ${compMode}`,
+        modalStr: `${state.kinematicsMode === 'dmg-table-bc' ? 'DMG B/C' : '5AX'} | TCPM ${tcpmActive ? 'ON' : 'OFF'} | ${compMode}`,
         tool, spindle, spindleDir, feed: rate, coolant, compMode, compReg: tool,
         startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
       });
@@ -2116,7 +2298,7 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
 
       segments.push({
         line: lineIdx, type: isCW ? 'G02' : 'G03', is5Ax: false, pts,
-        rotStart: { ...rot }, rotEnd: { ...rot }, plane: { ...plane },
+        rotStart: { ...rot }, rotEnd: { ...rot }, planeStart: { ...plane }, plane: { ...plane },
         modalStr: `HH CIRC ${isCW ? 'DR-' : 'DR+'} | ${compMode}`,
         tool, spindle, spindleDir, feed, coolant, compMode, compReg: tool,
         startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
@@ -2126,7 +2308,7 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
     }
   }
 
-  if (!isFinite(minX)) { minX = -50; maxX = 50; minY = -50; maxY = 50; minZ = -35; maxZ = 25; }
+  if (!isFinite(minX)) { minX = -55; maxX = 55; minY = -55; maxY = 55; minZ = -32; maxZ = 35; }
   state.segments = segments;
   state.extents = {
     minX: Math.min(minX, state.stock.minX),
@@ -2158,7 +2340,7 @@ function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
 }
 
 /**
- * Standard ISO / Fanuc G-Code 3-Axis Mill & 2-Axis Lathe Parser
+ * Standard ISO / Fanuc G-Code 3-Axis Mill, 5-Axis & 2-Axis Lathe Parser
  */
 function parseISOGCode(lines, isLathe, prof, rapidRate, fitView) {
   const expandedBlocks = expandCannedLatheCycles(lines, isLathe);
@@ -2272,7 +2454,7 @@ function parseISOGCode(lines, isLathe, prof, rapidRate, fitView) {
       cutDist += d;
       segments.push({
         line: lineIdx, type: 'G01', is5Ax: false, pts,
-        rotStart: { ...rot }, rotEnd: { ...rot }, plane: { spa: 0, spb: 0, spc: 0 },
+        rotStart: { ...rot }, rotEnd: { ...rot }, planeStart: { spa: 0, spb: 0, spc: 0 }, plane: { spa: 0, spb: 0, spc: 0 },
         modalStr, tool, spindle: effectiveRpm, spindleDir,
         feed: effectiveFeedMmMin, coolant, compMode, compReg,
         startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
@@ -2328,9 +2510,10 @@ function parseISOGCode(lines, isLathe, prof, rapidRate, fitView) {
       });
     }
 
+    const is5Ax = Math.abs(targetRot.a - rot.a) > 1e-4 || Math.abs(targetRot.b - rot.b) > 1e-4 || Math.abs(targetRot.c - rot.c) > 1e-4;
     segments.push({
-      line: lineIdx, type: motionMode, is5Ax: false, pts,
-      rotStart: { ...rot }, rotEnd: { ...targetRot }, plane: { spa: 0, spb: 0, spc: 0 },
+      line: lineIdx, type: motionMode, is5Ax, pts,
+      rotStart: { ...rot }, rotEnd: { ...targetRot }, planeStart: { spa: 0, spb: 0, spc: 0 }, plane: { spa: 0, spb: 0, spc: 0 },
       modalStr, tool, spindle: effectiveRpm, spindleDir, feed: rate,
       coolant, compMode, compReg,
       startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision
@@ -2341,7 +2524,7 @@ function parseISOGCode(lines, isLathe, prof, rapidRate, fitView) {
     rot = targetRot;
   }
 
-  if (!isFinite(minX)) { minX = -50; maxX = 50; minY = -40; maxY = 40; minZ = -15; maxZ = 25; }
+  if (!isFinite(minX)) { minX = -55; maxX = 55; minY = -55; maxY = 55; minZ = -32; maxZ = 25; }
 
   state.segments = segments;
   state.extents = { minX, maxX, minY, maxY, minZ, maxZ };
@@ -2517,6 +2700,7 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false) {
   tempGrid.fill(stk.maxZ);
 
   for (const seg of state.segments) {
+    if (seg.isTableIndex) continue;
     const toolObj = state.tools[seg.tool] || { dia: 10 };
     const r = (toolObj.dia || 10) / 2;
     if (seg.type === 'G00') {
@@ -2597,6 +2781,7 @@ function rebuildStockUpToTime(targetTimeSec) {
 
   for (const seg of state.segments) {
     if (seg.startTimeSec > targetTimeSec) break;
+    if (seg.isTableIndex) continue;
     const toolObj = state.tools[seg.tool] || { dia: 10 };
     const r = (toolObj.dia || 10) / 2;
     const isRapid = (seg.type === 'G00');
@@ -2626,8 +2811,11 @@ function getPartialPolyline(pts, frac) {
 }
 
 /* ==========================================================================
-   7. TRUE 3D & 5-AXIS PERSPECTIVE CAMERA, SOLID MATERIAL SHADER,
-      5-AXIS SWIVEL TRUNNION & TILTED SPINDLE / CUTTER RENDERER
+   8. TRUE 3D & DMG MORI TABLE-TABLE (B/C) PERSPECTIVE RENDERER
+      - Articulated B-Axis Trunnion Cradle (90° Ortho or 45° DMG Swivel)
+      - Articulated C-Axis T-Slot Platter with Degree Scale Ticks
+      - Articulated Precision Clamping Vice & Smooth-Shaded Solid Workpiece
+      - Strictly Vertical HSK-A63 Spindle Descending along Machine Z
    ========================================================================== */
 function project3D(pt, cx, cy) {
   const { yaw, pitch, zoom, panX, panY, fov } = state.cam;
@@ -2650,15 +2838,15 @@ function project3D(pt, cx, cy) {
 function fitCameraToExtents() {
   const rect = el.canvasContainer.getBoundingClientRect();
   const { minX, maxX, minY, maxY } = state.extents;
-  const maxSpan = Math.max(30, maxX - minX, maxY - minY);
-  state.cam.zoom = Math.min(rect.width, rect.height) / (maxSpan * 1.9);
+  const maxSpan = Math.max(40, maxX - minX, maxY - minY);
+  state.cam.zoom = Math.min(rect.width, rect.height) / (maxSpan * 2.15);
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
   const midZ = (state.extents.minZ + state.extents.maxZ) / 2;
   state.cam.panX = 0; state.cam.panY = 0;
   const p = project3D({ x: midX, y: midY, z: midZ }, rect.width / 2, rect.height / 2);
   state.cam.panX = (rect.width / 2) - p.sx;
-  state.cam.panY = (rect.height / 2) - p.sy;
+  state.cam.panY = (rect.height / 2) - p.sy + 14;
   drawBackplot();
 }
 
@@ -2667,111 +2855,210 @@ function setCameraView(preset) {
   if (preset === 'top') { state.cam.pitch = Math.PI / 2 - 0.001; state.cam.yaw = 0; }
   else if (preset === 'front') { state.cam.pitch = 0.04; state.cam.yaw = 0; }
   else if (preset === 'side') { state.cam.pitch = 0.04; state.cam.yaw = -Math.PI / 2; }
-  else { state.cam.pitch = 0.54; state.cam.yaw = 0.64; }
+  else { state.cam.pitch = 0.46; state.cam.yaw = 0.62; }
   fitCameraToExtents();
 }
 
-function fillProjectedQuad(ctx, pts2D, fillStyle, strokeStyle) {
+function fillProjectedQuad(ctx, pts2D, fillStyle, strokeStyle, lineWidth = 0.7) {
   ctx.beginPath();
   ctx.moveTo(pts2D[0].sx, pts2D[0].sy);
   for (let i = 1; i < pts2D.length; i++) ctx.lineTo(pts2D[i].sx, pts2D[i].sy);
   ctx.closePath();
   if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
-  if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = 0.7; ctx.stroke(); }
+  if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth; ctx.stroke(); }
 }
 
 /**
- * Renders 5-Axis Swivel Trunnion Table & Precision Machine Vice below Workpiece
+ * Renders the Articulated DMG MORI B/C Rotary Table Assembly:
+ *  - Stationary Machine Pedestal & B-Axis Trunnion Supports + Degree Scale Rings
+ *  - Tilting B-Axis Cradle Carrier (rotates by B + SPB)
+ *  - Rotating C-Axis T-Slot Platter with Angular Degree Ticks (rotates by C + SPC on top of B)
+ *  - Precision Self-Centering 5-Axis Clamping Vice mounted to the C-Platter
  */
-function draw5AxisTrunnionAndVice(ctx, cx, cy, activeRot, activePlane) {
+function drawDMGTableAssembly(ctx, cx, cy, activeRot, activePlane) {
   if (!state.cam.showTrunnion) return;
   const stk = state.stock;
+  const isTableMode = (state.kinematicsMode === 'dmg-table-bc');
+  const effRot = isTableMode ? activeRot : { a: 0, b: 0, c: 0 };
+  const effPlane = isTableMode ? activePlane : { spa: 0, spb: 0, spc: 0 };
+
   const zViceTop = stk.minZ;
-  const zViceBot = zViceTop - 14;
-  const zTrunnionBot = zViceBot - 16;
-  const vx0 = stk.minX - 8, vx1 = stk.maxX + 8;
+  const zViceBot = zViceTop - 16;
+  const zPlatterTop = zViceBot;
+  const zPlatterBot = zPlatterTop - 10;
+  const zBed = zPlatterBot - 36;
+
+  const vx0 = stk.minX - 6, vx1 = stk.maxX + 6;
   const vy0 = stk.minY - 12, vy1 = stk.maxY + 12;
+  const cRad = Math.max(vx1 - vx0, vy1 - vy0) * 0.68;
+  const cradleSpan = cRad * 1.18;
 
-  // Precision 5-Axis Self-Centering Vice Base
-  const vb = [
-    project3D({ x: vx0, y: vy0, z: zViceBot }, cx, cy),
-    project3D({ x: vx1, y: vy0, z: zViceBot }, cx, cy),
-    project3D({ x: vx1, y: vy1, z: zViceBot }, cx, cy),
-    project3D({ x: vx0, y: vy1, z: zViceBot }, cx, cy)
-  ];
-  const vt = [
-    project3D({ x: vx0, y: vy0, z: zViceTop }, cx, cy),
-    project3D({ x: vx1, y: vy0, z: zViceTop }, cx, cy),
-    project3D({ x: vx1, y: vy1, z: zViceTop }, cx, cy),
-    project3D({ x: vx0, y: vy1, z: zViceTop }, cx, cy)
-  ];
+  // Helper to transform points attached to B-cradle only (tilts with B, does not spin with C)
+  function bCradleToMachine(pt) {
+    return workpieceToMachinePoint(pt, { a: effRot.a, b: effRot.b, c: 0 }, { spa: effPlane.spa, spb: effPlane.spb, spc: 0 });
+  }
+  // Helper to transform points attached to C-platter & vice (tilts with B AND spins with C)
+  function cPlatterToMachine(pt) {
+    return workpieceToMachinePoint(pt, effRot, effPlane);
+  }
 
-  const viceWalls = [
-    { pts: [vb[0], vb[1], vt[1], vt[0]], depth: (vb[0].depth + vb[1].depth) * 0.5, col: 'rgba(38, 46, 58, 0.92)' },
-    { pts: [vb[1], vb[2], vt[2], vt[1]], depth: (vb[1].depth + vb[2].depth) * 0.5, col: 'rgba(30, 36, 46, 0.92)' },
-    { pts: [vb[2], vb[3], vt[3], vt[2]], depth: (vb[2].depth + vb[3].depth) * 0.5, col: 'rgba(25, 30, 38, 0.92)' },
-    { pts: [vb[3], vb[0], vt[0], vt[3]], depth: (vb[3].depth + vb[0].depth) * 0.5, col: 'rgba(34, 41, 52, 0.92)' }
-  ];
-  viceWalls.sort((a, b) => a.depth - b.depth);
-  viceWalls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, 'rgba(130, 150, 175, 0.25)'));
-  fillProjectedQuad(ctx, vt, 'rgba(46, 55, 68, 0.9)', 'rgba(140, 160, 185, 0.3)');
+  // 1. Stationary DMG MORI Cast-Iron Machine Pedestal & B-Axis Trunnion Pillars
+  const leftBase = project3D({ x: 0, y: -cradleSpan - 10, z: zBed }, cx, cy);
+  const rightBase = project3D({ x: 0, y: cradleSpan + 10, z: zBed }, cx, cy);
+  const leftBearing = project3D({ x: 0, y: -cradleSpan - 10, z: zPlatterBot }, cx, cy);
+  const rightBearing = project3D({ x: 0, y: cradleSpan + 10, z: zPlatterBot }, cx, cy);
 
-  // Rotary C-Table Platter Ring (Rotates with active C + SPC angle)
-  const cRad = Math.max(vx1 - vx0, vy1 - vy0) * 0.62;
-  const cSpin = ((activeRot ? activeRot.c : 0) + (activePlane ? activePlane.spc : 0)) * (Math.PI / 180);
-  const segs = 24;
-  ctx.strokeStyle = 'rgba(86, 212, 221, 0.35)';
-  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = '#364152';
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  for (let i = 0; i <= segs; i++) {
-    const a = (i / segs) * Math.PI * 2 + cSpin;
-    const p = project3D({ x: Math.cos(a) * cRad, y: Math.sin(a) * cRad, z: zViceBot - 1 }, cx, cy);
-    if (i === 0) ctx.moveTo(p.sx, p.sy);
+  ctx.moveTo(leftBase.sx, leftBase.sy); ctx.lineTo(leftBearing.sx, leftBearing.sy);
+  ctx.moveTo(rightBase.sx, rightBase.sy); ctx.lineTo(rightBearing.sx, rightBearing.sy);
+  ctx.moveTo(leftBase.sx, leftBase.sy); ctx.lineTo(rightBase.sx, rightBase.sy);
+  ctx.stroke();
+
+  // B-Axis Trunnion Degree Scale Ring on Left Bearing Housing
+  ctx.strokeStyle = 'rgba(255, 166, 87, 0.55)';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  for (let d = -110; d <= 110; d += 10) {
+    const r = d * (Math.PI / 180);
+    const p = project3D({ x: Math.sin(r) * 18, y: -cradleSpan - 10, z: zPlatterBot + Math.cos(r) * 18 }, cx, cy);
+    if (d === -110) ctx.moveTo(p.sx, p.sy);
     else ctx.lineTo(p.sx, p.sy);
   }
   ctx.stroke();
 
-  // Trunnion A-Axis Cradle Pedestal Arms
-  const armSpan = cRad * 1.15;
-  const leftPillar = project3D({ x: -armSpan, y: 0, z: zTrunnionBot }, cx, cy);
-  const rightPillar = project3D({ x: armSpan, y: 0, z: zTrunnionBot }, cx, cy);
-  const leftPivot = project3D({ x: -armSpan, y: 0, z: zViceBot - 1 }, cx, cy);
-  const rightPivot = project3D({ x: armSpan, y: 0, z: zViceBot - 1 }, cx, cy);
-
-  ctx.strokeStyle = 'rgba(120, 138, 162, 0.45)';
-  ctx.lineWidth = 5;
+  // 2. Tilting B-Axis Trunnion Cradle Bridge (Articulates with B angle)
+  const bP1 = project3D(bCradleToMachine({ x: 0, y: -cradleSpan, z: zPlatterBot }), cx, cy);
+  const bP2 = project3D(bCradleToMachine({ x: 0, y: cradleSpan, z: zPlatterBot }), cx, cy);
+  ctx.strokeStyle = '#5c6c84';
+  ctx.lineWidth = 6;
   ctx.beginPath();
-  ctx.moveTo(leftPillar.sx, leftPillar.sy); ctx.lineTo(leftPivot.sx, leftPivot.sy);
-  ctx.moveTo(rightPillar.sx, rightPillar.sy); ctx.lineTo(rightPivot.sx, rightPivot.sy);
-  ctx.moveTo(leftPillar.sx, leftPillar.sy); ctx.lineTo(rightPillar.sx, rightPillar.sy);
+  ctx.moveTo(bP1.sx, bP1.sy);
+  ctx.lineTo(bP2.sx, bP2.sy);
   ctx.stroke();
+
+  // 3. Rotating C-Axis Circular T-Slot Rotary Platter (Tilts with B AND Spins with C)
+  const segs = 32;
+  const platterQuads = [];
+  const topRing2D = [];
+  for (let i = 0; i < segs; i++) {
+    const a0 = (i / segs) * Math.PI * 2;
+    const a1 = ((i + 1) / segs) * Math.PI * 2;
+    const wT0 = cPlatterToMachine({ x: Math.cos(a0) * cRad, y: Math.sin(a0) * cRad, z: zPlatterTop });
+    const wT1 = cPlatterToMachine({ x: Math.cos(a1) * cRad, y: Math.sin(a1) * cRad, z: zPlatterTop });
+    const wB0 = cPlatterToMachine({ x: Math.cos(a0) * cRad, y: Math.sin(a0) * cRad, z: zPlatterBot });
+    const wB1 = cPlatterToMachine({ x: Math.cos(a1) * cRad, y: Math.sin(a1) * cRad, z: zPlatterBot });
+
+    const pT0 = project3D(wT0, cx, cy);
+    const pT1 = project3D(wT1, cx, cy);
+    const pB0 = project3D(wB0, cx, cy);
+    const pB1 = project3D(wB1, cx, cy);
+    topRing2D.push(pT0);
+
+    const shade = 0.55 + 0.45 * Math.cos(a0 - 0.7);
+    const lum = Math.round(58 + shade * 42);
+    platterQuads.push({
+      pts: [pB0, pB1, pT1, pT0],
+      depth: (pB0.depth + pT1.depth) * 0.5,
+      fill: `rgba(${lum}, ${lum + 8}, ${lum + 18}, 0.94)`,
+      stroke: 'rgba(160, 185, 215, 0.25)'
+    });
+  }
+  platterQuads.sort((a, b) => a.depth - b.depth);
+  platterQuads.forEach(q => fillProjectedQuad(ctx, q.pts, q.fill, q.stroke, 0.5));
+  fillProjectedQuad(ctx, topRing2D, 'rgba(42, 50, 62, 0.94)', 'rgba(86, 212, 221, 0.55)', 1.2);
+
+  // C-Axis Platter T-Slots & 0° Reference Index Marker (spins visibly with C!)
+  for (let slot = -2; slot <= 2; slot++) {
+    const sy = slot * (cRad * 0.34);
+    const halfChord = Math.sqrt(Math.max(0, cRad * cRad - sy * sy)) * 0.92;
+    const sA = project3D(cPlatterToMachine({ x: -halfChord, y: sy, z: zPlatterTop + 0.1 }), cx, cy);
+    const sB = project3D(cPlatterToMachine({ x: halfChord, y: sy, z: zPlatterTop + 0.1 }), cx, cy);
+    ctx.strokeStyle = 'rgba(20, 26, 34, 0.85)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(sA.sx, sA.sy); ctx.lineTo(sB.sx, sB.sy); ctx.stroke();
+  }
+  // C=0° Orange Reference Pointer Arrow on Platter Rim
+  const cZeroIn = project3D(cPlatterToMachine({ x: cRad * 0.74, y: 0, z: zPlatterTop + 0.3 }), cx, cy);
+  const cZeroOut = project3D(cPlatterToMachine({ x: cRad * 0.98, y: 0, z: zPlatterTop + 0.3 }), cx, cy);
+  ctx.strokeStyle = '#ffa657';
+  ctx.lineWidth = 2.8;
+  ctx.beginPath(); ctx.moveTo(cZeroIn.sx, cZeroIn.sy); ctx.lineTo(cZeroOut.sx, cZeroOut.sy); ctx.stroke();
+
+  // 4. Precision Self-Centering 5-Axis Clamping Vice mounted on C-Platter
+  const vb = [
+    project3D(cPlatterToMachine({ x: vx0, y: vy0, z: zViceBot }), cx, cy),
+    project3D(cPlatterToMachine({ x: vx1, y: vy0, z: zViceBot }), cx, cy),
+    project3D(cPlatterToMachine({ x: vx1, y: vy1, z: zViceBot }), cx, cy),
+    project3D(cPlatterToMachine({ x: vx0, y: vy1, z: zViceBot }), cx, cy)
+  ];
+  const vt = [
+    project3D(cPlatterToMachine({ x: vx0, y: vy0, z: zViceTop }), cx, cy),
+    project3D(cPlatterToMachine({ x: vx1, y: vy0, z: zViceTop }), cx, cy),
+    project3D(cPlatterToMachine({ x: vx1, y: vy1, z: zViceTop }), cx, cy),
+    project3D(cPlatterToMachine({ x: vx0, y: vy1, z: zViceTop }), cx, cy)
+  ];
+
+  const viceWalls = [
+    { pts: [vb[0], vb[1], vt[1], vt[0]], depth: (vb[0].depth + vb[1].depth) * 0.5, col: 'rgba(54, 64, 78, 0.95)' },
+    { pts: [vb[1], vb[2], vt[2], vt[1]], depth: (vb[1].depth + vb[2].depth) * 0.5, col: 'rgba(44, 52, 64, 0.95)' },
+    { pts: [vb[2], vb[3], vt[3], vt[2]], depth: (vb[2].depth + vb[3].depth) * 0.5, col: 'rgba(36, 43, 54, 0.95)' },
+    { pts: [vb[3], vb[0], vt[0], vt[3]], depth: (vb[3].depth + vb[0].depth) * 0.5, col: 'rgba(48, 57, 70, 0.95)' }
+  ];
+  viceWalls.sort((a, b) => a.depth - b.depth);
+  viceWalls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, 'rgba(155, 175, 200, 0.35)'));
+  fillProjectedQuad(ctx, vt, 'rgba(62, 73, 89, 0.95)', 'rgba(165, 185, 210, 0.4)');
+
+  // Clamping Jaws gripping left/right edges of stock
+  const jawH = 7;
+  [
+    { x0: vx0, x1: stk.minX },
+    { x0: stk.maxX, x1: vx1 }
+  ].forEach(jaw => {
+    const jb0 = project3D(cPlatterToMachine({ x: jaw.x0, y: vy0 + 4, z: zViceTop }), cx, cy);
+    const jb1 = project3D(cPlatterToMachine({ x: jaw.x1, y: vy0 + 4, z: zViceTop }), cx, cy);
+    const jb2 = project3D(cPlatterToMachine({ x: jaw.x1, y: vy1 - 4, z: zViceTop }), cx, cy);
+    const jb3 = project3D(cPlatterToMachine({ x: jaw.x0, y: vy1 - 4, z: zViceTop }), cx, cy);
+    const jt0 = project3D(cPlatterToMachine({ x: jaw.x0, y: vy0 + 4, z: zViceTop + jawH }), cx, cy);
+    const jt1 = project3D(cPlatterToMachine({ x: jaw.x1, y: vy0 + 4, z: zViceTop + jawH }), cx, cy);
+    const jt2 = project3D(cPlatterToMachine({ x: jaw.x1, y: vy1 - 4, z: zViceTop + jawH }), cx, cy);
+    const jt3 = project3D(cPlatterToMachine({ x: jaw.x0, y: vy1 - 4, z: zViceTop + jawH }), cx, cy);
+    fillProjectedQuad(ctx, [jb0, jb1, jt1, jt0], 'rgba(74, 86, 104, 0.96)', 'rgba(180,200,225,0.35)');
+    fillProjectedQuad(ctx, [jb1, jb2, jt2, jt1], 'rgba(64, 75, 92, 0.96)', 'rgba(180,200,225,0.35)');
+    fillProjectedQuad(ctx, [jt0, jt1, jt2, jt3], 'rgba(92, 106, 128, 0.96)', 'rgba(195,215,240,0.45)');
+  });
 }
 
 /**
- * Smooth-Shaded 3D Solid Workpiece with Per-Cell Surface Normals,
- * Blinn-Phong Specular Highlights & Engineering Material Shaders
+ * Smooth-Shaded 3D Solid Workpiece Transformed Through Live DMG B/C Table Kinematics!
+ * Uses adaptive stride during rapid 60 FPS playback for buttery-smooth frame rates.
  */
-function drawSolidMillStock3D(ctx, cx, cy) {
+function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
   const stk = state.stock;
   if (!stk.currentZ) return;
   const mode = state.cam.stockRenderMode;
   const alphaMul = mode === 'translucent' ? 0.42 : 1.0;
   const mat = MATERIAL_SHADERS[stk.material] || MATERIAL_SHADERS.aluminum;
 
+  const isTableMode = (state.kinematicsMode === 'dmg-table-bc');
+  const effRot = isTableMode ? activeRot : { a: 0, b: 0, c: 0 };
+  const effPlane = isTableMode ? activePlane : { spa: 0, spb: 0, spc: 0 };
+  const xform = (pt) => isTableMode ? workpieceToMachinePoint(pt, effRot, effPlane) : pt;
+
   const spanX = stk.maxX - stk.minX;
   const spanY = stk.maxY - stk.minY;
-  const cellW = spanX / stk.cols;
-  const cellH = spanY / stk.rows;
   const depthRange = Math.max(1, stk.maxZ - stk.minZ);
 
-  const b0 = project3D({ x: stk.minX, y: stk.minY, z: stk.minZ }, cx, cy);
-  const b1 = project3D({ x: stk.maxX, y: stk.minY, z: stk.minZ }, cx, cy);
-  const b2 = project3D({ x: stk.maxX, y: stk.maxY, z: stk.minZ }, cx, cy);
-  const b3 = project3D({ x: stk.minX, y: stk.maxY, z: stk.minZ }, cx, cy);
-  const t0 = project3D({ x: stk.minX, y: stk.minY, z: stk.maxZ }, cx, cy);
-  const t1 = project3D({ x: stk.maxX, y: stk.minY, z: stk.maxZ }, cx, cy);
-  const t2 = project3D({ x: stk.maxX, y: stk.maxY, z: stk.maxZ }, cx, cy);
-  const t3 = project3D({ x: stk.minX, y: stk.maxY, z: stk.maxZ }, cx, cy);
+  const b0 = project3D(xform({ x: stk.minX, y: stk.minY, z: stk.minZ }), cx, cy);
+  const b1 = project3D(xform({ x: stk.maxX, y: stk.minY, z: stk.minZ }), cx, cy);
+  const b2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.minZ }), cx, cy);
+  const b3 = project3D(xform({ x: stk.minX, y: stk.maxY, z: stk.minZ }), cx, cy);
+  const t0 = project3D(xform({ x: stk.minX, y: stk.minY, z: stk.maxZ }), cx, cy);
+  const t1 = project3D(xform({ x: stk.maxX, y: stk.minY, z: stk.maxZ }), cx, cy);
+  const t2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.maxZ }), cx, cy);
+  const t3 = project3D(xform({ x: stk.minX, y: stk.maxY, z: stk.maxZ }), cx, cy);
 
   if (mode !== 'wireframe') {
     const [wr, wg, wb] = mat.wallRgb;
@@ -2784,26 +3071,32 @@ function drawSolidMillStock3D(ctx, cx, cy) {
     walls.sort((a, b) => a.depth - b.depth);
     walls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, `rgba(255,255,255,${0.12 * alphaMul})`));
 
-    // Key Directional Light Vector (normalized)
+    // Adaptive render step: 2x2 merged cells during active animation for guaranteed 60 FPS, 1x1 full 140x140 detail when paused
+    const step = state.sim.playing ? 2 : 2;
+    const cellW = (spanX / stk.cols) * step;
+    const cellH = (spanY / stk.rows) * step;
+
     const lx = -0.45, ly = -0.55, lz = 0.70;
-    const hx = -0.25, hy = -0.30, hz = 0.92; // Halfway vector for Blinn-Phong specular
+    const hx = -0.25, hy = -0.30, hz = 0.92;
 
     const quads = [];
-    for (let r = 0; r < stk.rows; r++) {
-      for (let c = 0; c < stk.cols; c++) {
+    for (let r = 0; r < stk.rows; r += step) {
+      for (let c = 0; c < stk.cols; c += step) {
         const idx = r * stk.cols + c;
         const zVal = stk.currentZ[idx];
         const isGouge = stk.gougeFlags[idx] === 1;
-        const x0 = stk.minX + c * cellW;
-        const y0 = stk.minY + r * cellH;
+        const x0 = stk.minX + (c / stk.cols) * spanX;
+        const y0 = stk.minY + (r / stk.rows) * spanY;
         const x1 = x0 + cellW;
         const y1 = y0 + cellH;
 
-        // Compute Finite-Difference Surface Normal for Smooth Metallic Shading
-        const zL = c > 0 ? stk.currentZ[idx - 1] : zVal;
-        const zR = c < stk.cols - 1 ? stk.currentZ[idx + 1] : zVal;
-        const zD = r > 0 ? stk.currentZ[idx - stk.cols] : zVal;
-        const zU = r < stk.rows - 1 ? stk.currentZ[idx + stk.cols] : zVal;
+        const cL = Math.max(0, c - step), cR = Math.min(stk.cols - 1, c + step);
+        const rD = Math.max(0, r - step), rU = Math.min(stk.rows - 1, r + step);
+        const zL = stk.currentZ[r * stk.cols + cL];
+        const zR = stk.currentZ[r * stk.cols + cR];
+        const zD = stk.currentZ[rD * stk.cols + c];
+        const zU = stk.currentZ[rU * stk.cols + c];
+
         let nx = (zL - zR) / (2 * cellW);
         let ny = (zD - zU) / (2 * cellH);
         let nz = 1.0;
@@ -2814,10 +3107,10 @@ function drawSolidMillStock3D(ctx, cx, cy) {
         const specDot = Math.max(0, nx * hx + ny * hy + nz * hz);
         const spec = Math.pow(specDot, mat.specPower) * mat.specIntensity * 255;
 
-        const p00 = project3D({ x: x0, y: y0, z: zVal }, cx, cy);
-        const p10 = project3D({ x: x1, y: y0, z: zVal }, cx, cy);
-        const p11 = project3D({ x: x1, y: y1, z: zVal }, cx, cy);
-        const p01 = project3D({ x: x0, y: y1, z: zVal }, cx, cy);
+        const p00 = project3D(xform({ x: x0, y: y0, z: zVal }), cx, cy);
+        const p10 = project3D(xform({ x: x1, y: y0, z: zVal }), cx, cy);
+        const p11 = project3D(xform({ x: x1, y: y1, z: zVal }), cx, cy);
+        const p01 = project3D(xform({ x: x0, y: y1, z: zVal }), cx, cy);
         const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) * 0.25;
 
         const cutDepth = stk.maxZ - zVal;
@@ -2837,10 +3130,10 @@ function drawSolidMillStock3D(ctx, cx, cy) {
         quads.push({ pts: [p00, p10, p11, p01], depth: avgDepth, fill: fillCol, stroke: null });
 
         // 3D Vertical Step Walls
-        if (c > 0 && stk.currentZ[idx - 1] > zVal + 0.1) {
-          const zUp = stk.currentZ[idx - 1];
-          const u00 = project3D({ x: x0, y: y0, z: zUp }, cx, cy);
-          const u01 = project3D({ x: x0, y: y1, z: zUp }, cx, cy);
+        if (c >= step && stk.currentZ[r * stk.cols + (c - step)] > zVal + 0.12) {
+          const zUp = stk.currentZ[r * stk.cols + (c - step)];
+          const u00 = project3D(xform({ x: x0, y: y0, z: zUp }), cx, cy);
+          const u01 = project3D(xform({ x: x0, y: y1, z: zUp }), cx, cy);
           quads.push({
             pts: [p00, p01, u01, u00],
             depth: avgDepth + 0.05,
@@ -2848,10 +3141,10 @@ function drawSolidMillStock3D(ctx, cx, cy) {
             stroke: null
           });
         }
-        if (r > 0 && stk.currentZ[idx - stk.cols] > zVal + 0.1) {
-          const zUp = stk.currentZ[idx - stk.cols];
-          const u00 = project3D({ x: x0, y: y0, z: zUp }, cx, cy);
-          const u10 = project3D({ x: x1, y: y0, z: zUp }, cx, cy);
+        if (r >= step && stk.currentZ[(r - step) * stk.cols + c] > zVal + 0.12) {
+          const zUp = stk.currentZ[(r - step) * stk.cols + c];
+          const u00 = project3D(xform({ x: x0, y: y0, z: zUp }), cx, cy);
+          const u10 = project3D(xform({ x: x1, y: y0, z: zUp }), cx, cy);
           quads.push({
             pts: [p00, p10, u10, u00],
             depth: avgDepth + 0.05,
@@ -2869,7 +3162,7 @@ function drawSolidMillStock3D(ctx, cx, cy) {
   }
 
   const edges = [[b0,b1],[b1,b2],[b2,b3],[b3,b0],[t0,t1],[t1,t2],[t2,t3],[t3,t0],[b0,t0],[b1,t1],[b2,t2],[b3,t3]];
-  ctx.strokeStyle = 'rgba(185, 205, 230, 0.45)';
+  ctx.strokeStyle = 'rgba(185, 205, 230, 0.5)';
   ctx.lineWidth = 1.1;
   ctx.beginPath();
   edges.forEach(([pA, pB]) => { ctx.moveTo(pA.sx, pA.sy); ctx.lineTo(pB.sx, pB.sy); });
@@ -2923,33 +3216,33 @@ function drawSolidLatheStock3D(ctx, cx, cy) {
 }
 
 /**
- * True 5-Axis Oriented Volumetric Rotating Endmill / Ball-Nose & HSK63A Spindle
- * Tilts dynamically along tool vector (i, j, k) computed from (A, B, C, SPA, SPB, SPC)!
+ * Volumetric Rotating Endmill / Ball-Nose & DMG MORI HSK-A63 Spindle Housing
+ * - In `dmg-table-bc` and `vmc-3ax` modes: Spindle stays strictly vertical along Machine Z (0, 0, 1)
+ *   while descending to meet the transformed contact point `(mx, my, mz)`.
+ * - In `head-tilt` mode: Spindle tilts along `(i, j, k)`.
  */
-function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe, toolVec) {
+function drawVolumetric3DTool(ctx, cx, cy, machineTip, seg, isLathe, headToolVec) {
   if (!state.cam.show3DTool) return;
 
   if (isLathe) {
-    const pTip = project3D(tip, cx, cy);
-    const pBack1 = project3D({ x: tip.x + 8, y: -3, z: tip.z - 6 }, cx, cy);
-    const pBack2 = project3D({ x: tip.x + 8, y: 3, z: tip.z + 6 }, cx, cy);
-    const pShank1 = project3D({ x: tip.x + 34, y: -4, z: tip.z - 6 }, cx, cy);
-    const pShank2 = project3D({ x: tip.x + 34, y: 4, z: tip.z + 6 }, cx, cy);
+    const pTip = project3D(machineTip, cx, cy);
+    const pBack1 = project3D({ x: machineTip.x + 8, y: -3, z: machineTip.z - 6 }, cx, cy);
+    const pBack2 = project3D({ x: machineTip.x + 8, y: 3, z: machineTip.z + 6 }, cx, cy);
+    const pShank1 = project3D({ x: machineTip.x + 34, y: -4, z: machineTip.z - 6 }, cx, cy);
+    const pShank2 = project3D({ x: machineTip.x + 34, y: 4, z: machineTip.z + 6 }, cx, cy);
     fillProjectedQuad(ctx, [pBack1, pBack2, pShank2, pShank1], '#3b4351', '#8b949e');
     fillProjectedQuad(ctx, [pTip, pBack1, pBack2], '#e3b341', '#fff3b0');
     return;
   }
 
-  // Orthonormal Basis (U, V, W) where W = tilted tool axis vector (toolVec)
-  const W = toolVec || { i: 0, j: 0, k: 1 };
+  // Strictly vertical (0, 0, 1) for DMG Table-Table B/C & 3-Axis VMC; tilted only in Head-Tilt mode
+  const W = (state.kinematicsMode === 'head-tilt') ? headToolVec : { i: 0, j: 0, k: 1 };
   const ref = Math.abs(W.i) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
-  // U = normalize(ref x W)
   let ux = ref.y * W.k - ref.z * W.j;
   let uy = ref.z * W.i - ref.x * W.k;
   let uz = ref.x * W.j - ref.y * W.i;
   const uLen = Math.hypot(ux, uy, uz) || 1;
   ux /= uLen; uy /= uLen; uz /= uLen;
-  // V = W x U
   const vx = W.j * uz - W.k * uy;
   const vy = W.k * ux - W.i * uz;
   const vz = W.i * uy - W.j * ux;
@@ -2958,18 +3251,18 @@ function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe, toolVec) {
     const ca = Math.cos(angle) * rad;
     const sa = Math.sin(angle) * rad;
     return {
-      x: tip.x + W.i * axialDist + ux * ca + vx * sa,
-      y: tip.y + W.j * axialDist + uy * ca + vy * sa,
-      z: tip.z + W.k * axialDist + uz * ca + vz * sa
+      x: machineTip.x + W.i * axialDist + ux * ca + vx * sa,
+      y: machineTip.y + W.j * axialDist + uy * ca + vy * sa,
+      z: machineTip.z + W.k * axialDist + uz * ca + vz * sa
     };
   }
 
-  const toolObj = state.tools[seg.tool] || { dia: 10, flutes: 4, shape: 'ball', holderDia: 32, fluteLen: 24 };
-  const r = Math.max(1.5, (toolObj.dia || 10) / 2);
-  const holderR = Math.max(r * 1.8, (toolObj.holderDia || 32) / 2);
-  const fluteH = Math.min(26, toolObj.fluteLen || 24);
+  const toolObj = state.tools[seg.tool] || { dia: 12, flutes: 4, shape: 'flat', holderDia: 34, fluteLen: 26 };
+  const r = Math.max(1.5, (toolObj.dia || 12) / 2);
+  const holderR = Math.max(r * 1.8, (toolObj.holderDia || 34) / 2);
+  const fluteH = Math.min(26, toolObj.fluteLen || 26);
   const colletH = 14;
-  const taperH = 22;
+  const taperH = 24;
 
   const hShoulder = (toolObj.shape === 'flat') ? 0 : Math.min(r * 1.15, 5);
   const hFluteTop = fluteH;
@@ -2993,7 +3286,7 @@ function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe, toolVec) {
       const p2 = project3D(localToolPt(hTop, rTop, a1), cx, cy);
       const p3 = project3D(localToolPt(hTop, rTop, a0), cx, cy);
 
-      const isFluteValley = isFluted && (i % Math.max(2, Math.floor(sides / (toolObj.flutes || 3))) === 0);
+      const isFluteValley = isFluted && (i % Math.max(2, Math.floor(sides / (toolObj.flutes || 4))) === 0);
       const shadeMul = isFluteValley ? light * 0.52 : light;
 
       facets.push({
@@ -3009,18 +3302,20 @@ function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe, toolVec) {
     addOrientedFrustum(0, 0.2, hShoulder, r, isColl ? [255, 60, 60] : [245, 200, 75], true);
   }
   addOrientedFrustum(hShoulder, r, hFluteTop, r, isColl ? [255, 55, 55] : [235, 190, 68], true);
-  addOrientedFrustum(hFluteTop, holderR * 0.85, hColletTop, holderR, [85, 95, 110], false);
-  addOrientedFrustum(hColletTop, holderR, hTaperTop, holderR * 1.32, [155, 170, 192], false);
+  // ER32 Collet Nut
+  addOrientedFrustum(hFluteTop, holderR * 0.85, hColletTop, holderR, [65, 75, 90], false);
+  // DMG MORI HSK-A63 Spindle Nose Housing
+  addOrientedFrustum(hColletTop, holderR * 1.15, hTaperTop, holderR * 1.45, [155, 172, 196], false);
 
   facets.sort((a, b) => a.depth - b.depth);
   for (let i = 0; i < facets.length; i++) {
     fillProjectedQuad(ctx, facets[i].pts, facets[i].fill, facets[i].stroke);
   }
 
-  // Draw Tilted Tool Axis Vector Laser Line
-  const axisTop = project3D(localToolPt(hTaperTop + 14, 0, 0), cx, cy);
-  const tip2D = project3D(tip, cx, cy);
-  ctx.strokeStyle = 'rgba(210, 168, 255, 0.55)';
+  // Vertical Spindle Z Centerline Indicator
+  const axisTop = project3D(localToolPt(hTaperTop + 16, 0, 0), cx, cy);
+  const tip2D = project3D(machineTip, cx, cy);
+  ctx.strokeStyle = 'rgba(57, 197, 207, 0.55)';
   ctx.setLineDash([3, 3]);
   ctx.lineWidth = 1.2;
   ctx.beginPath();
@@ -3030,8 +3325,8 @@ function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe, toolVec) {
   ctx.setLineDash([]);
 
   if (state.cam.showCoolant && seg.coolant && state.sim.playing) {
-    ctx.fillStyle = 'rgba(57, 197, 207, 0.82)';
-    for (let p = 0; p < 8; p++) {
+    ctx.fillStyle = 'rgba(57, 197, 207, 0.85)';
+    for (let p = 0; p < 10; p++) {
       const sx = tip2D.sx + (Math.random() - 0.5) * 24;
       const sy = tip2D.sy + (Math.random() - 0.2) * 18;
       ctx.beginPath();
@@ -3057,29 +3352,30 @@ function drawBackplot() {
 
   const w = rect.width, h = rect.height;
   const cx = w / 2, cy = h / 2;
-  const isLathe = (state.kinematicsMode === 'lathe');
+  const isLathe = (state.kinematicsMode === 'lathe-2ax');
+  const isTableMode = (state.kinematicsMode === 'dmg-table-bc');
 
   ctx.fillStyle = '#090c12';
   ctx.fillRect(0, 0, w, h);
 
-  // Machine Table Grid
-  const tableZ = isLathe ? -state.stock.latheDia * 0.7 : state.stock.minZ - 30;
+  // Machine Bed Floor Grid
+  const bedZ = isLathe ? -state.stock.latheDia * 0.7 : state.stock.minZ - 62;
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  for (let g = -140; g <= 140; g += 20) {
-    const a1 = project3D({ x: g, y: -140, z: tableZ }, cx, cy);
-    const a2 = project3D({ x: g, y: 140, z: tableZ }, cx, cy);
+  for (let g = -160; g <= 160; g += 20) {
+    const a1 = project3D({ x: g, y: -160, z: bedZ }, cx, cy);
+    const a2 = project3D({ x: g, y: 160, z: bedZ }, cx, cy);
     ctx.moveTo(a1.sx, a1.sy); ctx.lineTo(a2.sx, a2.sy);
-    const b1 = project3D({ x: -140, y: g, z: tableZ }, cx, cy);
-    const b2 = project3D({ x: 140, y: g, z: tableZ }, cx, cy);
+    const b1 = project3D({ x: -160, y: g, z: bedZ }, cx, cy);
+    const b2 = project3D({ x: 160, y: g, z: bedZ }, cx, cy);
     ctx.moveTo(b1.sx, b1.sy); ctx.lineTo(b2.sx, b2.sy);
   }
   ctx.stroke();
 
-  // Interpolate Active Tip & 5-Axis Rotary State
+  // Interpolate Active Workpiece Tip, Rotary Table B/C & Tilted Plane State
   const tNow = state.sim.currentTimeSec;
-  let activeTip = { x: 0, y: 0, z: 0 };
+  let wkTip = { x: 0, y: 0, z: 0 };
   let activeRot = { a: 0, b: 0, c: 0 };
   let activePlane = { spa: 0, spb: 0, spc: 0 };
   let activeSeg = state.segments[0] || null;
@@ -3092,17 +3388,23 @@ function drawBackplot() {
       activeSeg = seg;
       const frac = Math.max(0, Math.min(1, (tNow - seg.startTimeSec) / Math.max(0.0001, seg.endTimeSec - seg.startTimeSec)));
       const partial = getPartialPolyline(seg.pts, frac);
-      activeTip = partial[partial.length - 1];
+      wkTip = partial[partial.length - 1];
       activeRot = {
         a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * frac,
         b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * frac,
         c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * frac
       };
-      activePlane = seg.plane || { spa: 0, spb: 0, spc: 0 };
+      const p0 = seg.planeStart || seg.plane || { spa: 0, spb: 0, spc: 0 };
+      const p1 = seg.plane || { spa: 0, spb: 0, spc: 0 };
+      activePlane = {
+        spa: p0.spa + (p1.spa - p0.spa) * frac,
+        spb: p0.spb + (p1.spb - p0.spb) * frac,
+        spc: p0.spc + (p1.spc - p0.spc) * frac
+      };
       instantFeed = seg.feed;
       break;
     } else if (!isFuture) {
-      activeTip = seg.pts[seg.pts.length - 1];
+      wkTip = seg.pts[seg.pts.length - 1];
       activeRot = { ...seg.rotEnd };
       activePlane = seg.plane || { spa: 0, spb: 0, spc: 0 };
       activeSeg = seg;
@@ -3110,24 +3412,28 @@ function drawBackplot() {
     }
   }
 
-  // Render 5-Axis Swivel Trunnion & Solid Workpiece Material
+  // Transform Workpiece Tip into Machine Frame (X_mach, Y_mach, Z_mach)
+  const machTip = isTableMode ? workpieceToMachinePoint(wkTip, activeRot, activePlane) : wkTip;
+
+  // Render Articulated DMG MORI B/C Rotary Table & Solid Workpiece
   if (state.segments.length > 0) {
     if (isLathe) {
       drawSolidLatheStock3D(ctx, cx, cy);
     } else {
-      draw5AxisTrunnionAndVice(ctx, cx, cy, activeRot, activePlane);
-      drawSolidMillStock3D(ctx, cx, cy);
+      drawDMGTableAssembly(ctx, cx, cy, activeRot, activePlane);
+      drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane);
     }
   }
 
-  // Work Coordinate Origin Triad
-  const orig = project3D({ x: 0, y: 0, z: 0 }, cx, cy);
+  // Workpiece Coordinate Origin Triad (moves with the rotary table in DMG Table-Table mode!)
+  const xformPathPt = (pt) => isTableMode ? workpieceToMachinePoint(pt, activeRot, activePlane) : pt;
+  const orig = project3D(xformPathPt({ x: 0, y: 0, z: 0 }), cx, cy);
   [
-    { pt: { x: 16, y: 0, z: 0 }, col: '#ff7b72', lbl: isLathe ? 'X(Dia)' : 'X' },
-    { pt: { x: 0, y: 16, z: 0 }, col: '#7ee787', lbl: 'Y' },
-    { pt: { x: 0, y: 0, z: 16 }, col: '#79c0ff', lbl: 'Z' }
+    { pt: { x: 18, y: 0, z: 0 }, col: '#ff7b72', lbl: isLathe ? 'X(Dia)' : 'Xw' },
+    { pt: { x: 0, y: 18, z: 0 }, col: '#7ee787', lbl: 'Yw' },
+    { pt: { x: 0, y: 0, z: 18 }, col: '#79c0ff', lbl: 'Zw' }
   ].forEach(ax => {
-    const p2 = project3D(ax.pt, cx, cy);
+    const p2 = project3D(xformPathPt(ax.pt), cx, cy);
     ctx.strokeStyle = ax.col; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(orig.sx, orig.sy); ctx.lineTo(p2.sx, p2.sy); ctx.stroke();
     ctx.fillStyle = ax.col; ctx.font = 'bold 10px sans-serif';
@@ -3135,14 +3441,14 @@ function drawBackplot() {
   });
 
   // Render Radius Compensation Offset Path (RL / RR / G41 / G42)
-  if (state.cam.showCutterComp && state.compPolylines.length > 0) {
+  if (state.cam.showPaths && state.cam.showCutterComp && state.compPolylines.length > 0) {
     ctx.strokeStyle = '#ffa657';
     ctx.lineWidth = 2;
     state.compPolylines.forEach(chain => {
       if (chain.pts.length < 2) return;
       ctx.beginPath();
       chain.pts.forEach((p, idx) => {
-        const s = project3D(p, cx, cy);
+        const s = project3D(xformPathPt(p), cx, cy);
         if (idx === 0) ctx.moveTo(s.sx, s.sy);
         else ctx.lineTo(s.sx, s.sy);
       });
@@ -3150,108 +3456,103 @@ function drawBackplot() {
     });
   }
 
-  // Render 3D & 5-Axis Toolpath Segments + Orientation Vectors
-  for (const seg of state.segments) {
-    const isFuture = seg.startTimeSec > tNow;
-    const isCurrent = (tNow >= seg.startTimeSec && tNow <= seg.endTimeSec);
-    const isSelectedLine = (seg.line === state.activeLine);
+  // Render 3D & 5-Axis Toolpath Segments (transformed into live rotary table frame!)
+  if (state.cam.showPaths) {
+    for (const seg of state.segments) {
+      if (seg.isTableIndex) continue;
+      const isFuture = seg.startTimeSec > tNow;
+      const isCurrent = (tNow >= seg.startTimeSec && tNow <= seg.endTimeSec);
+      const isSelectedLine = (seg.line === state.activeLine);
 
-    if (seg.type === 'G00' && !state.cam.showRapids && !isSelectedLine && !seg.isCollision) continue;
+      if (seg.type === 'G00' && !state.cam.showRapids && !isSelectedLine && !seg.isCollision) continue;
 
-    const alpha = isFuture ? 0.25 : 0.95;
-    ctx.beginPath();
-    if (seg.isCollision) {
-      ctx.strokeStyle = '#ff2a2a';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([]);
-    } else if (isSelectedLine || isCurrent) {
-      ctx.strokeStyle = '#ffd33d';
-      ctx.lineWidth = 2.8;
-      ctx.setLineDash([]);
-    } else if (seg.type === 'G00') {
-      ctx.strokeStyle = `rgba(248, 81, 73, ${alpha})`;
-      ctx.lineWidth = 1.3;
-      ctx.setLineDash([4, 4]);
-    } else if (seg.is5Ax) {
-      ctx.strokeStyle = `rgba(210, 168, 255, ${alpha})`;
-      ctx.lineWidth = 2.1;
-      ctx.setLineDash([]);
-    } else if (seg.type === 'G02' || seg.type === 'G03') {
-      ctx.strokeStyle = `rgba(126, 231, 135, ${alpha})`;
-      ctx.lineWidth = 1.9;
-      ctx.setLineDash([]);
-    } else {
-      ctx.strokeStyle = `rgba(57, 197, 207, ${alpha})`;
-      ctx.lineWidth = 1.9;
-      ctx.setLineDash([]);
-    }
-
-    seg.pts.forEach((pt, idx) => {
-      const p2 = project3D(pt, cx, cy);
-      if (idx === 0) ctx.moveTo(p2.sx, p2.sy);
-      else ctx.lineTo(p2.sx, p2.sy);
-    });
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Draw subtle 5-axis tool orientation whiskers along simultaneous 5-axis moves
-    if (seg.is5Ax && !isFuture) {
-      const endPt = seg.pts[seg.pts.length - 1];
-      const v = computeToolAxisVector(seg.rotEnd.a, seg.rotEnd.b, seg.rotEnd.c, seg.plane.spa, seg.plane.spb, seg.plane.spc);
-      const pBase = project3D(endPt, cx, cy);
-      const pTip = project3D({ x: endPt.x + v.i * 11, y: endPt.y + v.j * 11, z: endPt.z + v.k * 11 }, cx, cy);
-      ctx.strokeStyle = 'rgba(210, 168, 255, 0.42)';
-      ctx.lineWidth = 1.2;
+      const alpha = isFuture ? 0.25 : 0.95;
       ctx.beginPath();
-      ctx.moveTo(pBase.sx, pBase.sy);
-      ctx.lineTo(pTip.sx, pTip.sy);
+      if (seg.isCollision) {
+        ctx.strokeStyle = '#ff2a2a';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]);
+      } else if (isSelectedLine || isCurrent) {
+        ctx.strokeStyle = '#ffd33d';
+        ctx.lineWidth = 2.8;
+        ctx.setLineDash([]);
+      } else if (seg.type === 'G00') {
+        ctx.strokeStyle = `rgba(248, 81, 73, ${alpha})`;
+        ctx.lineWidth = 1.3;
+        ctx.setLineDash([4, 4]);
+      } else if (seg.is5Ax) {
+        ctx.strokeStyle = `rgba(210, 168, 255, ${alpha})`;
+        ctx.lineWidth = 2.1;
+        ctx.setLineDash([]);
+      } else if (seg.type === 'G02' || seg.type === 'G03') {
+        ctx.strokeStyle = `rgba(126, 231, 135, ${alpha})`;
+        ctx.lineWidth = 1.9;
+        ctx.setLineDash([]);
+      } else {
+        ctx.strokeStyle = `rgba(57, 197, 207, ${alpha})`;
+        ctx.lineWidth = 1.9;
+        ctx.setLineDash([]);
+      }
+
+      seg.pts.forEach((pt, idx) => {
+        const p2 = project3D(xformPathPt(pt), cx, cy);
+        if (idx === 0) ctx.moveTo(p2.sx, p2.sy);
+        else ctx.lineTo(p2.sx, p2.sy);
+      });
       ctx.stroke();
+      ctx.setLineDash([]);
     }
   }
 
-  // Render Tilted 5-Axis Volumetric Cutter & Spindle Assembly
-  const toolVec = computeToolAxisVector(activeRot.a, activeRot.b, activeRot.c, activePlane.spa, activePlane.spb, activePlane.spc);
+  // Render Vertical DMG MORI HSK-A63 Spindle & Spinning Cutter at Machine Contact Point
+  const headToolVec = computeToolAxisVector(activeRot.a, activeRot.b, activeRot.c, activePlane.spa, activePlane.spb, activePlane.spc);
   if (state.segments.length > 0 && activeSeg) {
-    drawVolumetric3DTool(ctx, cx, cy, activeTip, activeSeg, isLathe, toolVec);
+    drawVolumetric3DTool(ctx, cx, cy, machTip, activeSeg, isLathe, headToolVec);
   }
 
-  updateKinematicHUD(activeTip, activeSeg, instantFeed, isLathe, activeRot, activePlane, toolVec);
+  updateKinematicHUD(wkTip, machTip, activeSeg, instantFeed, isLathe, activeRot, activePlane, headToolVec);
   ctx.restore();
 }
 
-function updateKinematicHUD(tip, seg, instantFeed, isLathe, activeRot, activePlane, toolVec) {
+function updateKinematicHUD(wkTip, machTip, seg, instantFeed, isLathe, activeRot, activePlane, toolVec) {
   const prof = getActiveProfile();
-  const displayX = isLathe ? tip.x * 2 : tip.x;
-  document.getElementById('hud-lbl-x').textContent = isLathe ? 'X (DIA):' : 'X:';
-  document.getElementById('hud-x').textContent = displayX.toFixed(3);
-  document.getElementById('hud-y').textContent = tip.y.toFixed(3);
-  document.getElementById('hud-z').textContent = tip.z.toFixed(3);
+  const displayWkX = isLathe ? wkTip.x * 2 : wkTip.x;
+  document.getElementById('hud-lbl-wk').textContent = isLathe ? 'PART X(DIA)/Z:' : 'WORKPIECE XYZ:';
+  document.getElementById('hud-wk-xyz').textContent = isLathe
+    ? `${displayWkX.toFixed(2)}, ${wkTip.z.toFixed(2)}`
+    : `${wkTip.x.toFixed(2)}, ${wkTip.y.toFixed(2)}, ${wkTip.z.toFixed(2)}`;
+
+  document.getElementById('hud-mx').textContent = `X${machTip.x.toFixed(1)}`;
+  document.getElementById('hud-my').textContent = `Y${machTip.y.toFixed(1)}`;
+  document.getElementById('hud-mz').textContent = `Z${machTip.z.toFixed(1)}`;
 
   const is5AxVisible = !isLathe;
   document.getElementById('hud-5ax-block').style.display = is5AxVisible ? 'block' : 'none';
   if (is5AxVisible) {
-    document.getElementById('hud-rotary').textContent = `A${activeRot.a.toFixed(1)}° B${activeRot.b.toFixed(1)}° C${activeRot.c.toFixed(1)}°`;
+    const effB = activeRot.b + activePlane.spb;
+    const effC = activeRot.c + activePlane.spc;
+    document.getElementById('hud-rotary').textContent = `B${effB >= 0 ? '+' : ''}${effB.toFixed(1)}°  C${effC >= 0 ? '+' : ''}${effC.toFixed(1)}°`;
     document.getElementById('hud-ijk').textContent = `${toolVec.i.toFixed(3)}, ${toolVec.j.toFixed(3)}, ${toolVec.k.toFixed(3)}`;
     document.getElementById('hud-plane').textContent = `SPA${activePlane.spa.toFixed(1)}° SPB${activePlane.spb.toFixed(1)}° SPC${activePlane.spc.toFixed(1)}°`;
   }
 
   if (seg) {
-    const toolObj = state.tools[seg.tool] || { dia: 10, flutes: 3, shape: 'flat' };
+    const toolObj = state.tools[seg.tool] || { dia: 12, flutes: 4, shape: 'flat' };
     document.getElementById('hud-modal').textContent = seg.modalStr;
     document.getElementById('hud-tool').textContent = `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia}mm (${toolObj.shape})`;
 
-    const maxFeedBar = Math.max(3000, prof.rapidRate || 24000);
+    const maxFeedBar = Math.max(3000, prof.rapidRate || 40000);
     document.getElementById('hud-feed').textContent = `${Math.round(instantFeed)} mm/min (${seg.type})`;
     document.getElementById('gauge-feed').style.width = `${Math.min(100, (instantFeed / maxFeedBar) * 100)}%`;
     document.getElementById('gauge-feed').style.background = (seg.type === 'G00') ? '#f85149' : '#39c5cf';
 
     const rpm = (seg.spindleDir === 'M05') ? 0 : seg.spindle;
-    const maxRpm = prof.maxRpm || 24000;
+    const maxRpm = prof.maxRpm || 20000;
     document.getElementById('hud-spindle').textContent = `${rpm} RPM (${seg.spindleDir})`;
     document.getElementById('gauge-rpm').style.width = `${Math.min(100, (rpm / maxRpm) * 100)}%`;
 
     const surfSpeed = Math.round((Math.PI * toolObj.dia * rpm) / 1000);
-    const chipLoad = (rpm > 0 && seg.type !== 'G00') ? (instantFeed / (rpm * (toolObj.flutes || 3))) : 0;
+    const chipLoad = (rpm > 0 && seg.type !== 'G00') ? (instantFeed / (rpm * (toolObj.flutes || 4))) : 0;
     document.getElementById('hud-chipload').textContent = `${surfSpeed} m/min | ${chipLoad.toFixed(3)} fz`;
   }
 
@@ -3261,7 +3562,7 @@ function updateKinematicHUD(tip, seg, instantFeed, isLathe, activeRot, activePla
 }
 
 /* ==========================================================================
-   8. REAL-TIME ANIMATION LOOP & 3D CAMERA MOUSE ORBIT/PAN/ZOOM
+   9. REAL-TIME ANIMATION LOOP & 3D CAMERA MOUSE ORBIT/PAN/ZOOM
    ========================================================================== */
 function animationLoop(ts) {
   if (!state.sim.lastFrameTs) state.sim.lastFrameTs = ts;
@@ -3328,7 +3629,7 @@ el.canvasContainer.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 /* ==========================================================================
-   9. SETUP SHEET, 50K STRESS TEST, FILE COMPARE & WEB SERIAL DNC
+   10. SETUP SHEET, 50K STRESS TEST, FILE COMPARE & WEB SERIAL DNC
    ========================================================================== */
 function openSetupSheetModal() {
   const doc = getActiveDoc();
@@ -3338,8 +3639,9 @@ function openSetupSheetModal() {
 
   const toolUsage = {};
   state.segments.forEach(s => {
+    if (s.isTableIndex) return;
     if (!toolUsage[s.tool]) {
-      const tInfo = state.tools[s.tool] || { name: `Tool ${s.tool}`, dia: 10 };
+      const tInfo = state.tools[s.tool] || { name: `Tool ${s.tool}`, dia: 12 };
       toolUsage[s.tool] = { num: s.tool, name: tInfo.name, dia: tInfo.dia, minZ: Infinity, timeSec: 0 };
     }
     toolUsage[s.tool].timeSec += (s.endTimeSec - s.startTimeSec);
@@ -3362,7 +3664,7 @@ function openSetupSheetModal() {
   document.getElementById('setup-sheet-preview-body').innerHTML = `
     <div style="border-bottom:2px solid #1f6feb; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between;">
       <div>
-        <h2 style="margin:0; font-size:18px;">CNC 3D / 5-AXIS MACHINING SETUP SHEET</h2>
+        <h2 style="margin:0; font-size:18px;">DMG MORI 5-AXIS MACHINING SETUP SHEET</h2>
         <div style="color:#555; font-size:12px;">Program: <strong>${escapeHtml(doc.name)}</strong> | Machine: <strong>${escapeHtml(prof.name)}</strong></div>
       </div>
       <div style="text-align:right; font-size:12px;">
@@ -3396,8 +3698,8 @@ function generate50kStressTest() {
     '%',
     'O5000 (50,000-LINE 3D WAVE SURFACING BENCHMARK)',
     'G90 G17 G21 G40 G80',
-    'T03 M06 (10.0MM BALL ENDMILL)',
-    'S15000 M03',
+    'T02 M06 (8.0MM BALL-NOSE CUTTER)',
+    'S18000 M03',
     'G00 X-45.000 Y-35.000 Z15.000 M08',
     'G00 Z2.000'
   ];
@@ -3415,7 +3717,7 @@ function generate50kStressTest() {
   out.push('G00 Z25.000 M09', 'M05', 'M30', '%');
 
   const id = 'doc-50k-' + Date.now();
-  state.docs.push({ id, mode: 'mill', dirty: false, name: 'O5000_50K_SURFACING.nc', content: out.join('\n') });
+  state.docs.push({ id, mode: 'vmc-3ax', dirty: false, name: 'O5000_50K_SURFACING.nc', content: out.join('\n') });
   switchDoc(id);
   showToast(`Generated ${out.length.toLocaleString()} lines — Click any line to edit inline!`);
 }
@@ -3529,13 +3831,13 @@ async function sendProgramDNC() {
 }
 
 /* ==========================================================================
-   10. DOCUMENT TABS, PROFILES & EVENT WIRING
+   11. DOCUMENT TABS, PROFILES & EVENT WIRING
    ========================================================================== */
 function renderDocTabs() {
   el.docTabsBar.innerHTML = '';
   state.docs.forEach(doc => {
-    const isHH = (doc.mode || '').startsWith('hh');
-    const tagTxt = doc.mode === 'hh-5ax' ? 'HH 5AX' : (doc.mode === 'hh-3ax' ? 'HH' : (doc.mode === 'lathe' ? 'LATHE' : 'ISO'));
+    const isHH = /\.h$/i.test(doc.name) || /\bBEGIN\s+PGM\b/i.test(doc.content);
+    const tagTxt = doc.mode === 'dmg-table-bc' ? 'DMG 5AX' : (doc.mode === 'head-tilt' ? 'HEAD 5AX' : (doc.mode === 'lathe-2ax' ? 'LATHE' : '3AX VMC'));
     const tab = document.createElement('div');
     tab.className = 'doc-tab' + (doc.id === state.activeDocId ? ' active' : '');
     tab.innerHTML = `<span class="dialect-tag${isHH ? ' hh' : ''}">${tagTxt}</span><span>${escapeHtml(doc.name)}${doc.dirty ? ' <span class="dirty-dot">*</span>' : ''}</span>`;
@@ -3550,12 +3852,12 @@ function renderDocTabs() {
   });
   const add = document.createElement('button');
   add.className = 'doc-tab-add'; add.textContent = '+';
-  add.title = 'New Heidenhain Klartext 5-Axis File';
+  add.title = 'New DMG MORI Heidenhain 5-Axis File';
   add.onclick = () => {
     const id = 'doc-' + Date.now();
     state.docs.push({
-      id, mode: 'hh-5ax', dirty: false, name: `5AX_PART_${state.docs.length + 1}.h`,
-      content: `0 BEGIN PGM NEW_5AX MM\n1 BLK FORM 0.1 Z X-40.0 Y-40.0 Z-25.0\n2 BLK FORM 0.2 X+40.0 Y+40.0 Z+0.0\n3 TOOL CALL 3 Z S16000 F3000 ; 10.0MM BALL NOSE\n4 FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS\n5 L X-25.0 Y-25.0 Z+15.0 A-15.0 B+15.0 C+0.0 R0 FMAX M03 M08\n6 L Z-5.0 F1000\n7 L X+25.0 Y-25.0 Z-5.0 A-15.0 B-15.0 C+90.0 F2500\n8 L X+25.0 Y+25.0 Z-5.0 A+15.0 B-15.0 C+180.0 F2500\n9 L X-25.0 Y+25.0 Z-5.0 A+15.0 B+15.0 C+270.0 F2500\n10 L X-25.0 Y-25.0 Z-5.0 A-15.0 B+15.0 C+360.0 F2500\n11 M140 MB MAX\n12 M129\n13 END PGM NEW_5AX MM`
+      id, mode: 'dmg-table-bc', dirty: false, name: `DMG_PART_${state.docs.length + 1}.h`,
+      content: `0 BEGIN PGM NEW_DMG_5AX MM\n1 BLK FORM 0.1 Z X-45.0 Y-45.0 Z-28.0\n2 BLK FORM 0.2 X+45.0 Y+45.0 Z+0.0\n3 TOOL CALL 1 Z S16000 F3200 ; 12.0MM FLAT ENDMILL\n4 PLANE SPATIAL SPA+0.0 SPB+22.0 SPC+0.0 TURN FMAX\n5 L X-20.0 Y-20.0 Z+12.0 R0 FMAX M03 M08\n6 L Z-5.0 F1200\n7 L X+20.0 Y-20.0 F3000\n8 L X+20.0 Y+20.0 F3000\n9 L X-20.0 Y+20.0 F3000\n10 L X-20.0 Y-20.0 F3000\n11 L Z+25.0 FMAX M09\n12 PLANE RESET TURN FMAX\n13 L B+0.0 C+0.0 FMAX M05\n14 END PGM NEW_DMG_5AX MM`
     });
     switchDoc(id);
   };
@@ -3591,7 +3893,7 @@ function closeDoc(docId) {
 
 function loadProfiles() {
   try {
-    const saved = localStorage.getItem('cnc_edit_v5_profiles');
+    const saved = localStorage.getItem('cnc_edit_v6_profiles');
     state.profiles = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PROFILES));
   } catch { state.profiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES)); }
   el.profileSelect.innerHTML = '';
@@ -3727,14 +4029,14 @@ function wireEvents() {
     showToast(`Replaced all occurrences of "${q}"`);
   };
 
-  // Dialect / Kinematics Switch
+  // Kinematics Topology Switch
   el.kinematicsSelect.onchange = () => {
     state.kinematicsMode = el.kinematicsSelect.value;
     getActiveDoc().mode = state.kinematicsMode;
     renderDocTabs();
-    setCameraView(state.kinematicsMode === 'lathe' ? 'front' : 'iso');
+    setCameraView(state.kinematicsMode === 'lathe-2ax' ? 'front' : 'iso');
     parseAndBuildSimulation(getActiveDoc().content, true);
-    showToast(`Dialect / Kinematics: ${el.kinematicsSelect.options[el.kinematicsSelect.selectedIndex].text}`);
+    showToast(`Machine Topology: ${el.kinematicsSelect.options[el.kinematicsSelect.selectedIndex].text}`);
   };
 
   // Material Shader Selector
@@ -3812,7 +4114,7 @@ function wireEvents() {
   document.getElementById('btn-apply-renumber').onclick = () => {
     const start = parseInt(document.getElementById('renum-start').value, 10) || 1;
     const inc = parseInt(document.getElementById('renum-inc').value, 10) || 1;
-    const isHH = state.kinematicsMode.startsWith('hh');
+    const isHH = /\bBEGIN\s+PGM\b/i.test(getActiveDoc().content);
     let n = start;
     const updated = state.linesCache.map(l => {
       const t = l.trim();
@@ -3860,14 +4162,14 @@ function wireEvents() {
     applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-insert-hh-tcpm').onclick = () => {
-    const snippet = `FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS\nPLANE SPATIAL SPA+15.0 SPB-10.0 SPC+0.0 TURN FMAX\n`;
+    const snippet = `FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS\nPLANE SPATIAL SPA+0.0 SPB+25.0 SPC+0.0 TURN FMAX SEQ-\n`;
     applyTextChange(snippet + getActiveDoc().content, true, true, false);
   };
   document.getElementById('btn-insert-header').onclick = () => {
     applyTextChange('G90 G17 G21 G40 G80\n' + getActiveDoc().content, true, true, false);
   };
 
-  // 3D & 5-Axis Simulation Toggles
+  // DMG MORI 5-Axis Simulation Toggles
   document.getElementById('btn-toggle-assistant').onclick = (e) => {
     const d = document.getElementById('left-dock');
     d.classList.toggle('collapsed');
@@ -3930,6 +4232,23 @@ function wireEvents() {
   };
   document.getElementById('btn-toggle-trunnion').onclick = toggleTrunnion;
   document.getElementById('vp-btn-trunnion-toggle').onclick = toggleTrunnion;
+
+  document.getElementById('btn-toggle-dmg-swivel').onclick = (e) => {
+    state.cam.dmgSwivel45 = !state.cam.dmgSwivel45;
+    e.currentTarget.classList.toggle('active', state.cam.dmgSwivel45);
+    e.currentTarget.innerHTML = `<span>${state.cam.dmgSwivel45 ? 'B-Axis: 45° Swivel' : 'B-Axis: 90° Ortho'}</span>`;
+    drawBackplot();
+    showToast(`DMG B-Axis Geometry: ${state.cam.dmgSwivel45 ? '45° Inclined Swivel (DMU 50)' : '90° Orthogonal Cradle (DMU 65 monoBLOCK)'}`);
+  };
+
+  const togglePaths = () => {
+    state.cam.showPaths = !state.cam.showPaths;
+    document.getElementById('btn-toggle-paths').classList.toggle('active', state.cam.showPaths);
+    document.getElementById('vp-btn-paths-toggle').classList.toggle('active', state.cam.showPaths);
+    drawBackplot();
+  };
+  document.getElementById('btn-toggle-paths').onclick = togglePaths;
+  document.getElementById('vp-btn-paths-toggle').onclick = togglePaths;
 
   const toggleComp = () => {
     state.cam.showCutterComp = !state.cam.showCutterComp;
@@ -4032,7 +4351,7 @@ function wireEvents() {
   document.getElementById('btn-dnc-receive').onclick = () => {
     const sample = `0 BEGIN PGM TNC640_UPLOAD MM\n1 BLK FORM 0.1 Z X-35 Y-35 Z-20\n2 BLK FORM 0.2 X+35 Y+35 Z+0\n3 TOOL CALL 1 Z S12000 F2000\n4 L X+0 Y+0 Z+20 R0 FMAX M03\n5 L Z-3 F800\n6 L X+25 F1500\n7 END PGM TNC640_UPLOAD MM`;
     const id = 'doc-rx-' + Date.now();
-    state.docs.push({ id, mode: 'hh-3ax', dirty: false, name: 'TNC640_UPLOAD.h', content: sample });
+    state.docs.push({ id, mode: 'dmg-table-bc', dirty: false, name: 'TNC640_UPLOAD.h', content: sample });
     switchDoc(id);
     logDNC('RX COMPLETE: Created tab TNC640_UPLOAD.h');
   };
@@ -4052,12 +4371,12 @@ function wireEvents() {
   document.getElementById('btn-save-profile').onclick = () => {
     const p = getActiveProfile();
     p.name = document.getElementById('prof-name').value.trim() || p.name;
-    p.rapidRate = parseFloat(document.getElementById('prof-rapid').value) || 24000;
-    p.maxRpm = parseFloat(document.getElementById('prof-maxrpm').value) || 24000;
-    p.limX = parseFloat(document.getElementById('prof-limx').value) || 400;
-    p.limY = parseFloat(document.getElementById('prof-limy').value) || 400;
-    p.limZ = parseFloat(document.getElementById('prof-limz').value) || -300;
-    localStorage.setItem('cnc_edit_v5_profiles', JSON.stringify(state.profiles));
+    p.rapidRate = parseFloat(document.getElementById('prof-rapid').value) || 40000;
+    p.maxRpm = parseFloat(document.getElementById('prof-maxrpm').value) || 20000;
+    p.limX = parseFloat(document.getElementById('prof-limx').value) || 365;
+    p.limY = parseFloat(document.getElementById('prof-limy').value) || 280;
+    p.limZ = parseFloat(document.getElementById('prof-limz').value) || -280;
+    localStorage.setItem('cnc_edit_v6_profiles', JSON.stringify(state.profiles));
     loadProfiles();
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     parseAndBuildSimulation(getActiveDoc().content, false);
@@ -4071,9 +4390,9 @@ function wireEvents() {
 window.onload = function () {
   loadProfiles();
   wireEvents();
-  // Launch directly with the Heidenhain 5-Axis Turbine Blisk sample program open
-  switchDoc('doc-hh-5ax');
-  logDNC('CNC Edit Pro v5 — Heidenhain Klartext 5-Axis & Solid Material Engine ready.');
+  // Launch directly with the DMG MORI DMU 65 monoBLOCK 5-Axis Table-Table program open
+  switchDoc('doc-dmg-dmu65');
+  logDNC('CNC Edit Pro v6 — DMG MORI 5-Axis Table-Table (B/C) & Solid Material Engine ready.');
   requestAnimationFrame(animationLoop);
 };
 </script>
