@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CNC Edit Pro v3 — Portable NC Editor, 3D Solid Simulator &amp; DNC Suite</title>
+<title>CNC Edit Pro v5 — Heidenhain Klartext 5-Axis, ISO G-Code &amp; 3D Material Simulator</title>
 <style>
 /* ==========================================================================
-   1. DESIGN TOKENS & CIMCO-INSPIRED DARK/LIGHT INDUSTRIAL CAM THEME
+   1. DESIGN TOKENS & INDUSTRIAL CAM THEME
    ========================================================================== */
 :root {
-  --bg-app: #111419;
-  --bg-ribbon: #181c23;
-  --bg-ribbon-group: #1f242d;
-  --bg-panel: #151920;
-  --bg-editor: #0d1015;
-  --bg-gutter: #13171e;
-  --bg-input: #0a0c10;
-  --bg-hover: #28303c;
+  --bg-app: #101318;
+  --bg-ribbon: #171b22;
+  --bg-ribbon-group: #1e232c;
+  --bg-panel: #14181f;
+  --bg-editor: #0c0f14;
+  --bg-gutter: #12161d;
+  --bg-input: #090b0f;
+  --bg-hover: #262e3a;
   --bg-active: #1d4ed8;
-  --border-color: #2a313c;
-  --border-strong: #3c4554;
+  --border-color: #29303b;
+  --border-strong: #3b4453;
   --text-primary: #e6edf3;
   --text-secondary: #8b949e;
   --text-muted: #656d76;
@@ -31,7 +31,7 @@
   --accent-purple: #a371f7;
   --accent-cyan: #39c5cf;
 
-  /* CNC Syntax Tokens */
+  /* CNC & Heidenhain Klartext Syntax Tokens */
   --tok-g: #58a6ff;
   --tok-m: #d2a8ff;
   --tok-x: #ff7b72;
@@ -42,6 +42,8 @@
   --tok-feed: #e3b341;
   --tok-n: #656d76;
   --tok-o: #f778ba;
+  --tok-hh-kw: #ff9bce;
+  --tok-hh-blk: #56d4dd;
   --tok-comment: #5c8a52;
   --tok-macro: #ff9bce;
 
@@ -84,6 +86,8 @@
   --tok-feed: #7d4e00;
   --tok-n: #8c959f;
   --tok-o: #bf3989;
+  --tok-hh-kw: #a40177;
+  --tok-hh-blk: #0598bc;
   --tok-comment: #2da44e;
   --tok-macro: #a40177;
 }
@@ -107,7 +111,7 @@ html, body {
 }
 .brand-badge { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 12px; }
 .brand-pill {
-  background: linear-gradient(135deg, #2f81f7, #1f6feb); color: #fff;
+  background: linear-gradient(135deg, #2f81f7, #a371f7); color: #fff;
   padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px; font-weight: 800;
 }
 .ribbon-tabs { display: flex; align-items: flex-end; gap: 2px; height: 100%; margin-left: 14px; }
@@ -185,6 +189,13 @@ select.compact-select:focus, input.compact-input:focus {
   background: var(--bg-editor); color: var(--text-primary); font-weight: 600;
   border-top: 2px solid var(--accent-blue);
 }
+.doc-tab .dialect-tag {
+  font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 700;
+  background: rgba(47,129,247,0.18); color: var(--accent-blue);
+}
+.doc-tab .dialect-tag.hh {
+  background: rgba(163,113,247,0.22); color: var(--accent-purple);
+}
 .doc-tab .dirty-dot { color: var(--accent-orange); font-weight: bold; }
 .doc-tab .close-tab {
   font-size: 13px; line-height: 1; padding: 0 3px; border-radius: 3px; color: var(--text-muted);
@@ -203,9 +214,8 @@ select.compact-select:focus, input.compact-input:focus {
   display: flex; flex: 1; min-height: 0; width: 100%; overflow: hidden; position: relative;
 }
 
-/* Left Side Panel: NC-Assistant + Tool Table + Collision Log */
 #left-dock {
-  width: 250px; flex-shrink: 0;
+  width: 260px; flex-shrink: 0;
   background: var(--bg-panel); border-right: 1px solid var(--border-color);
   display: flex; flex-direction: column; overflow: hidden; user-select: none;
 }
@@ -235,10 +245,10 @@ select.compact-select:focus, input.compact-input:focus {
   border-radius: var(--radius-sm); padding: 4px 6px;
 }
 .word-field label { font-size: 10px; font-weight: 700; color: var(--text-secondary); display: flex; justify-content: space-between; }
-.word-field input {
+.word-field input, .word-field select {
   width: 100%; background: var(--bg-input); color: var(--text-primary);
   border: 1px solid var(--border-color); border-radius: 3px;
-  padding: 3px 5px; font-family: var(--font-mono); font-size: 12px;
+  padding: 3px 5px; font-family: var(--font-mono); font-size: 11px;
 }
 
 .alarm-item {
@@ -250,11 +260,10 @@ select.compact-select:focus, input.compact-input:focus {
 
 /* Center Editor Pane */
 #editor-pane {
-  flex: 1; min-width: 250px; display: flex; flex-direction: column;
+  flex: 1; min-width: 240px; display: flex; flex-direction: column;
   background: var(--bg-editor); position: relative; overflow: hidden;
 }
 
-/* Find & Replace Floating Bar */
 #find-bar {
   display: none; align-items: center; gap: 6px; flex-wrap: wrap;
   padding: 5px 10px; background: var(--bg-ribbon);
@@ -262,7 +271,6 @@ select.compact-select:focus, input.compact-input:focus {
 }
 #find-bar.open { display: flex; }
 
-/* Mode 1: Direct Full-Text Editable Syntax Editor (<= 15,000 lines) */
 #direct-editor-container {
   display: flex; flex: 1; position: relative; overflow: hidden;
 }
@@ -314,7 +322,7 @@ select.compact-select:focus, input.compact-input:focus {
   background: rgba(248, 81, 73, 0.18);
 }
 
-/* Mode 2: Virtualized Large-File Editor (> 15,000 lines, e.g. 50k stress test) */
+/* Mode 2: Virtualized Large-File Editor (> 15,000 lines) */
 #virtual-editor-container {
   display: none; flex: 1; position: relative; overflow-y: auto; overflow-x: auto;
   font-family: var(--font-mono); font-size: 13px; line-height: 20px;
@@ -351,21 +359,23 @@ select.compact-select:focus, input.compact-input:focus {
 .tok-x { color: var(--tok-x); }
 .tok-y { color: var(--tok-y); }
 .tok-z { color: var(--tok-z); }
-.tok-rot { color: var(--tok-rot); }
+.tok-rot { color: var(--tok-rot); font-weight: 600; }
 .tok-arc { color: var(--tok-arc); }
 .tok-feed { color: var(--tok-feed); }
 .tok-n { color: var(--tok-n); }
 .tok-o { color: var(--tok-o); font-weight: 700; }
+.tok-hh-kw { color: var(--tok-hh-kw); font-weight: 700; }
+.tok-hh-blk { color: var(--tok-hh-blk); font-weight: 700; }
 .tok-comment { color: var(--tok-comment); font-style: italic; }
 .tok-macro { color: var(--tok-macro); }
 
 /* ==========================================================================
-   5. RIGHT PANE: TRUE 3D SOLID WORKPIECE & VOLUMETRIC TOOL VIEWPORT
+   5. RIGHT PANE: TRUE 3D & 5-AXIS SOLID MATERIAL SIMULATION VIEWPORT
    ========================================================================== */
 #backplot-pane {
-  width: 53%; min-width: 320px; flex-shrink: 0;
+  width: 54%; min-width: 320px; flex-shrink: 0;
   display: flex; flex-direction: column;
-  background: #0b0e14; border-left: 1px solid var(--border-color);
+  background: #090c12; border-left: 1px solid var(--border-color);
   position: relative; user-select: none;
 }
 #backplot-pane.hidden { display: none; }
@@ -387,26 +397,27 @@ select.compact-select:focus, input.compact-input:focus {
 #canvas-container:active { cursor: grabbing; }
 #backplot-canvas { display: block; width: 100%; height: 100%; }
 
-/* Telemetry & Kinematic Feeds/Speeds HUD */
+/* Telemetry & 5-Axis Kinematic HUD */
 #hud-telemetry {
   position: absolute; top: 8px; left: 8px;
-  background: rgba(13, 17, 23, 0.86); backdrop-filter: blur(5px);
+  background: rgba(11, 15, 22, 0.88); backdrop-filter: blur(5px);
   border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-md);
   padding: 7px 9px; color: #e6edf3; font-family: var(--font-mono); font-size: 11px;
-  pointer-events: none; min-width: 222px;
+  pointer-events: none; min-width: 244px;
 }
-.hud-row { display: flex; justify-content: space-between; gap: 10px; line-height: 1.45; }
+.hud-row { display: flex; justify-content: space-between; gap: 8px; line-height: 1.42; }
 .hud-label { color: #8b949e; }
 .hud-val-x { color: #ff7b72; font-weight: 700; }
 .hud-val-y { color: #7ee787; font-weight: 700; }
 .hud-val-z { color: #79c0ff; font-weight: 700; }
+.hud-val-rot { color: #ffa657; font-weight: 700; }
 .hud-divider { height: 1px; background: rgba(255,255,255,0.12); margin: 4px 0; }
 .gauge-bar-wrap { width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin: 2px 0 4px 0; }
 .gauge-bar-fill { height: 100%; width: 0%; transition: width 0.08s linear; }
 
 #hud-legend {
   position: absolute; top: 8px; right: 8px;
-  background: rgba(13, 17, 23, 0.84); border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(11, 15, 22, 0.85); border: 1px solid rgba(255,255,255,0.14);
   border-radius: var(--radius-sm); padding: 6px 8px;
   color: #c9d1d9; font-size: 10px; pointer-events: none;
   display: flex; flex-direction: column; gap: 3px;
@@ -414,6 +425,7 @@ select.compact-select:focus, input.compact-input:focus {
 .legend-item { display: flex; align-items: center; gap: 6px; }
 .swatch-rapid { width: 15px; height: 0; border-top: 2px dashed #f85149; }
 .swatch-feed { width: 15px; height: 2px; background: #39c5cf; }
+.swatch-5ax { width: 15px; height: 2px; background: #d2a8ff; }
 .swatch-arc { width: 15px; height: 2px; background: #7ee787; }
 .swatch-comp { width: 15px; height: 2px; background: #ffa657; }
 .swatch-coll { width: 15px; height: 3px; background: #ff2a2a; }
@@ -480,7 +492,7 @@ select.compact-select:focus, input.compact-input:focus {
 .modal-backdrop.open { display: flex; }
 .modal-card {
   background: var(--bg-ribbon); border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md); width: 420px; max-width: 95vw;
+  border-radius: var(--radius-md); width: 430px; max-width: 95vw;
   box-shadow: 0 14px 36px rgba(0,0,0,0.55); overflow: hidden;
 }
 .modal-head {
@@ -520,21 +532,23 @@ select.compact-select:focus, input.compact-input:focus {
   <header id="ribbon-header">
     <div style="display:flex; align-items:center; height:100%;">
       <div class="brand-badge">
-        <span class="brand-pill">CNC v3</span>
-        <span>EDIT PRO 3D</span>
+        <span class="brand-pill">CNC v5</span>
+        <span>EDIT PRO 5AX</span>
       </div>
       <nav class="ribbon-tabs" id="ribbon-tabs">
         <button class="ribbon-tab active" data-tab="tab-editor">Editor</button>
         <button class="ribbon-tab" data-tab="tab-nc">NC Functions</button>
-        <button class="ribbon-tab" data-tab="tab-backplot">3D Solid Simulation</button>
+        <button class="ribbon-tab" data-tab="tab-backplot">3D / 5-Axis Simulation</button>
         <button class="ribbon-tab" data-tab="tab-compare">File Compare</button>
         <button class="ribbon-tab" data-tab="tab-dnc">Transmission (DNC)</button>
       </nav>
     </div>
     <div class="header-controls">
-      <label style="color:var(--text-secondary); font-size:11px;">Kinematics:</label>
-      <select id="kinematics-mode-select" class="compact-select" title="Switch Mill vs Lathe 3D Kinematics">
-        <option value="mill">3-Axis Mill (XYZ Solid)</option>
+      <label style="color:var(--text-secondary); font-size:11px;">Dialect / Kinematics:</label>
+      <select id="kinematics-mode-select" class="compact-select" title="Switch CNC Dialect & Kinematics">
+        <option value="hh-5ax">Heidenhain 5-Axis Simultaneous (TCPM)</option>
+        <option value="hh-3ax">Heidenhain Klartext (3-Axis)</option>
+        <option value="mill">ISO / Fanuc 3-Axis Mill (XYZ)</option>
         <option value="lathe">2-Axis Lathe (XZ Chuck)</option>
       </select>
       <select id="machine-profile-select" class="compact-select" title="Active Machine Configuration Profile"></select>
@@ -590,7 +604,7 @@ select.compact-select:focus, input.compact-input:focus {
       <div class="ribbon-group">
         <div class="ribbon-group-items">
           <button class="r-btn active" id="btn-toggle-assistant"><span>Inspector Dock</span></button>
-          <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D Solid View</span></button>
+          <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D / 5AX View</span></button>
           <button class="r-btn" id="btn-stress-test-50k" title="Generate 50,000-line 3D surfacing file"><span>⚡ 50k Stress Test</span></button>
         </div>
         <div class="ribbon-group-title">Workspace &amp; Benchmark</div>
@@ -601,8 +615,8 @@ select.compact-select:focus, input.compact-input:focus {
     <div class="ribbon-pane" id="tab-nc">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-open-renumber"><span>Renumber N</span></button>
-          <button class="r-btn" id="btn-remove-n"><span>Remove N</span></button>
+          <button class="r-btn" id="btn-open-renumber"><span>Renumber</span></button>
+          <button class="r-btn" id="btn-remove-n"><span>Strip Block #</span></button>
         </div>
         <div class="ribbon-group-title">Block Numbers</div>
       </div>
@@ -615,42 +629,53 @@ select.compact-select:focus, input.compact-input:focus {
             <button class="r-btn-sm" id="btn-mirror-y"><span>Mirror Y</span></button>
           </div>
           <div class="r-btn-col">
-            <button class="r-btn-sm" id="btn-to-metric"><span>Inch → Metric (G21)</span></button>
-            <button class="r-btn-sm" id="btn-to-inch"><span>Metric → Inch (G20)</span></button>
+            <button class="r-btn-sm" id="btn-to-metric"><span>Inch → Metric</span></button>
+            <button class="r-btn-sm" id="btn-to-inch"><span>Metric → Inch</span></button>
           </div>
-          <button class="r-btn" id="btn-decimal-repair" title="Convert Fanuc integer words (X100) to decimal (X0.100)"><span>Decimal Repair</span></button>
         </div>
         <div class="ribbon-group-title">Math &amp; Coordinate Transforms</div>
       </div>
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-insert-header"><span>Safe Start</span></button>
-          <button class="r-btn" id="btn-insert-drill-cycle"><span>G83 Peck Drill</span></button>
+          <button class="r-btn" id="btn-insert-hh-tcpm" title="Insert Heidenhain FUNCTION TCPM + PLANE SPATIAL"><span>+ HH TCPM / Plane</span></button>
+          <button class="r-btn" id="btn-insert-header"><span>+ ISO Safe Start</span></button>
         </div>
-        <div class="ribbon-group-title">Macro Snippets</div>
+        <div class="ribbon-group-title">Heidenhain &amp; ISO Macros</div>
       </div>
     </div>
 
-    <!-- TAB 3: 3D SOLID SIMULATION -->
+    <!-- TAB 3: 3D / 5-AXIS SOLID SIMULATION -->
     <div class="ribbon-pane" id="tab-backplot">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-open-stock-modal"><span>📦 Stock Size</span></button>
+          <button class="r-btn" id="btn-open-stock-modal"><span>📦 Stock / BLK</span></button>
+          <div style="display:flex; flex-direction:column; gap:2px; padding:0 4px;">
+            <span style="font-size:9px; color:var(--text-secondary); font-weight:700;">ALLOY / MATERIAL</span>
+            <select id="material-shader-select" class="compact-select" title="Select Engineering Material Shader">
+              <option value="aluminum" selected>6061-T6 Aluminum</option>
+              <option value="steel">1018 / 4140 Steel</option>
+              <option value="stainless">304 Stainless Steel</option>
+              <option value="brass">360 Free-Cut Brass</option>
+              <option value="delrin">Delrin (Acetal)</option>
+              <option value="wax">Machinable Wax</option>
+            </select>
+          </div>
           <button class="r-btn active" id="btn-cycle-stock-render" title="Cycle Solid Shaded / Translucent / Wireframe Stock"><span>🧊 Solid Stock</span></button>
           <button class="r-btn" id="btn-reset-stock"><span>Reset Stock</span></button>
         </div>
-        <div class="ribbon-group-title">3D Solid Workpiece</div>
+        <div class="ribbon-group-title">3D Solid Workpiece &amp; Material</div>
       </div>
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn active" id="btn-toggle-3d-tool"><span>3D Endmill</span></button>
-          <button class="r-btn active" id="btn-toggle-cutter-comp"><span>G41/G42 Path</span></button>
+          <button class="r-btn active" id="btn-toggle-3d-tool"><span>5AX Spindle</span></button>
+          <button class="r-btn active" id="btn-toggle-trunnion"><span>5AX Trunnion</span></button>
+          <button class="r-btn active" id="btn-toggle-cutter-comp"><span>RL/RR/G41</span></button>
           <button class="r-btn active" id="btn-toggle-rapids"><span>Show Rapids</span></button>
           <button class="r-btn active" id="btn-toggle-coolant"><span>Coolant FX</span></button>
         </div>
-        <div class="ribbon-group-title">3D Tooling &amp; Overlays</div>
+        <div class="ribbon-group-title">5-Axis Machine &amp; Tooling</div>
       </div>
 
       <div class="ribbon-group">
@@ -676,7 +701,7 @@ select.compact-select:focus, input.compact-input:focus {
       </div>
       <div class="ribbon-group">
         <div class="ribbon-group-items" style="gap:10px; padding:0 6px;">
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-n" checked> Ignore N-Numbers</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-n" checked> Ignore Block #</label>
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-ws" checked> Ignore Whitespace</label>
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-zeros" checked> Ignore Trailing Zeros</label>
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-comments"> Ignore Comments</label>
@@ -693,7 +718,7 @@ select.compact-select:focus, input.compact-input:focus {
           <button class="r-btn" id="btn-dnc-quick-send"><span>Send Active NC</span></button>
           <button class="r-btn" id="btn-dnc-quick-recv"><span>Receive New NC</span></button>
         </div>
-        <div class="ribbon-group-title">RS-232 Web Serial DNC</div>
+        <div class="ribbon-group-title">RS-232 / LSV2 DNC</div>
       </div>
     </div>
   </section>
@@ -711,7 +736,7 @@ select.compact-select:focus, input.compact-input:focus {
         <button class="dock-tab" data-dock="dock-alarms" id="tab-btn-alarms">ALARMS (0)</button>
       </div>
 
-      <!-- Dock 1: NC-Assistant -->
+      <!-- Dock 1: NC-Assistant (ISO + Heidenhain Klartext Live Parameter Editor) -->
       <div class="dock-pane active" id="dock-assist">
         <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-secondary);">
           <span>BLOCK INSPECTOR</span>
@@ -719,13 +744,13 @@ select.compact-select:focus, input.compact-input:focus {
         </div>
         <div class="assist-badge">
           <div class="code-title" id="assist-code-title">Ready</div>
-          <div class="code-desc" id="assist-code-desc">Type directly in the editor or edit NC words below.</div>
+          <div class="code-desc" id="assist-code-desc">Edit Heidenhain Klartext or ISO parameters live below.</div>
         </div>
         <div class="word-grid" id="assist-word-grid"></div>
         <div style="margin-top:auto; border-top:1px solid var(--border-color); padding-top:8px;">
-          <div style="font-size:10px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">ACTIVE MODAL STATE</div>
+          <div style="font-size:10px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">ACTIVE KINEMATIC STATE</div>
           <div id="assist-modal-summary" style="font-family:var(--font-mono); font-size:11px; color:var(--text-primary); line-height:1.5;">
-            G90 G17 G21 G40 G80
+            TCPM ACTIVE | R0 | MM
           </div>
         </div>
       </div>
@@ -747,9 +772,8 @@ select.compact-select:focus, input.compact-input:focus {
 
     <!-- CENTER: HYBRID EDITABLE CODE EDITOR -->
     <section id="editor-pane">
-      <!-- Ctrl+F Find & Replace Bar -->
       <div id="find-bar">
-        <input type="text" id="find-input" class="compact-input" placeholder="Find NC text (e.g. F1800)..." style="width:140px;">
+        <input type="text" id="find-input" class="compact-input" placeholder="Find NC / Klartext..." style="width:140px;">
         <input type="text" id="replace-input" class="compact-input" placeholder="Replace with..." style="width:130px;">
         <button class="vp-btn" id="btn-find-next">Find Next</button>
         <button class="vp-btn" id="btn-replace-one">Replace</button>
@@ -757,7 +781,6 @@ select.compact-select:focus, input.compact-input:focus {
         <button class="vp-btn" id="btn-close-find">✕</button>
       </div>
 
-      <!-- Mode 1: Direct Full-Text Syntax-Highlighted Editable Code Stage (<= 15,000 lines) -->
       <div id="direct-editor-container">
         <div id="line-gutter"></div>
         <div id="code-stage">
@@ -766,7 +789,6 @@ select.compact-select:focus, input.compact-input:focus {
         </div>
       </div>
 
-      <!-- Mode 2: Virtualized Large-File Editor (> 15,000 lines, e.g., 50k Stress Test) -->
       <div id="virtual-editor-container" tabindex="0">
         <div id="veditor-banner">
           <span>⚡ Virtualized Large-File Mode Active — Click any line to edit inline</span>
@@ -779,7 +801,7 @@ select.compact-select:focus, input.compact-input:focus {
       </div>
     </section>
 
-    <!-- RIGHT: TRUE 3D SOLID SIMULATION & VOLUMETRIC TOOL VIEWPORT -->
+    <!-- RIGHT: TRUE 3D & 5-AXIS SOLID MATERIAL SIMULATION VIEWPORT -->
     <section id="backplot-pane">
       <div id="viewport-toolbar">
         <div class="vp-btn-group">
@@ -788,8 +810,9 @@ select.compact-select:focus, input.compact-input:focus {
           <button class="vp-btn" data-view="front">XZ</button>
           <button class="vp-btn" data-view="side">YZ</button>
           <button class="vp-btn" id="vp-btn-fit">Fit</button>
-          <button class="vp-btn active" id="vp-btn-stock-mode" title="Cycle Solid / Translucent / Wireframe Stock">Solid</button>
-          <button class="vp-btn active" id="vp-btn-comp-toggle" title="Toggle G41/G42 Offset Path">G41/42</button>
+          <button class="vp-btn active" id="vp-btn-stock-mode" title="Cycle Solid / Glass / Wireframe Stock">Solid</button>
+          <button class="vp-btn active" id="vp-btn-trunnion-toggle" title="Toggle 5-Axis Swivel Trunnion & Vice">Trunnion</button>
+          <button class="vp-btn active" id="vp-btn-comp-toggle" title="Toggle RL/RR/G41 Offset Path">RL/RR</button>
         </div>
         <div class="vp-btn-group">
           <span style="font-size:10px; color:var(--text-secondary);">Drag: 3D Orbit | Shift/Right: Pan | Wheel: Zoom</span>
@@ -799,18 +822,24 @@ select.compact-select:focus, input.compact-input:focus {
       <div id="canvas-container">
         <canvas id="backplot-canvas"></canvas>
 
-        <!-- Kinematic Feeds & Speeds HUD -->
+        <!-- Kinematic 5-Axis Feeds, Speeds & Vector HUD -->
         <div id="hud-telemetry">
-          <div class="hud-row"><span class="hud-label">MODAL:</span><span id="hud-modal">G00 G90 G17 G40</span></div>
-          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T01 Ø12.0mm Flat</span></div>
+          <div class="hud-row"><span class="hud-label">MODE:</span><span id="hud-modal" style="color:#d2a8ff; font-weight:700;">HH 5AX | TCPM ON</span></div>
+          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T01 Ø10.0mm Ball</span></div>
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label" id="hud-lbl-x">X:</span><span class="hud-val-x" id="hud-x">0.000</span></div>
           <div class="hud-row"><span class="hud-label">Y:</span><span class="hud-val-y" id="hud-y">0.000</span></div>
           <div class="hud-row"><span class="hud-label">Z:</span><span class="hud-val-z" id="hud-z">0.000</span></div>
+          <div id="hud-5ax-block">
+            <div class="hud-divider"></div>
+            <div class="hud-row"><span class="hud-label">ROTARY A/B/C:</span><span class="hud-val-rot" id="hud-rotary">A0.0° B0.0° C0.0°</span></div>
+            <div class="hud-row"><span class="hud-label">TOOL VEC IJK:</span><span id="hud-ijk" style="color:#56d4dd;">0.000, 0.000, 1.000</span></div>
+            <div class="hud-row"><span class="hud-label">PLANE SPATIAL:</span><span id="hud-plane" style="color:#c9d1d9;">SPA0° SPB0° SPC0°</span></div>
+          </div>
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label">FEED:</span><span id="hud-feed" style="color:#39c5cf; font-weight:700;">0 mm/min</span></div>
           <div class="gauge-bar-wrap"><div class="gauge-bar-fill" id="gauge-feed" style="background:#39c5cf;"></div></div>
-          <div class="hud-row"><span class="hud-label">SPINDLE:</span><span id="hud-spindle" style="color:#ffa657; font-weight:700;">0 RPM (M05)</span></div>
+          <div class="hud-row"><span class="hud-label">SPINDLE:</span><span id="hud-spindle" style="color:#ffa657; font-weight:700;">0 RPM</span></div>
           <div class="gauge-bar-wrap"><div class="gauge-bar-fill" id="gauge-rpm" style="background:#ffa657;"></div></div>
           <div class="hud-row"><span class="hud-label">SURF / LOAD:</span><span id="hud-chipload">0 m/min | 0.000 fz</span></div>
           <div class="hud-divider"></div>
@@ -819,10 +848,11 @@ select.compact-select:focus, input.compact-input:focus {
 
         <!-- Legend HUD -->
         <div id="hud-legend">
-          <div class="legend-item"><span class="swatch-rapid"></span><span>Rapid (G00)</span></div>
-          <div class="legend-item"><span class="swatch-feed"></span><span>Linear Feed (G01)</span></div>
-          <div class="legend-item"><span class="swatch-arc"></span><span>Arc (G02/G03)</span></div>
-          <div class="legend-item"><span class="swatch-comp"></span><span>Comp Centerline (G41/42)</span></div>
+          <div class="legend-item"><span class="swatch-rapid"></span><span>Rapid (FMAX / G00)</span></div>
+          <div class="legend-item"><span class="swatch-feed"></span><span>3-Axis Linear Cut</span></div>
+          <div class="legend-item"><span class="swatch-5ax"></span><span>5-Axis TCPM Simultaneous</span></div>
+          <div class="legend-item"><span class="swatch-arc"></span><span>Circular / Helical (C/CC/G02)</span></div>
+          <div class="legend-item"><span class="swatch-comp"></span><span>Radius Comp (RL/RR/G41)</span></div>
           <div class="legend-item"><span class="swatch-coll"></span><span>Rapid Gouge / Collision</span></div>
         </div>
       </div>
@@ -874,23 +904,23 @@ select.compact-select:focus, input.compact-input:focus {
     <!-- RIGHT DRAWER: WEB SERIAL DNC TRANSMISSION -->
     <aside id="dnc-panel">
       <div class="panel-header" style="display:flex; justify-content:space-between; padding:6px 10px; background:var(--bg-ribbon); border-bottom:1px solid var(--border-color); font-weight:700;">
-        <span>DNC RS-232 COMMUNICATIONS</span>
+        <span>DNC RS-232 / HEIDENHAIN LSV2</span>
         <button class="vp-btn" id="btn-close-dnc">✕</button>
       </div>
       <div class="dnc-form">
         <div class="dnc-field"><label>Baud Rate</label>
           <select id="dnc-baud" class="compact-select">
             <option value="4800">4800</option>
-            <option value="9600" selected>9600</option>
+            <option value="9600">9600</option>
             <option value="19200">19200</option>
             <option value="38400">38400</option>
-            <option value="115200">115200</option>
+            <option value="115200" selected>115200</option>
           </select>
         </div>
         <div class="dnc-field"><label>Data Bits</label>
           <select id="dnc-databits" class="compact-select">
             <option value="7">7 Bits (Fanuc)</option>
-            <option value="8" selected>8 Bits (ISO/Haas)</option>
+            <option value="8" selected>8 Bits (Heidenhain/ISO)</option>
           </select>
         </div>
         <div class="dnc-field"><label>Parity</label>
@@ -913,7 +943,7 @@ select.compact-select:focus, input.compact-input:focus {
           </select>
         </div>
         <div class="dnc-field"><label>Line Delay (ms)</label>
-          <input type="number" id="dnc-delay" class="compact-input" value="15" min="0" max="2000">
+          <input type="number" id="dnc-delay" class="compact-input" value="12" min="0" max="2000">
         </div>
       </div>
       <div class="dnc-actions">
@@ -942,28 +972,28 @@ select.compact-select:focus, input.compact-input:focus {
     </div>
     <div class="status-group">
       <span id="st-collisions">Collisions: 0</span>
-      <span id="st-machine">Profile: Haas VF-2</span>
-      <span id="st-units">Units: Metric (G21)</span>
+      <span id="st-machine">Profile: Hermle C42U (Heidenhain TNC 640)</span>
+      <span id="st-units">Units: Metric (MM)</span>
     </div>
   </footer>
 </div>
 
-<input type="file" id="hidden-file-input" accept=".nc,.cnc,.tap,.mpf,.spf,.eia,.min,.prg,.txt" style="display:none;">
+<input type="file" id="hidden-file-input" accept=".h,.nc,.cnc,.tap,.mpf,.spf,.eia,.min,.prg,.txt" style="display:none;">
 
-<!-- MODAL: STOCK SETUP -->
+<!-- MODAL: STOCK / BLK FORM SETUP -->
 <div class="modal-backdrop" id="modal-stock">
   <div class="modal-card">
-    <div class="modal-head"><span>3D Solid Workpiece Stock Dimensions</span><button class="vp-btn modal-close">✕</button></div>
+    <div class="modal-head"><span>3D Solid Workpiece Stock / Heidenhain BLK FORM</span><button class="vp-btn modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="form-row"><label>Auto-Fit Stock to Toolpath Bounds:</label><input type="checkbox" id="stk-autofit" checked></div>
+      <div class="form-row"><label>Auto-Fit Stock (from BLK FORM or Bounds):</label><input type="checkbox" id="stk-autofit" checked></div>
       <div class="form-row"><label>Mill Block Min X / Max X (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-minx" class="compact-input" style="width:75px;" value="-55"><input type="number" id="stk-maxx" class="compact-input" style="width:75px;" value="55"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-minx" class="compact-input" style="width:75px;" value="-50"><input type="number" id="stk-maxx" class="compact-input" style="width:75px;" value="50"></div>
       </div>
       <div class="form-row"><label>Mill Block Min Y / Max Y (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-miny" class="compact-input" style="width:75px;" value="-40"><input type="number" id="stk-maxy" class="compact-input" style="width:75px;" value="40"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-miny" class="compact-input" style="width:75px;" value="-50"><input type="number" id="stk-maxy" class="compact-input" style="width:75px;" value="50"></div>
       </div>
       <div class="form-row"><label>Mill Block Bottom Z / Top Z (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-22"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-35"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0"></div>
       </div>
       <div class="form-row"><label>Lathe Bar Stock Dia / Length (mm):</label>
         <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="66"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="85"></div>
@@ -979,11 +1009,10 @@ select.compact-select:focus, input.compact-input:focus {
 <!-- MODAL: RENUMBER BLOCKS -->
 <div class="modal-backdrop" id="modal-renumber">
   <div class="modal-card">
-    <div class="modal-head"><span>Renumber NC Blocks (N-Codes)</span><button class="vp-btn modal-close">✕</button></div>
+    <div class="modal-head"><span>Renumber NC / Heidenhain Blocks</span><button class="vp-btn modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="form-row"><label>Start Number:</label><input type="number" id="renum-start" class="compact-input" value="10" min="1"></div>
-      <div class="form-row"><label>Increment:</label><input type="number" id="renum-inc" class="compact-input" value="10" min="1"></div>
-      <div class="form-row"><label>Skip Comments &amp; Blank Lines:</label><input type="checkbox" id="renum-skip-comments" checked></div>
+      <div class="form-row"><label>Start Number:</label><input type="number" id="renum-start" class="compact-input" value="1" min="0"></div>
+      <div class="form-row"><label>Increment:</label><input type="number" id="renum-inc" class="compact-input" value="1" min="1"></div>
     </div>
     <div class="modal-foot">
       <button class="btn-secondary modal-close">Cancel</button>
@@ -1014,12 +1043,12 @@ select.compact-select:focus, input.compact-input:focus {
   <div class="modal-card">
     <div class="modal-head"><span>Machine Configuration &amp; Soft Limits</span><button class="vp-btn modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="form-row"><label>Profile Name:</label><input type="text" id="prof-name" class="compact-input" value="Haas VF-2"></div>
-      <div class="form-row"><label>Rapid Traverse Rate (mm/min):</label><input type="number" id="prof-rapid" class="compact-input" value="15000"></div>
-      <div class="form-row"><label>Max Spindle RPM:</label><input type="number" id="prof-maxrpm" class="compact-input" value="15000"></div>
-      <div class="form-row"><label>Soft Limit X Envelope (+/- mm):</label><input type="number" id="prof-limx" class="compact-input" value="350"></div>
-      <div class="form-row"><label>Soft Limit Y Envelope (+/- mm):</label><input type="number" id="prof-limy" class="compact-input" value="250"></div>
-      <div class="form-row"><label>Soft Limit Z Min (mm):</label><input type="number" id="prof-limz" class="compact-input" value="-250"></div>
+      <div class="form-row"><label>Profile Name:</label><input type="text" id="prof-name" class="compact-input" value="Hermle C42U (Heidenhain TNC 640)"></div>
+      <div class="form-row"><label>Rapid Traverse Rate (mm/min):</label><input type="number" id="prof-rapid" class="compact-input" value="30000"></div>
+      <div class="form-row"><label>Max Spindle RPM:</label><input type="number" id="prof-maxrpm" class="compact-input" value="24000"></div>
+      <div class="form-row"><label>Soft Limit X Envelope (+/- mm):</label><input type="number" id="prof-limx" class="compact-input" value="400"></div>
+      <div class="form-row"><label>Soft Limit Y Envelope (+/- mm):</label><input type="number" id="prof-limy" class="compact-input" value="400"></div>
+      <div class="form-row"><label>Soft Limit Z Min (mm):</label><input type="number" id="prof-limz" class="compact-input" value="-300"></div>
     </div>
     <div class="modal-foot">
       <button class="btn-secondary modal-close">Close</button>
@@ -1045,9 +1074,56 @@ select.compact-select:focus, input.compact-input:focus {
 
 <script>
 /* ==========================================================================
-   1. SAMPLE NC PROGRAMS (ALL EDITABLE)
+   1. SAMPLE NC & HEIDENHAIN 5-AXIS KLARTEXT PROGRAMS
    ========================================================================== */
 const SAMPLE_PROGRAMS = [
+  {
+    id: 'doc-hh-5ax',
+    mode: 'hh-5ax',
+    dirty: false,
+    name: '5AX_TURBINE_BLISK_DEMO.h',
+    content: `0 BEGIN PGM 5AX_BLISK MM
+1 ; HEIDENHAIN TNC 640 5-AXIS SIMULTANEOUS & 3+2 DEMO
+2 ; WORKPIECE: 100x100x35MM 6061-T6 ALUMINUM BILLET
+3 BLK FORM 0.1 Z X-50.0 Y-50.0 Z-35.0
+4 BLK FORM 0.2 X+50.0 Y+50.0 Z+0.0
+5 ; --- OP 1: 5-AXIS SIMULTANEOUS TCPM CONTOURED DOME ---
+6 TOOL CALL 3 Z S18000 F4500 ; 10.0MM BALL NOSE ENDMILL
+7 FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS
+8 L X+0.0 Y+0.0 Z+25.0 A+0.0 B+0.0 C+0.0 R0 FMAX M03 M08
+9 L X-36.0 Y-36.0 Z+8.0 A-22.0 B+18.0 C+0.0 FMAX
+10 L Z-4.5 F1200
+11 L X+36.0 Y-36.0 Z-4.5 A-22.0 B-18.0 C+45.0 RL F3400
+12 L X+36.0 Y+36.0 Z-4.5 A+22.0 B-18.0 C+90.0 F3400
+13 L X-36.0 Y+36.0 Z-4.5 A+22.0 B+18.0 C+135.0 F3400
+14 L X-36.0 Y-36.0 Z-4.5 A-22.0 B+18.0 C+180.0 R0 F3400
+15 ; --- OP 2: 5-AXIS SWARF & IMPELLER HUB SCULPTING ---
+16 L X-26.0 Y-26.0 Z-9.0 A-16.0 B+12.0 C+0.0 F2800
+17 L X+26.0 Y-26.0 Z-11.0 A-16.0 B-12.0 C+90.0 F3200
+18 L X+26.0 Y+26.0 Z-11.0 A+16.0 B-12.0 C+180.0 F3200
+19 L X-26.0 Y+26.0 Z-9.0 A+16.0 B+12.0 C+270.0 F3200
+20 L X-26.0 Y-26.0 Z-9.0 A-16.0 B+12.0 C+360.0 F3200
+21 L X-14.0 Y-14.0 Z-14.5 A-8.0 B+6.0 C+0.0 F2600
+22 L X+14.0 Y-14.0 Z-14.5 A-8.0 B-6.0 C+90.0 F2800
+23 L X+14.0 Y+14.0 Z-14.5 A+8.0 B-6.0 C+180.0 F2800
+24 L X-14.0 Y+14.0 Z-14.5 A+8.0 B+6.0 C+270.0 F2800
+25 L X-14.0 Y-14.0 Z-14.5 A-8.0 B+6.0 C+360.0 F2800
+26 M140 MB MAX ; RETRACT ALONG TILTED TOOL AXIS
+27 M129 ; CANCEL TCPM
+28 ; --- OP 3: 3+2 TILTED WORKING PLANE (PLANE SPATIAL) ---
+29 TOOL CALL 1 Z S14000 F3200 ; 12.0MM FLAT CARBIDE ENDMILL
+30 PLANE SPATIAL SPA+24.0 SPB-14.0 SPC+0.0 TURN FMAX
+31 L X+0.0 Y+0.0 Z+15.0 R0 FMAX M03 M08
+32 L Z-8.0 F900
+33 CC X+0.0 Y+0.0
+34 L X+12.0 Y+0.0 RL F2200
+35 C X+12.0 Y+0.0 DR+ F2400
+36 L X+0.0 Y+0.0 R0 F2200
+37 L Z+25.0 FMAX M09
+38 PLANE RESET TURN FMAX
+39 L A+0.0 B+0.0 C+0.0 FMAX M05
+40 END PGM 5AX_BLISK MM`
+  },
   {
     id: 'doc-mill-1',
     mode: 'mill',
@@ -1159,12 +1235,83 @@ M30
 ];
 
 const DEFAULT_PROFILES = [
+  { id: 'hermle-c42u', name: 'Hermle C42U (Heidenhain TNC 640 5AX)', rapidRate: 30000, maxRpm: 24000, limX: 400, limY: 400, limZ: -300, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
   { id: 'haas-vf2', name: 'Haas VF-2 (3-Axis Mill)', rapidRate: 18000, maxRpm: 15000, limX: 350, limY: 250, limZ: -250, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
   { id: 'haas-st20', name: 'Haas ST-20 (CNC Lathe)', rapidRate: 15000, maxRpm: 4000, limX: 250, limY: 250, limZ: -400, baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
   { id: 'fanuc-0i', name: 'Fanuc 0i-MF (7E2)', rapidRate: 15000, maxRpm: 12000, limX: 300, limY: 200, limZ: -200, baud: '9600', databits: '7', parity: 'even', stopbits: '2', flow: 'hardware' }
 ];
 
-const GCODE_DICTIONARY = {
+const MATERIAL_SHADERS = {
+  aluminum: {
+    name: '6061-T6 Aluminum',
+    rawRgb: [148, 160, 174],
+    cutRgb: [176, 198, 222],
+    wallRgb: [108, 126, 148],
+    specPower: 28,
+    specIntensity: 0.42
+  },
+  steel: {
+    name: '1018 / 4140 Alloy Steel',
+    rawRgb: [108, 114, 124],
+    cutRgb: [145, 156, 170],
+    wallRgb: [86, 94, 106],
+    specPower: 34,
+    specIntensity: 0.48
+  },
+  stainless: {
+    name: '304 Stainless Steel',
+    rawRgb: [134, 140, 146],
+    cutRgb: [172, 182, 190],
+    wallRgb: [102, 110, 118],
+    specPower: 40,
+    specIntensity: 0.56
+  },
+  brass: {
+    name: '360 Free-Cut Brass',
+    rawRgb: [172, 142, 74],
+    cutRgb: [216, 182, 92],
+    wallRgb: [142, 114, 54],
+    specPower: 32,
+    specIntensity: 0.52
+  },
+  delrin: {
+    name: 'Delrin (Acetal)',
+    rawRgb: [215, 220, 226],
+    cutRgb: [236, 240, 244],
+    wallRgb: [182, 188, 196],
+    specPower: 14,
+    specIntensity: 0.22
+  },
+  wax: {
+    name: 'Machinable Wax',
+    rawRgb: [46, 126, 184],
+    cutRgb: [72, 166, 228],
+    wallRgb: [36, 98, 148],
+    specPower: 18,
+    specIntensity: 0.30
+  }
+};
+
+const CODE_DICTIONARY = {
+  // Heidenhain Klartext Keywords
+  'BEGIN PGM': 'Heidenhain Program Header & Unit Declaration (MM / INCH)',
+  'END PGM': 'Heidenhain End of Program Block',
+  'BLK FORM': 'Workpiece Blank Form Definition (0.1 Min Corner, 0.2 Max Corner)',
+  'TOOL CALL': 'Heidenhain Spindle Tool Call, Axis, RPM (S) & Feed (F)',
+  'L': 'Klartext Linear Interpolation Move (Cartesian / Rotary A B C)',
+  'CC': 'Klartext Circle Center Coordinates (Pole for C / CP)',
+  'C': 'Klartext Circular Contour Move around CC (DR+ CCW / DR- CW)',
+  'CR': 'Klartext Circular Move with Radius (R) & Direction (DR+/DR-)',
+  'CP': 'Klartext Polar / Helical Circular Move (IPA Angle, IZ Pitch)',
+  'PLANE SPATIAL': '3+2 Tilted Working Plane via Spatial Euler Angles (SPA, SPB, SPC)',
+  'PLANE RESET': 'Reset Tilted Working Plane back to Machine Home Orientation',
+  'FUNCTION TCPM': '5-Axis Tool Center Point Management (RTCP Simultaneous)',
+  'CYCL DEF': 'Heidenhain Canned Cycle Definition (200 Drill, 251 Rect, 252 Circ)',
+  'CYCL CALL': 'Execute Active Heidenhain Canned Cycle at Current Position',
+  'M128': 'Maintain Tool Tip Position during Rotary Tilt (Legacy TCPM On)',
+  'M129': 'Cancel M128 / TCPM Tool Center Point Compensation',
+  'M140': 'Retract Tool along Current Tilted Tool Axis Vector (MB MAX)',
+  // ISO G/M Codes
   'G00': 'Rapid Positioning (Non-cutting traverse)',
   'G01': 'Linear Interpolation (Controlled feed)',
   'G02': 'Circular / Helical Interpolation (CW)',
@@ -1178,6 +1325,8 @@ const GCODE_DICTIONARY = {
   'G41': 'Cutter Compensation Left (Climb)',
   'G42': 'Cutter Compensation Right (Conventional)',
   'G43': 'Tool Length Offset +',
+  'G43.4': '5-Axis Tool Center Point Control (TCPC / RTCP)',
+  'G68.2': '3+2 Tilted Working Plane Coordinate Rotation',
   'G70': 'Lathe Finishing Cycle',
   'G71': 'Lathe OD/ID Stock Removal Roughing Cycle',
   'G80': 'Canned Cycle Cancel',
@@ -1187,8 +1336,6 @@ const GCODE_DICTIONARY = {
   'G91': 'Incremental Positioning',
   'G96': 'Constant Surface Speed (CSS)',
   'G97': 'Direct Spindle RPM Mode',
-  'G98': 'Feed per Minute',
-  'G99': 'Feed per Revolution',
   'M03': 'Spindle On (Clockwise)',
   'M04': 'Spindle On (Counter-Clockwise)',
   'M05': 'Spindle Stop',
@@ -1201,55 +1348,57 @@ const GCODE_DICTIONARY = {
 /* ==========================================================================
    2. APPLICATION STATE
    ========================================================================== */
-const VIRTUAL_THRESHOLD = 15000; // Lines threshold to switch from full textarea to virtualized editor
+const VIRTUAL_THRESHOLD = 15000;
 const ROW_HEIGHT = 20;
 
 const state = {
   docs: JSON.parse(JSON.stringify(SAMPLE_PROGRAMS)),
-  activeDocId: 'doc-mill-1',
-  editorMode: 'direct',    // 'direct' (<=15k lines) or 'virtual' (>15k lines)
-  linesCache: [],          // Split lines array
+  activeDocId: 'doc-hh-5ax',
+  editorMode: 'direct',
+  linesCache: [],
   activeLine: 0,
   profiles: [],
-  activeProfileId: 'haas-vf2',
-  kinematicsMode: 'mill',  // 'mill' or 'lathe'
+  activeProfileId: 'hermle-c42u',
+  kinematicsMode: 'hh-5ax', // 'hh-5ax' | 'hh-3ax' | 'mill' | 'lathe'
 
-  // 3D Tool Library (shape: 'flat' | 'ball' | 'drill')
+  // 3D Tool Library
   tools: {
     1: { num: 1, name: '12.0mm 3-Flute Endmill', shape: 'flat', dia: 12.0, flutes: 3, holderDia: 34, fluteLen: 26 },
     2: { num: 2, name: '6.0mm Carbide Drill', shape: 'drill', dia: 6.0, flutes: 2, holderDia: 26, fluteLen: 34 },
-    3: { num: 3, name: '10.0mm Ball Endmill', shape: 'ball', dia: 10.0, flutes: 4, holderDia: 30, fluteLen: 22 }
+    3: { num: 3, name: '10.0mm Ball Nose Endmill', shape: 'ball', dia: 10.0, flutes: 4, holderDia: 30, fluteLen: 24 }
   },
 
-  // Parsed Toolpath & Compensation Data
+  // Parsed Toolpath & 5-Axis Kinematic Data
   segments: [],
   compPolylines: [],
   alarms: [],
   collisionLineSet: new Set(),
-  extents: { minX: -55, maxX: 55, minY: -40, maxY: 40, minZ: -22, maxZ: 25 },
+  extents: { minX: -50, maxX: 50, minY: -50, maxY: 50, minZ: -35, maxZ: 25 },
   stats: { cutDist: 0, rapidDist: 0, totalTimeSec: 0 },
 
-  // 3D Solid Workpiece Z-Map Heightfield + Collision Gouge Flags
+  // High-Resolution 3D Solid Workpiece Z-Map Heightfield + Material Shader
   stock: {
     autoFit: true,
-    minX: -55, maxX: 55, minY: -40, maxY: 40, minZ: -22, maxZ: 0,
+    material: 'aluminum',
+    minX: -50, maxX: 50, minY: -50, maxY: 50, minZ: -35, maxZ: 0,
     latheDia: 66, latheLen: 80,
-    cols: 44, rows: 34,
+    cols: 56, rows: 48,
     initialZ: null,
     currentZ: null,
-    gougeFlags: null       // Uint8Array marking cells hit by G00 rapid collisions
+    gougeFlags: null
   },
 
   // 3D Perspective Camera & Display Options
   cam: {
-    yaw: 0.62,             // Azimuth rotation around Z (radians)
-    pitch: 0.56,           // Elevation tilt from XY plane (radians)
-    zoom: 4.2,             // Pixels per mm scale
+    yaw: 0.64,
+    pitch: 0.54,
+    zoom: 3.9,
     panX: 0,
     panY: 0,
-    fov: 750,              // Perspective focal distance
-    stockRenderMode: 'solid', // 'solid' | 'translucent' | 'wireframe'
+    fov: 780,
+    stockRenderMode: 'solid',
     show3DTool: true,
+    showTrunnion: true,
     showCutterComp: true,
     showRapids: true,
     showCoolant: true
@@ -1264,7 +1413,6 @@ const state = {
   },
 
   // Compare & DNC State
-  compare: { diffs: [], diffIndices: [], focusedDiffCursor: -1 },
   dnc: { port: null, sending: false, abortRequested: false }
 };
 
@@ -1309,8 +1457,17 @@ function getActiveProfile() {
   return state.profiles.find(p => p.id === state.activeProfileId) || state.profiles[0];
 }
 
+function detectDialect(text, filename = '') {
+  if (/\.h$/i.test(filename) || /\bBEGIN\s+PGM\b/i.test(text) || /\bBLK\s+FORM\b/i.test(text)) {
+    const has5Ax = /\b(FUNCTION\s+TCPM|PLANE\s+SPATIAL|M128|[ABC][+-]?\d)/i.test(text);
+    return has5Ax ? 'hh-5ax' : 'hh-3ax';
+  }
+  if (/\bG71\b|\bG96\b|\bT0\d0\d\b/i.test(text)) return 'lathe';
+  return 'mill';
+}
+
 /* ==========================================================================
-   4. HYBRID EDITABLE CODE EDITOR (DIRECT TEXTAREA + VIRTUALIZED LARGE-FILE)
+   4. HYBRID EDITABLE CODE EDITOR (ISO G-CODE + HEIDENHAIN KLARTEXT)
    ========================================================================== */
 function tokenizeLine(line) {
   let codePart = line;
@@ -1327,15 +1484,31 @@ function tokenizeLine(line) {
     commentPart = line.slice(splitIdx);
   }
 
-  const hCode = escapeHtml(codePart).replace(/([A-Za-z#])([+-]?\d*\.?\d+)/g, (m, l, num) => {
+  let hCode = escapeHtml(codePart);
+
+  // Highlight Heidenhain Klartext Keywords First
+  hCode = hCode.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|CYCL\s+DEF|CYCL\s+CALL|CALL\s+LBL|LBL|TURN|STAY|FMAX|MB\s+MAX|PATHCTRL|AXIS|TCP|POS|MM|INCH)\b/gi,
+    m => `<span class="tok-hh-kw">${m}</span>`
+  );
+
+  // Leading Heidenhain Block Number
+  hCode = hCode.replace(/^(\s*)(\d+)(\s+)/, '$1<span class="tok-hh-blk">$2</span>$3');
+
+  // Standalone Heidenhain Motion / Radius Comp / Direction Words
+  hCode = hCode.replace(/(^|\s)(CC|CR|CP|C|L|RL|RR|R0|DR\+|DR-)(?=\s|$)/g,
+    (m, sp, kw) => `${sp}<span class="tok-g">${kw}</span>`
+  );
+
+  // Coordinate, Rotary, Feed, Spindle, ISO G/M Words
+  hCode = hCode.replace(/\b(SPA|SPB|SPC|IPA|IZ|Q|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|H|D|P|N|O|#)([+-]?\d*\.?\d+)/gi, (m, l, num) => {
     const up = l.toUpperCase();
     let cls = '';
     if (up === 'G') cls = 'tok-g';
     else if (up === 'M') cls = 'tok-m';
     else if (up === 'X' || up === 'U') cls = 'tok-x';
     else if (up === 'Y' || up === 'V') cls = 'tok-y';
-    else if (up === 'Z' || up === 'W') cls = 'tok-z';
-    else if (up === 'A' || up === 'B' || up === 'C') cls = 'tok-rot';
+    else if (up === 'Z' || up === 'W' || up === 'IZ') cls = 'tok-z';
+    else if (up === 'A' || up === 'B' || up === 'C' || up === 'SPA' || up === 'SPB' || up === 'SPC' || up === 'IPA') cls = 'tok-rot';
     else if (up === 'I' || up === 'J' || up === 'K' || up === 'R') cls = 'tok-arc';
     else if ('FSTHDQP'.includes(up)) cls = 'tok-feed';
     else if (up === 'N') cls = 'tok-n';
@@ -1354,13 +1527,11 @@ function renderEditorView(forceFullDirect = false) {
   document.getElementById('st-lines').textContent = `Lines: ${totalLines.toLocaleString()}`;
 
   if (!forceFullDirect && totalLines > VIRTUAL_THRESHOLD) {
-    // Switch to Virtualized Mode for massive 15k+ line files
     state.editorMode = 'virtual';
     el.directContainer.style.display = 'none';
     el.virtualContainer.style.display = 'block';
     renderVirtualLines();
   } else {
-    // Direct Editable Syntax-Highlighted Textarea Mode
     state.editorMode = 'direct';
     el.virtualContainer.style.display = 'none';
     el.directContainer.style.display = 'flex';
@@ -1371,13 +1542,9 @@ function renderEditorView(forceFullDirect = false) {
       const isAct = (i === state.activeLine);
       const isColl = state.collisionLineSet.has(i);
       const tok = tokenizeLine(lines[i]) || ' ';
-      if (isColl) {
-        htmlLines[i] = `<span class="collision-line-highlight">${tok}</span>`;
-      } else if (isAct) {
-        htmlLines[i] = `<span class="active-line-highlight">${tok}</span>`;
-      } else {
-        htmlLines[i] = tok;
-      }
+      if (isColl) htmlLines[i] = `<span class="collision-line-highlight">${tok}</span>`;
+      else if (isAct) htmlLines[i] = `<span class="active-line-highlight">${tok}</span>`;
+      else htmlLines[i] = tok;
       gutterLines[i] = `<div class="gutter-line${isColl ? ' collision-line' : (isAct ? ' active-line' : '')}">${i + 1}</div>`;
     }
     el.backdrop.innerHTML = htmlLines.join('\n') + '\n';
@@ -1458,37 +1625,48 @@ function applyTextChange(newText, markDirty = true, immediateParse = false, fitV
 }
 
 /* ==========================================================================
-   5. NC-ASSISTANT, TOOL TABLE & ALARM LOG
+   5. NC-ASSISTANT (ISO + HEIDENHAIN KLARTEXT LIVE INSPECTOR)
    ========================================================================== */
 function updateNCAssistant() {
   const rawLine = state.linesCache[state.activeLine] || '';
   document.getElementById('assist-line-badge').textContent = `Ln ${state.activeLine + 1}`;
 
   const codeOnly = rawLine.replace(/\(.*?\)/g, '').split(';')[0].trim();
-  const wordRegex = /([A-Za-z])([+-]?\d*\.?\d+)/g;
+  const titleEl = document.getElementById('assist-code-title');
+  const descEl = document.getElementById('assist-code-desc');
+
+  // Identify Heidenhain Keyword or ISO G/M Word
+  const hhMatch = codeOnly.match(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|CYCL\s+DEF|CYCL\s+CALL|M128|M129|M140|CC|CR|CP|C|L)\b/i);
+  const isoMatch = codeOnly.match(/\b([GM])(\d+\.?\d*)\b/i);
+
+  if (hhMatch) {
+    const kw = hhMatch[1].toUpperCase().replace(/\s+/g, ' ');
+    titleEl.textContent = kw;
+    descEl.textContent = CODE_DICTIONARY[kw] || 'Heidenhain Klartext Block';
+  } else if (isoMatch) {
+    const key = isoMatch[1].toUpperCase() + (isoMatch[2].includes('.') ? isoMatch[2] : isoMatch[2].padStart(2, '0'));
+    titleEl.textContent = `${isoMatch[1].toUpperCase()}${isoMatch[2]}`;
+    descEl.textContent = CODE_DICTIONARY[key] || CODE_DICTIONARY[isoMatch[1].toUpperCase() + isoMatch[2]] || 'ISO NC Word Block';
+  } else {
+    titleEl.textContent = codeOnly ? 'Parameter / Coordinate Block' : 'Comment / Blank';
+    descEl.textContent = codeOnly ? 'Inherits active modal state.' : 'Non-motion block.';
+  }
+
+  // Extract editable numeric words (including SPA/SPB/SPC, X/Y/Z, A/B/C, F/S/R)
+  const wordRegex = /\b(SPA|SPB|SPC|IPA|IZ|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|D|Q)([+-]?\d*\.?\d+)/gi;
   const words = [];
   let m;
   while ((m = wordRegex.exec(codeOnly)) !== null) {
     words.push({ letter: m[1].toUpperCase(), value: m[2] });
   }
 
-  const primary = words.find(w => w.letter === 'G' || w.letter === 'M');
-  const titleEl = document.getElementById('assist-code-title');
-  const descEl = document.getElementById('assist-code-desc');
-  if (primary) {
-    const key = primary.letter + primary.value.padStart(2, '0');
-    titleEl.textContent = `${primary.letter}${primary.value}`;
-    descEl.textContent = GCODE_DICTIONARY[key] || GCODE_DICTIONARY[primary.letter + primary.value] || 'NC Word Block';
-  } else {
-    titleEl.textContent = words.length ? 'Modal Coordinate Block' : 'Comment / Header';
-    descEl.textContent = words.length ? 'Inherits active modal G-code.' : 'Non-motion line.';
-  }
-
   const grid = document.getElementById('assist-word-grid');
   grid.innerHTML = '';
   const labels = {
-    N: 'Block', G: 'Prep', M: 'Misc', X: 'X Axis', Y: 'Y Axis', Z: 'Z Axis',
-    I: 'Arc I', J: 'Arc J', K: 'Arc K', R: 'Arc/R', F: 'Feed', S: 'RPM/CSS', T: 'Tool', D: 'Offset', Q: 'Peck'
+    G: 'Prep', M: 'Misc', X: 'X Axis', Y: 'Y Axis', Z: 'Z Axis',
+    A: 'Rotary A', B: 'Rotary B', C: 'Rotary C',
+    SPA: 'Tilt A', SPB: 'Tilt B', SPC: 'Rot C',
+    I: 'Arc I', J: 'Arc J', K: 'Arc K', R: 'Radius', F: 'Feed', S: 'Spindle', T: 'Tool', D: 'Offset', Q: 'Param'
   };
 
   words.forEach((w, idx) => {
@@ -1504,8 +1682,14 @@ function updateNCAssistant() {
       let count = 0;
       const lines = [...state.linesCache];
       lines[state.activeLine] = lines[state.activeLine].replace(
-        /([A-Za-z])([+-]?\d*\.?\d+)/g,
-        (match, l) => (count++ === idx ? `${l}${nv}` : match)
+        /\b(SPA|SPB|SPC|IPA|IZ|G|M|X|Y|Z|U|V|W|A|B|C|I|J|K|R|F|S|T|D|Q)([+-]?\d*\.?\d+)/gi,
+        (match, l) => {
+          if (count++ === idx) {
+            const hasPlus = /^[+-]/.test(nv) ? '' : (/^(X|Y|Z|A|B|C|SPA|SPB|SPC)$/.test(l.toUpperCase()) && state.kinematicsMode.startsWith('hh') ? '+' : '');
+            return `${l}${hasPlus}${nv}`;
+          }
+          return match;
+        }
       );
       applyTextChange(lines.join('\n'), true, true, false);
     };
@@ -1586,41 +1770,404 @@ function renderAlarmLogDock() {
 }
 
 /* ==========================================================================
-   6. G-CODE MOTION PARSER & 3D SOLID STOCK REMOVAL ENGINE
+   6. UNIFIED HEIDENHAIN KLARTEXT (3AX/5AX) & ISO G-CODE MOTION PARSER
    ========================================================================== */
+function computeToolAxisVector(aDeg, bDeg, cDeg, spaDeg, spbDeg, spcDeg) {
+  // Combine PLANE SPATIAL (3+2 tilt) + simultaneous rotary (A, B, C)
+  const rad = Math.PI / 180;
+  const rx = (aDeg + spaDeg) * rad;
+  const ry = (bDeg + spbDeg) * rad;
+  const rz = (cDeg + spcDeg) * rad;
+
+  // Start from vertical spindle vector v = (0, 0, 1)
+  // Rotate around X by rx:
+  let x1 = 0;
+  let y1 = -Math.sin(rx);
+  let z1 = Math.cos(rx);
+
+  // Rotate around Y by ry:
+  let x2 = x1 * Math.cos(ry) + z1 * Math.sin(ry);
+  let y2 = y1;
+  let z2 = -x1 * Math.sin(ry) + z1 * Math.cos(ry);
+
+  // Rotate around Z by rz:
+  let vx = x2 * Math.cos(rz) - y2 * Math.sin(rz);
+  let vy = x2 * Math.sin(rz) + y2 * Math.cos(rz);
+  let vz = z2;
+
+  const len = Math.hypot(vx, vy, vz) || 1;
+  return { i: vx / len, j: vy / len, k: vz / len };
+}
+
+function transformTiltedPlanePoint(lx, ly, lz, spa, spb, spc) {
+  if (Math.abs(spa) < 1e-5 && Math.abs(spb) < 1e-5 && Math.abs(spc) < 1e-5) {
+    return { x: lx, y: ly, z: lz };
+  }
+  const rad = Math.PI / 180;
+  const rx = spa * rad, ry = spb * rad, rz = spc * rad;
+  // Rotate local plane coordinates into workpiece space
+  const y1 = ly * Math.cos(rx) - lz * Math.sin(rx);
+  const z1 = ly * Math.sin(rx) + lz * Math.cos(rx);
+  const x2 = lx * Math.cos(ry) + z1 * Math.sin(ry);
+  const z2 = -lx * Math.sin(ry) + z1 * Math.cos(ry);
+  const x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
+  const y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
+  return { x: x3, y: y3, z: z2 };
+}
+
 function parseAndBuildSimulation(text, fitView = false) {
   const lines = text.split('\n');
+  const isHeidenhain = state.kinematicsMode.startsWith('hh') || /\bBEGIN\s+PGM\b/i.test(text);
   const isLathe = (state.kinematicsMode === 'lathe');
   const prof = getActiveProfile();
-  const rapidRate = prof ? prof.rapidRate : 15000;
+  const rapidRate = prof ? prof.rapidRate : 24000;
 
-  // Auto-detect tool descriptions from comments
+  // Auto-detect tools from ISO (T01 M06 (...)) or Heidenhain (TOOL CALL 1 Z S... ; ...)
   lines.forEach(l => {
-    const tm = l.match(/T0*(\d+)\s*M0?6\s*\(([^)]+)\)/i);
-    if (tm) {
-      const tNum = parseInt(tm[1], 10);
-      const desc = tm[2].trim();
-      const diaMatch = desc.match(/(\d+\.?\d*)\s*MM/i);
-      const isBall = /BALL/i.test(desc);
-      const isDrill = /DRILL/i.test(desc);
-      const shape = isBall ? 'ball' : (isDrill ? 'drill' : 'flat');
-      if (!state.tools[tNum]) {
-        state.tools[tNum] = { num: tNum, name: desc, shape, dia: diaMatch ? parseFloat(diaMatch[1]) : 10.0, flutes: 3, holderDia: 32, fluteLen: 28 };
-      } else {
-        state.tools[tNum].name = desc;
-        state.tools[tNum].shape = shape;
-        if (diaMatch) state.tools[tNum].dia = parseFloat(diaMatch[1]);
-      }
+    const isoTm = l.match(/T0*(\d+)\s*M0?6\s*\(([^)]+)\)/i);
+    if (isoTm) {
+      registerToolFromComment(parseInt(isoTm[1], 10), isoTm[2].trim());
+    }
+    const hhTm = l.match(/TOOL\s+CALL\s+(\d+)\b[^;]*(?:;\s*(.+))?/i);
+    if (hhTm && hhTm[2]) {
+      registerToolFromComment(parseInt(hhTm[1], 10), hhTm[2].trim());
     }
   });
   renderToolTableDock();
 
+  if (isHeidenhain) {
+    parseHeidenhainKlartext(lines, prof, rapidRate, fitView);
+  } else {
+    parseISOGCode(lines, isLathe, prof, rapidRate, fitView);
+  }
+}
+
+function registerToolFromComment(tNum, desc) {
+  const diaMatch = desc.match(/(\d+\.?\d*)\s*MM/i);
+  const isBall = /BALL/i.test(desc);
+  const isDrill = /DRILL/i.test(desc);
+  const shape = isBall ? 'ball' : (isDrill ? 'drill' : 'flat');
+  if (!state.tools[tNum]) {
+    state.tools[tNum] = { num: tNum, name: desc, shape, dia: diaMatch ? parseFloat(diaMatch[1]) : 10.0, flutes: 3, holderDia: 32, fluteLen: 26 };
+  } else {
+    state.tools[tNum].name = desc;
+    state.tools[tNum].shape = shape;
+    if (diaMatch) state.tools[tNum].dia = parseFloat(diaMatch[1]);
+  }
+}
+
+/**
+ * Full Heidenhain Klartext 3-Axis & 5-Axis Simultaneous (TCPM / PLANE SPATIAL) Parser
+ */
+function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
+  const segments = [];
+  const alarms = [];
+  const collisionLineSet = new Set();
+
+  let pos = { x: 0, y: 0, z: 30 };
+  let rot = { a: 0, b: 0, c: 0 };
+  let plane = { spa: 0, spb: 0, spc: 0 };
+  let circleCenter = { x: 0, y: 0 };
+  let tcpmActive = false;
+  let compMode = 'R0';
+  let feed = 1500;
+  let spindle = 12000;
+  let spindleDir = 'M05';
+  let coolant = false;
+  let tool = 1;
+  let metric = true;
+  let blkFormFound = false;
+
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  let cutDist = 0, rapidDist = 0, elapsedTimeSec = 0;
+
+  function recordBounds(p) {
+    if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+    if (p.z < minZ) minZ = p.z; if (p.z > maxZ) maxZ = p.z;
+  }
+
+  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+    const raw = lines[lineIdx];
+    const clean = raw.split(';')[0].trim();
+    if (!clean) continue;
+
+    // Strip leading Klartext block number
+    const body = clean.replace(/^\d+\s+/, '').trim();
+    if (!body) continue;
+
+    if (/\bINCH\b/i.test(body) && /\bBEGIN\s+PGM\b/i.test(body)) metric = false;
+    if (/\bMM\b/i.test(body) && /\bBEGIN\s+PGM\b/i.test(body)) metric = true;
+
+    // BLK FORM 0.1 / 0.2 Automatic 3D Workpiece Stock Sizing
+    const blk01 = body.match(/BLK\s+FORM\s+0\.1\s+(?:[XYZ]\s+)?X([+-]?\d*\.?\d+)\s+Y([+-]?\d*\.?\d+)\s+Z([+-]?\d*\.?\d+)/i);
+    if (blk01) {
+      state.stock.minX = parseFloat(blk01[1]);
+      state.stock.minY = parseFloat(blk01[2]);
+      state.stock.minZ = parseFloat(blk01[3]);
+      blkFormFound = true;
+      continue;
+    }
+    const blk02 = body.match(/BLK\s+FORM\s+0\.2\s+X([+-]?\d*\.?\d+)\s+Y([+-]?\d*\.?\d+)\s+Z([+-]?\d*\.?\d+)/i);
+    if (blk02) {
+      state.stock.maxX = parseFloat(blk02[1]);
+      state.stock.maxY = parseFloat(blk02[2]);
+      state.stock.maxZ = parseFloat(blk02[3]);
+      blkFormFound = true;
+      continue;
+    }
+
+    // TOOL CALL <num> Z S<rpm> F<feed>
+    const tcMatch = body.match(/^TOOL\s+CALL\s+(\d+)\b(.*)$/i);
+    if (tcMatch) {
+      tool = parseInt(tcMatch[1], 10) || 1;
+      const sM = tcMatch[2].match(/\bS([+-]?\d*\.?\d+)/i);
+      const fM = tcMatch[2].match(/\bF([+-]?\d*\.?\d+)/i);
+      if (sM) spindle = parseFloat(sM[1]);
+      if (fM) feed = parseFloat(fM[1]);
+      continue;
+    }
+
+    // FUNCTION TCPM / M128 / M129
+    if (/^FUNCTION\s+TCPM\b/i.test(body) || /\bM128\b/i.test(body)) {
+      tcpmActive = true;
+      continue;
+    }
+    if (/\bM129\b/i.test(body)) {
+      tcpmActive = false;
+      continue;
+    }
+
+    // PLANE SPATIAL SPA... SPB... SPC... / PLANE RESET
+    const plMatch = body.match(/^PLANE\s+SPATIAL\b(.*)$/i);
+    if (plMatch) {
+      const spaM = plMatch[1].match(/SPA([+-]?\d*\.?\d+)/i);
+      const spbM = plMatch[1].match(/SPB([+-]?\d*\.?\d+)/i);
+      const spcM = plMatch[1].match(/SPC([+-]?\d*\.?\d+)/i);
+      if (spaM) plane.spa = parseFloat(spaM[1]);
+      if (spbM) plane.spb = parseFloat(spbM[1]);
+      if (spcM) plane.spc = parseFloat(spcM[1]);
+      continue;
+    }
+    if (/^PLANE\s+RESET\b/i.test(body)) {
+      plane = { spa: 0, spb: 0, spc: 0 };
+      continue;
+    }
+
+    // M140 MB MAX (Retract along tilted tool axis)
+    if (/^M140\b/i.test(body)) {
+      const vec = computeToolAxisVector(rot.a, rot.b, rot.c, plane.spa, plane.spb, plane.spc);
+      const target = { x: pos.x + vec.i * 30, y: pos.y + vec.j * 30, z: pos.z + vec.k * 30 };
+      const segLen = 30;
+      const dur = Math.max(0.05, (segLen / rapidRate) * 60);
+      rapidDist += segLen;
+      segments.push({
+        line: lineIdx, type: 'G00', is5Ax: true,
+        pts: [{ ...pos }, { ...target }],
+        rotStart: { ...rot }, rotEnd: { ...rot }, plane: { ...plane },
+        modalStr: `HH 5AX | TCPM ${tcpmActive ? 'ON' : 'OFF'} | M140`,
+        tool, spindle, spindleDir, feed: rapidRate, coolant, compMode, compReg: tool,
+        startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
+      });
+      elapsedTimeSec += dur;
+      pos = target;
+      recordBounds(pos);
+      continue;
+    }
+
+    // Circle Center CC X... Y...
+    const ccMatch = body.match(/^CC\b(.*)$/i);
+    if (ccMatch) {
+      const xm = ccMatch[1].match(/\bX([+-]?\d*\.?\d+)/i);
+      const ym = ccMatch[1].match(/\bY([+-]?\d*\.?\d+)/i);
+      const lx = xm ? parseFloat(xm[1]) : 0;
+      const ly = ym ? parseFloat(ym[1]) : 0;
+      const wPt = transformTiltedPlanePoint(lx, ly, 0, plane.spa, plane.spb, plane.spc);
+      circleCenter = { x: wPt.x, y: wPt.y };
+      continue;
+    }
+
+    // Radius Compensation RL / RR / R0 & M-codes
+    if (/\bRL\b/i.test(body)) compMode = 'G41';
+    else if (/\bRR\b/i.test(body)) compMode = 'G42';
+    else if (/\bR0\b/i.test(body)) compMode = 'G40';
+
+    if (/\bM0?3\b/i.test(body)) spindleDir = 'M03';
+    else if (/\bM0?4\b/i.test(body)) spindleDir = 'M04';
+    else if (/\bM0?5\b/i.test(body)) spindleDir = 'M05';
+    if (/\bM0?[78]\b/i.test(body)) coolant = true;
+    else if (/\bM0?9\b/i.test(body)) coolant = false;
+
+    // Linear Move: L X... Y... Z... A... B... C... FMAX / F...
+    const lMatch = body.match(/^L\b(.*)$/i);
+    if (lMatch) {
+      const args = lMatch[1];
+      const xm = args.match(/\bX([+-]?\d*\.?\d+)/i);
+      const ym = args.match(/\bY([+-]?\d*\.?\d+)/i);
+      const zm = args.match(/\bZ([+-]?\d*\.?\d+)/i);
+      const am = args.match(/\bA([+-]?\d*\.?\d+)/i);
+      const bm = args.match(/\bB([+-]?\d*\.?\d+)/i);
+      const cm = args.match(/\bC([+-]?\d*\.?\d+)/i);
+      const fm = args.match(/\bF([+-]?\d*\.?\d+)/i);
+      const isRapid = /\bFMAX\b/i.test(args);
+
+      if (fm) feed = parseFloat(fm[1]);
+
+      // Map local coordinates through active PLANE SPATIAL if tilted
+      const curLocal = { x: pos.x, y: pos.y, z: pos.z };
+      const targetLocal = {
+        x: xm ? parseFloat(xm[1]) : curLocal.x,
+        y: ym ? parseFloat(ym[1]) : curLocal.y,
+        z: zm ? parseFloat(zm[1]) : curLocal.z
+      };
+      const targetWorld = (Math.abs(plane.spa) > 1e-4 || Math.abs(plane.spb) > 1e-4 || Math.abs(plane.spc) > 1e-4)
+        ? transformTiltedPlanePoint(
+            xm ? parseFloat(xm[1]) : 0,
+            ym ? parseFloat(ym[1]) : 0,
+            zm ? parseFloat(zm[1]) : pos.z,
+            plane.spa, plane.spb, plane.spc
+          )
+        : targetLocal;
+
+      const targetRot = {
+        a: am ? parseFloat(am[1]) : rot.a,
+        b: bm ? parseFloat(bm[1]) : rot.b,
+        c: cm ? parseFloat(cm[1]) : rot.c
+      };
+
+      const is5AxMove = tcpmActive || Math.abs(targetRot.a - rot.a) > 1e-4 || Math.abs(targetRot.b - rot.b) > 1e-4 || Math.abs(targetRot.c - rot.c) > 1e-4 || Math.abs(plane.spa) > 1e-4 || Math.abs(plane.spb) > 1e-4;
+      const steps = is5AxMove ? 14 : 1;
+      const pts = [];
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        pts.push({
+          x: pos.x + (targetWorld.x - pos.x) * t,
+          y: pos.y + (targetWorld.y - pos.y) * t,
+          z: pos.z + (targetWorld.z - pos.z) * t
+        });
+      }
+      pts.forEach(recordBounds);
+
+      const segLen = Math.max(0.5, Math.hypot(targetWorld.x - pos.x, targetWorld.y - pos.y, targetWorld.z - pos.z));
+      const rate = isRapid ? rapidRate : Math.max(1, feed);
+      const dur = Math.max(0.03, (segLen / rate) * 60);
+      if (isRapid) rapidDist += segLen;
+      else cutDist += segLen;
+
+      segments.push({
+        line: lineIdx,
+        type: isRapid ? 'G00' : 'G01',
+        is5Ax: is5AxMove && !isRapid,
+        pts,
+        rotStart: { ...rot },
+        rotEnd: { ...targetRot },
+        plane: { ...plane },
+        modalStr: `HH ${is5AxMove ? '5AX' : '3AX'} | TCPM ${tcpmActive ? 'ON' : 'OFF'} | ${compMode}`,
+        tool, spindle, spindleDir, feed: rate, coolant, compMode, compReg: tool,
+        startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
+      });
+
+      elapsedTimeSec += dur;
+      pos = targetWorld;
+      rot = targetRot;
+      continue;
+    }
+
+    // Circular Move around CC: C X... Y... DR+/DR-
+    const cMatch = body.match(/^C\b(.*)$/i);
+    if (cMatch) {
+      const args = cMatch[1];
+      const xm = args.match(/\bX([+-]?\d*\.?\d+)/i);
+      const ym = args.match(/\bY([+-]?\d*\.?\d+)/i);
+      const fm = args.match(/\bF([+-]?\d*\.?\d+)/i);
+      const isCW = /DR-/i.test(args);
+      if (fm) feed = parseFloat(fm[1]);
+
+      const endW = transformTiltedPlanePoint(
+        xm ? parseFloat(xm[1]) : pos.x,
+        ym ? parseFloat(ym[1]) : pos.y,
+        pos.z,
+        plane.spa, plane.spb, plane.spc
+      );
+      const radius = Math.hypot(pos.x - circleCenter.x, pos.y - circleCenter.y);
+      const a1 = Math.atan2(pos.y - circleCenter.y, pos.x - circleCenter.x);
+      let a2 = Math.atan2(endW.y - circleCenter.y, endW.x - circleCenter.x);
+      let sweep = a2 - a1;
+      if (Math.abs(sweep) < 1e-4) sweep = isCW ? -Math.PI * 2 : Math.PI * 2;
+      else if (isCW && sweep > 0) sweep -= Math.PI * 2;
+      else if (!isCW && sweep < 0) sweep += Math.PI * 2;
+
+      const steps = 36;
+      const pts = [];
+      for (let s = 0; s <= steps; s++) {
+        const ang = a1 + sweep * (s / steps);
+        pts.push({
+          x: circleCenter.x + radius * Math.cos(ang),
+          y: circleCenter.y + radius * Math.sin(ang),
+          z: pos.z
+        });
+      }
+      pts.forEach(recordBounds);
+      const arcLen = Math.max(1, Math.abs(sweep) * radius);
+      const dur = Math.max(0.05, (arcLen / Math.max(1, feed)) * 60);
+      cutDist += arcLen;
+
+      segments.push({
+        line: lineIdx, type: isCW ? 'G02' : 'G03', is5Ax: false, pts,
+        rotStart: { ...rot }, rotEnd: { ...rot }, plane: { ...plane },
+        modalStr: `HH CIRC ${isCW ? 'DR-' : 'DR+'} | ${compMode}`,
+        tool, spindle, spindleDir, feed, coolant, compMode, compReg: tool,
+        startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
+      });
+      elapsedTimeSec += dur;
+      pos = pts[pts.length - 1];
+    }
+  }
+
+  if (!isFinite(minX)) { minX = -50; maxX = 50; minY = -50; maxY = 50; minZ = -35; maxZ = 25; }
+  state.segments = segments;
+  state.extents = {
+    minX: Math.min(minX, state.stock.minX),
+    maxX: Math.max(maxX, state.stock.maxX),
+    minY: Math.min(minY, state.stock.minY),
+    maxY: Math.max(maxY, state.stock.maxY),
+    minZ: Math.min(minZ, state.stock.minZ),
+    maxZ: Math.max(maxZ, state.stock.maxZ)
+  };
+  state.stats = { cutDist, rapidDist, totalTimeSec: elapsedTimeSec };
+  state.alarms = alarms;
+  state.collisionLineSet = collisionLineSet;
+  state.compPolylines = computeCutterCompPolylines(segments);
+
+  initStockHeightmapAndVerifyCollisions(blkFormFound);
+
+  document.getElementById('st-units').textContent = metric ? 'Units: Metric (MM)' : 'Units: Inch (INCH)';
+  document.getElementById('st-extents').textContent =
+    `Extents: X[${minX.toFixed(1)}..${maxX.toFixed(1)}] Y[${minY.toFixed(1)}..${maxY.toFixed(1)}] Z[${minZ.toFixed(1)}..${maxZ.toFixed(1)}]`;
+
+  state.sim.currentTimeSec = elapsedTimeSec;
+  el.scrubber.value = 1000;
+  rebuildStockUpToTime(state.sim.currentTimeSec);
+
+  renderAlarmLogDock();
+  renderEditorView();
+  if (fitView) fitCameraToExtents();
+  else drawBackplot();
+}
+
+/**
+ * Standard ISO / Fanuc G-Code 3-Axis Mill & 2-Axis Lathe Parser
+ */
+function parseISOGCode(lines, isLathe, prof, rapidRate, fitView) {
   const expandedBlocks = expandCannedLatheCycles(lines, isLathe);
   const segments = [];
   const alarms = [];
   const collisionLineSet = new Set();
 
   let pos = { x: 0, y: 0, z: 0 };
+  let rot = { a: 0, b: 0, c: 0 };
   let motionMode = 'G00';
   let absMode = true;
   let plane = isLathe ? 'G18' : 'G17';
@@ -1703,7 +2250,7 @@ function parseAndBuildSimulation(text, fitView = false) {
     if ('R' in words && ['G81', 'G82', 'G83'].includes(motionMode)) cannedR = words.R;
     if ('Z' in words && ['G81', 'G82', 'G83'].includes(motionMode)) cannedZ = words.Z;
 
-    const hasMotion = ('X' in words || 'Y' in words || 'Z' in words || 'U' in words || 'W' in words);
+    const hasMotion = ('X' in words || 'Y' in words || 'Z' in words || 'U' in words || 'W' in words || 'A' in words || 'B' in words || 'C' in words);
     if (!hasMotion) continue;
 
     const activeDia = Math.max(2, Math.abs(pos.x * 2));
@@ -1724,7 +2271,9 @@ function parseAndBuildSimulation(text, fitView = false) {
       const dur = (d / effectiveFeedMmMin) * 60 + 0.35;
       cutDist += d;
       segments.push({
-        line: lineIdx, type: 'G01', pts, modalStr, tool, spindle: effectiveRpm, spindleDir,
+        line: lineIdx, type: 'G01', is5Ax: false, pts,
+        rotStart: { ...rot }, rotEnd: { ...rot }, plane: { spa: 0, spb: 0, spc: 0 },
+        modalStr, tool, spindle: effectiveRpm, spindleDir,
         feed: effectiveFeedMmMin, coolant, compMode, compReg,
         startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
       });
@@ -1740,6 +2289,12 @@ function parseAndBuildSimulation(text, fitView = false) {
     if ('Y' in words && !isLathe) ty = absMode ? words.Y : pos.y + words.Y;
     if ('Z' in words) tz = absMode ? words.Z : pos.z + words.Z;
     if ('W' in words) tz = pos.z + words.W;
+
+    const targetRot = {
+      a: 'A' in words ? (absMode ? words.A : rot.a + words.A) : rot.a,
+      b: 'B' in words ? (absMode ? words.B : rot.b + words.B) : rot.b,
+      c: 'C' in words ? (absMode ? words.C : rot.c + words.C) : rot.c
+    };
 
     const target = { x: tx, y: ty, z: tz };
     let pts = [];
@@ -1774,19 +2329,19 @@ function parseAndBuildSimulation(text, fitView = false) {
     }
 
     segments.push({
-      line: lineIdx, type: motionMode, pts, modalStr, tool,
-      spindle: effectiveRpm, spindleDir, feed: rate,
+      line: lineIdx, type: motionMode, is5Ax: false, pts,
+      rotStart: { ...rot }, rotEnd: { ...targetRot }, plane: { spa: 0, spb: 0, spc: 0 },
+      modalStr, tool, spindle: effectiveRpm, spindleDir, feed: rate,
       coolant, compMode, compReg,
       startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision
     });
 
     elapsedTimeSec += dur;
     pos = target;
+    rot = targetRot;
   }
 
-  if (!isFinite(minX)) {
-    minX = -50; maxX = 50; minY = -40; maxY = 40; minZ = -15; maxZ = 25;
-  }
+  if (!isFinite(minX)) { minX = -50; maxX = 50; minY = -40; maxY = 40; minZ = -15; maxZ = 25; }
 
   state.segments = segments;
   state.extents = { minX, maxX, minY, maxY, minZ, maxZ };
@@ -1795,7 +2350,7 @@ function parseAndBuildSimulation(text, fitView = false) {
   state.collisionLineSet = collisionLineSet;
   state.compPolylines = !isLathe ? computeCutterCompPolylines(segments) : [];
 
-  initStockHeightmapAndVerifyCollisions();
+  initStockHeightmapAndVerifyCollisions(false);
 
   document.getElementById('st-units').textContent = metric ? 'Units: Metric (G21)' : 'Units: Inch (G20)';
   document.getElementById('st-extents').textContent =
@@ -1940,14 +2495,14 @@ function computeCutterCompPolylines(segments) {
   return chains;
 }
 
-function initStockHeightmapAndVerifyCollisions() {
+function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false) {
   const stk = state.stock;
-  if (stk.autoFit && state.segments.length > 0) {
+  if (stk.autoFit && !preserveBlkForm && state.segments.length > 0) {
     stk.minX = Math.floor(state.extents.minX - 6);
     stk.maxX = Math.ceil(state.extents.maxX + 6);
     stk.minY = Math.floor(state.extents.minY - 6);
     stk.maxY = Math.ceil(state.extents.maxY + 6);
-    stk.minZ = Math.min(-18, Math.floor(state.extents.minZ - 4));
+    stk.minZ = Math.min(-22, Math.floor(state.extents.minZ - 5));
     stk.maxZ = 0;
   }
 
@@ -1971,8 +2526,8 @@ function initStockHeightmapAndVerifyCollisions() {
         state.collisionLineSet.add(seg.line);
         state.alarms.push({
           line: seg.line,
-          title: 'RAPID-INTO-STOCK GOUGE (G00)',
-          detail: `Rapid move crashes through stock at Z=${hit.z.toFixed(2)}mm.`,
+          title: 'RAPID-INTO-STOCK GOUGE (G00 / FMAX)',
+          detail: `Rapid traverse crashes through workpiece at Z=${hit.z.toFixed(2)}mm.`,
           timeSec: seg.startTimeSec
         });
       }
@@ -2071,22 +2626,20 @@ function getPartialPolyline(pts, frac) {
 }
 
 /* ==========================================================================
-   7. TRUE 3D PERSPECTIVE CAMERA, SOLID WORKPIECE MESH & VOLUMETRIC 3D TOOL
+   7. TRUE 3D & 5-AXIS PERSPECTIVE CAMERA, SOLID MATERIAL SHADER,
+      5-AXIS SWIVEL TRUNNION & TILTED SPINDLE / CUTTER RENDERER
    ========================================================================== */
 function project3D(pt, cx, cy) {
   const { yaw, pitch, zoom, panX, panY, fov } = state.cam;
-  // 1. Rotate around vertical Z-axis (yaw)
   const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
   const x1 = pt.x * cosY - pt.y * sinY;
   const y1 = pt.x * sinY + pt.y * cosY;
 
-  // 2. Tilt by elevation angle (pitch)
   const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
-  const depth = y1 * cosP + pt.z * sinP; // Distance toward viewer
+  const depth = y1 * cosP + pt.z * sinP;
   const screenY3D = pt.z * cosP - y1 * sinP;
 
-  // 3. Perspective foreshortening
-  const persp = fov / Math.max(200, fov - depth * zoom * 0.38);
+  const persp = fov / Math.max(200, fov - depth * zoom * 0.36);
   return {
     sx: cx + panX + x1 * zoom * persp,
     sy: cy + panY - screenY3D * zoom * persp,
@@ -2098,7 +2651,7 @@ function fitCameraToExtents() {
   const rect = el.canvasContainer.getBoundingClientRect();
   const { minX, maxX, minY, maxY } = state.extents;
   const maxSpan = Math.max(30, maxX - minX, maxY - minY);
-  state.cam.zoom = Math.min(rect.width, rect.height) / (maxSpan * 1.75);
+  state.cam.zoom = Math.min(rect.width, rect.height) / (maxSpan * 1.9);
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
   const midZ = (state.extents.minZ + state.extents.maxZ) / 2;
@@ -2114,7 +2667,7 @@ function setCameraView(preset) {
   if (preset === 'top') { state.cam.pitch = Math.PI / 2 - 0.001; state.cam.yaw = 0; }
   else if (preset === 'front') { state.cam.pitch = 0.04; state.cam.yaw = 0; }
   else if (preset === 'side') { state.cam.pitch = 0.04; state.cam.yaw = -Math.PI / 2; }
-  else { state.cam.pitch = 0.56; state.cam.yaw = 0.62; }
+  else { state.cam.pitch = 0.54; state.cam.yaw = 0.64; }
   fitCameraToExtents();
 }
 
@@ -2128,14 +2681,82 @@ function fillProjectedQuad(ctx, pts2D, fillStyle, strokeStyle) {
 }
 
 /**
- * Renders the 3D Solid Illuminated Workpiece Block with painter-sorted cells
- * and 3D vertical step walls where pockets/holes have been machined.
+ * Renders 5-Axis Swivel Trunnion Table & Precision Machine Vice below Workpiece
+ */
+function draw5AxisTrunnionAndVice(ctx, cx, cy, activeRot, activePlane) {
+  if (!state.cam.showTrunnion) return;
+  const stk = state.stock;
+  const zViceTop = stk.minZ;
+  const zViceBot = zViceTop - 14;
+  const zTrunnionBot = zViceBot - 16;
+  const vx0 = stk.minX - 8, vx1 = stk.maxX + 8;
+  const vy0 = stk.minY - 12, vy1 = stk.maxY + 12;
+
+  // Precision 5-Axis Self-Centering Vice Base
+  const vb = [
+    project3D({ x: vx0, y: vy0, z: zViceBot }, cx, cy),
+    project3D({ x: vx1, y: vy0, z: zViceBot }, cx, cy),
+    project3D({ x: vx1, y: vy1, z: zViceBot }, cx, cy),
+    project3D({ x: vx0, y: vy1, z: zViceBot }, cx, cy)
+  ];
+  const vt = [
+    project3D({ x: vx0, y: vy0, z: zViceTop }, cx, cy),
+    project3D({ x: vx1, y: vy0, z: zViceTop }, cx, cy),
+    project3D({ x: vx1, y: vy1, z: zViceTop }, cx, cy),
+    project3D({ x: vx0, y: vy1, z: zViceTop }, cx, cy)
+  ];
+
+  const viceWalls = [
+    { pts: [vb[0], vb[1], vt[1], vt[0]], depth: (vb[0].depth + vb[1].depth) * 0.5, col: 'rgba(38, 46, 58, 0.92)' },
+    { pts: [vb[1], vb[2], vt[2], vt[1]], depth: (vb[1].depth + vb[2].depth) * 0.5, col: 'rgba(30, 36, 46, 0.92)' },
+    { pts: [vb[2], vb[3], vt[3], vt[2]], depth: (vb[2].depth + vb[3].depth) * 0.5, col: 'rgba(25, 30, 38, 0.92)' },
+    { pts: [vb[3], vb[0], vt[0], vt[3]], depth: (vb[3].depth + vb[0].depth) * 0.5, col: 'rgba(34, 41, 52, 0.92)' }
+  ];
+  viceWalls.sort((a, b) => a.depth - b.depth);
+  viceWalls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, 'rgba(130, 150, 175, 0.25)'));
+  fillProjectedQuad(ctx, vt, 'rgba(46, 55, 68, 0.9)', 'rgba(140, 160, 185, 0.3)');
+
+  // Rotary C-Table Platter Ring (Rotates with active C + SPC angle)
+  const cRad = Math.max(vx1 - vx0, vy1 - vy0) * 0.62;
+  const cSpin = ((activeRot ? activeRot.c : 0) + (activePlane ? activePlane.spc : 0)) * (Math.PI / 180);
+  const segs = 24;
+  ctx.strokeStyle = 'rgba(86, 212, 221, 0.35)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  for (let i = 0; i <= segs; i++) {
+    const a = (i / segs) * Math.PI * 2 + cSpin;
+    const p = project3D({ x: Math.cos(a) * cRad, y: Math.sin(a) * cRad, z: zViceBot - 1 }, cx, cy);
+    if (i === 0) ctx.moveTo(p.sx, p.sy);
+    else ctx.lineTo(p.sx, p.sy);
+  }
+  ctx.stroke();
+
+  // Trunnion A-Axis Cradle Pedestal Arms
+  const armSpan = cRad * 1.15;
+  const leftPillar = project3D({ x: -armSpan, y: 0, z: zTrunnionBot }, cx, cy);
+  const rightPillar = project3D({ x: armSpan, y: 0, z: zTrunnionBot }, cx, cy);
+  const leftPivot = project3D({ x: -armSpan, y: 0, z: zViceBot - 1 }, cx, cy);
+  const rightPivot = project3D({ x: armSpan, y: 0, z: zViceBot - 1 }, cx, cy);
+
+  ctx.strokeStyle = 'rgba(120, 138, 162, 0.45)';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(leftPillar.sx, leftPillar.sy); ctx.lineTo(leftPivot.sx, leftPivot.sy);
+  ctx.moveTo(rightPillar.sx, rightPillar.sy); ctx.lineTo(rightPivot.sx, rightPivot.sy);
+  ctx.moveTo(leftPillar.sx, leftPillar.sy); ctx.lineTo(rightPillar.sx, rightPillar.sy);
+  ctx.stroke();
+}
+
+/**
+ * Smooth-Shaded 3D Solid Workpiece with Per-Cell Surface Normals,
+ * Blinn-Phong Specular Highlights & Engineering Material Shaders
  */
 function drawSolidMillStock3D(ctx, cx, cy) {
   const stk = state.stock;
   if (!stk.currentZ) return;
-  const mode = state.cam.stockRenderMode; // 'solid' | 'translucent' | 'wireframe'
+  const mode = state.cam.stockRenderMode;
   const alphaMul = mode === 'translucent' ? 0.42 : 1.0;
+  const mat = MATERIAL_SHADERS[stk.material] || MATERIAL_SHADERS.aluminum;
 
   const spanX = stk.maxX - stk.minX;
   const spanY = stk.maxY - stk.minY;
@@ -2143,7 +2764,6 @@ function drawSolidMillStock3D(ctx, cx, cy) {
   const cellH = spanY / stk.rows;
   const depthRange = Math.max(1, stk.maxZ - stk.minZ);
 
-  // Outer 3D Block Side Faces (Back-to-Front Painter Order)
   const b0 = project3D({ x: stk.minX, y: stk.minY, z: stk.minZ }, cx, cy);
   const b1 = project3D({ x: stk.maxX, y: stk.minY, z: stk.minZ }, cx, cy);
   const b2 = project3D({ x: stk.maxX, y: stk.maxY, z: stk.minZ }, cx, cy);
@@ -2154,16 +2774,20 @@ function drawSolidMillStock3D(ctx, cx, cy) {
   const t3 = project3D({ x: stk.minX, y: stk.maxY, z: stk.maxZ }, cx, cy);
 
   if (mode !== 'wireframe') {
+    const [wr, wg, wb] = mat.wallRgb;
     const walls = [
-      { pts: [b0, b1, t1, t0], depth: (b0.depth + b1.depth) * 0.5, col: `rgba(68, 79, 96, ${0.95 * alphaMul})` },
-      { pts: [b1, b2, t2, t1], depth: (b1.depth + b2.depth) * 0.5, col: `rgba(52, 61, 75, ${0.95 * alphaMul})` },
-      { pts: [b2, b3, t3, t2], depth: (b2.depth + b3.depth) * 0.5, col: `rgba(42, 50, 62, ${0.95 * alphaMul})` },
-      { pts: [b3, b0, t0, t3], depth: (b3.depth + b0.depth) * 0.5, col: `rgba(60, 70, 86, ${0.95 * alphaMul})` }
+      { pts: [b0, b1, t1, t0], depth: (b0.depth + b1.depth) * 0.5, col: `rgba(${Math.round(wr * 1.08)}, ${Math.round(wg * 1.08)}, ${Math.round(wb * 1.08)}, ${0.96 * alphaMul})` },
+      { pts: [b1, b2, t2, t1], depth: (b1.depth + b2.depth) * 0.5, col: `rgba(${Math.round(wr * 0.85)}, ${Math.round(wg * 0.85)}, ${Math.round(wb * 0.85)}, ${0.96 * alphaMul})` },
+      { pts: [b2, b3, t3, t2], depth: (b2.depth + b3.depth) * 0.5, col: `rgba(${Math.round(wr * 0.72)}, ${Math.round(wg * 0.72)}, ${Math.round(wb * 0.72)}, ${0.96 * alphaMul})` },
+      { pts: [b3, b0, t0, t3], depth: (b3.depth + b0.depth) * 0.5, col: `rgba(${Math.round(wr * 0.96)}, ${Math.round(wg * 0.96)}, ${Math.round(wb * 0.96)}, ${0.96 * alphaMul})` }
     ];
     walls.sort((a, b) => a.depth - b.depth);
-    walls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, `rgba(140,160,185,${0.3 * alphaMul})`));
+    walls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, `rgba(255,255,255,${0.12 * alphaMul})`));
 
-    // Painter-sorted 3D Top Surface Quads + Vertical Step Walls
+    // Key Directional Light Vector (normalized)
+    const lx = -0.45, ly = -0.55, lz = 0.70;
+    const hx = -0.25, hy = -0.30, hz = 0.92; // Halfway vector for Blinn-Phong specular
+
     const quads = [];
     for (let r = 0; r < stk.rows; r++) {
       for (let c = 0; c < stk.cols; c++) {
@@ -2175,6 +2799,21 @@ function drawSolidMillStock3D(ctx, cx, cy) {
         const x1 = x0 + cellW;
         const y1 = y0 + cellH;
 
+        // Compute Finite-Difference Surface Normal for Smooth Metallic Shading
+        const zL = c > 0 ? stk.currentZ[idx - 1] : zVal;
+        const zR = c < stk.cols - 1 ? stk.currentZ[idx + 1] : zVal;
+        const zD = r > 0 ? stk.currentZ[idx - stk.cols] : zVal;
+        const zU = r < stk.rows - 1 ? stk.currentZ[idx + stk.cols] : zVal;
+        let nx = (zL - zR) / (2 * cellW);
+        let ny = (zD - zU) / (2 * cellH);
+        let nz = 1.0;
+        const nLen = Math.hypot(nx, ny, nz) || 1;
+        nx /= nLen; ny /= nLen; nz /= nLen;
+
+        const diff = Math.max(0.28, nx * lx + ny * ly + nz * lz);
+        const specDot = Math.max(0, nx * hx + ny * hy + nz * hz);
+        const spec = Math.pow(specDot, mat.specPower) * mat.specIntensity * 255;
+
         const p00 = project3D({ x: x0, y: y0, z: zVal }, cx, cy);
         const p10 = project3D({ x: x1, y: y0, z: zVal }, cx, cy);
         const p11 = project3D({ x: x1, y: y1, z: zVal }, cx, cy);
@@ -2185,21 +2824,19 @@ function drawSolidMillStock3D(ctx, cx, cy) {
         let fillCol;
         if (isGouge) {
           fillCol = `rgba(235, 52, 52, ${0.95 * alphaMul})`;
-        } else if (cutDepth <= 0.05) {
-          // Raw Brushed Aluminum Top Skin
-          fillCol = `rgba(116, 130, 150, ${0.92 * alphaMul})`;
         } else {
-          // Freshly Machined Pocket Floor (brighter metallic cyan-silver shaded by depth)
-          const ratio = Math.min(1, cutDepth / depthRange);
-          const rCol = Math.round(72 - ratio * 25);
-          const gCol = Math.round(145 - ratio * 45);
-          const bCol = Math.round(195 - ratio * 35);
+          const base = cutDepth <= 0.05 ? mat.rawRgb : mat.cutRgb;
+          const ao = 1.0 - Math.min(0.26, (cutDepth / depthRange) * 0.26);
+          const shade = diff * ao;
+          const rCol = Math.min(255, Math.round(base[0] * shade + spec));
+          const gCol = Math.min(255, Math.round(base[1] * shade + spec));
+          const bCol = Math.min(255, Math.round(base[2] * shade + spec));
           fillCol = `rgba(${rCol}, ${gCol}, ${bCol}, ${0.96 * alphaMul})`;
         }
 
         quads.push({ pts: [p00, p10, p11, p01], depth: avgDepth, fill: fillCol, stroke: null });
 
-        // Add 3D vertical step walls if neighbor cell is higher
+        // 3D Vertical Step Walls
         if (c > 0 && stk.currentZ[idx - 1] > zVal + 0.1) {
           const zUp = stk.currentZ[idx - 1];
           const u00 = project3D({ x: x0, y: y0, z: zUp }, cx, cy);
@@ -2207,7 +2844,7 @@ function drawSolidMillStock3D(ctx, cx, cy) {
           quads.push({
             pts: [p00, p01, u01, u00],
             depth: avgDepth + 0.05,
-            fill: isGouge ? `rgba(195, 35, 35, ${alphaMul})` : `rgba(50, 98, 135, ${alphaMul})`,
+            fill: isGouge ? `rgba(195, 35, 35, ${alphaMul})` : `rgba(${mat.wallRgb[0]}, ${mat.wallRgb[1]}, ${mat.wallRgb[2]}, ${alphaMul})`,
             stroke: null
           });
         }
@@ -2218,7 +2855,7 @@ function drawSolidMillStock3D(ctx, cx, cy) {
           quads.push({
             pts: [p00, p10, u10, u00],
             depth: avgDepth + 0.05,
-            fill: isGouge ? `rgba(195, 35, 35, ${alphaMul})` : `rgba(42, 85, 120, ${alphaMul})`,
+            fill: isGouge ? `rgba(195, 35, 35, ${alphaMul})` : `rgba(${Math.round(mat.wallRgb[0] * 0.85)}, ${Math.round(mat.wallRgb[1] * 0.85)}, ${Math.round(mat.wallRgb[2] * 0.85)}, ${alphaMul})`,
             stroke: null
           });
         }
@@ -2231,18 +2868,14 @@ function drawSolidMillStock3D(ctx, cx, cy) {
     }
   }
 
-  // Crisp Outer CAD Bounding Edges
   const edges = [[b0,b1],[b1,b2],[b2,b3],[b3,b0],[t0,t1],[t1,t2],[t2,t3],[t3,t0],[b0,t0],[b1,t1],[b2,t2],[b3,t3]];
-  ctx.strokeStyle = 'rgba(175, 195, 220, 0.45)';
+  ctx.strokeStyle = 'rgba(185, 205, 230, 0.45)';
   ctx.lineWidth = 1.1;
   ctx.beginPath();
   edges.forEach(([pA, pB]) => { ctx.moveTo(pA.sx, pA.sy); ctx.lineTo(pB.sx, pB.sy); });
   ctx.stroke();
 }
 
-/**
- * Renders a 3D Cylindrical Lathe Workpiece Bar & 3-Jaw Chuck
- */
 function drawSolidLatheStock3D(ctx, cx, cy) {
   const stk = state.stock;
   const r = stk.latheDia / 2;
@@ -2253,29 +2886,26 @@ function drawSolidLatheStock3D(ctx, cx, cy) {
   const segs = 24;
   const mode = state.cam.stockRenderMode;
   const alpha = mode === 'translucent' ? 0.4 : 0.92;
+  const mat = MATERIAL_SHADERS[stk.material] || MATERIAL_SHADERS.steel;
 
-  // Draw 3D Cylindrical Workpiece Facets
   const facets = [];
   for (let i = 0; i < segs; i++) {
     const a0 = (i / segs) * Math.PI * 2 + state.sim.spindleAngle * 0.4;
     const a1 = ((i + 1) / segs) * Math.PI * 2 + state.sim.spindleAngle * 0.4;
     const midA = (a0 + a1) * 0.5;
-    const shade = 0.55 + 0.45 * Math.cos(midA - 0.8);
+    const shade = 0.52 + 0.48 * Math.cos(midA - 0.8);
 
-    // Workpiece Cylinder Quad
     const p0 = project3D({ x: Math.cos(a0) * r, y: Math.sin(a0) * r, z: zFront }, cx, cy);
     const p1 = project3D({ x: Math.cos(a1) * r, y: Math.sin(a1) * r, z: zFront }, cx, cy);
     const p2 = project3D({ x: Math.cos(a1) * r, y: Math.sin(a1) * r, z: zBack }, cx, cy);
     const p3 = project3D({ x: Math.cos(a0) * r, y: Math.sin(a0) * r, z: zBack }, cx, cy);
-    const lum = Math.round(70 + shade * 85);
     facets.push({
       pts: [p0, p1, p2, p3],
       depth: (p0.depth + p2.depth) * 0.5,
-      fill: mode === 'wireframe' ? null : `rgba(${lum}, ${lum + 12}, ${lum + 26}, ${alpha})`,
+      fill: mode === 'wireframe' ? null : `rgba(${Math.round(mat.cutRgb[0] * shade)}, ${Math.round(mat.cutRgb[1] * shade)}, ${Math.round(mat.cutRgb[2] * shade)}, ${alpha})`,
       stroke: mode === 'wireframe' ? 'rgba(150,170,195,0.4)' : null
     });
 
-    // 3-Jaw Chuck Body Quad
     const c0 = project3D({ x: Math.cos(a0) * chuckR, y: Math.sin(a0) * chuckR, z: zBack }, cx, cy);
     const c1 = project3D({ x: Math.cos(a1) * chuckR, y: Math.sin(a1) * chuckR, z: zBack }, cx, cy);
     const c2 = project3D({ x: Math.cos(a1) * chuckR, y: Math.sin(a1) * chuckR, z: zChuckBack }, cx, cy);
@@ -2293,94 +2923,114 @@ function drawSolidLatheStock3D(ctx, cx, cy) {
 }
 
 /**
- * Volumetric 3D Rotating Endmill / Ball-Nose / Drill & CAT40 Tool Holder
+ * True 5-Axis Oriented Volumetric Rotating Endmill / Ball-Nose & HSK63A Spindle
+ * Tilts dynamically along tool vector (i, j, k) computed from (A, B, C, SPA, SPB, SPC)!
  */
-function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe) {
+function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe, toolVec) {
   if (!state.cam.show3DTool) return;
 
   if (isLathe) {
-    // 3D Lathe Turning Tool Holder Block + Golden Carbide Diamond Insert
     const pTip = project3D(tip, cx, cy);
     const pBack1 = project3D({ x: tip.x + 8, y: -3, z: tip.z - 6 }, cx, cy);
     const pBack2 = project3D({ x: tip.x + 8, y: 3, z: tip.z + 6 }, cx, cy);
     const pShank1 = project3D({ x: tip.x + 34, y: -4, z: tip.z - 6 }, cx, cy);
     const pShank2 = project3D({ x: tip.x + 34, y: 4, z: tip.z + 6 }, cx, cy);
-
     fillProjectedQuad(ctx, [pBack1, pBack2, pShank2, pShank1], '#3b4351', '#8b949e');
     fillProjectedQuad(ctx, [pTip, pBack1, pBack2], '#e3b341', '#fff3b0');
     return;
   }
 
-  const toolObj = state.tools[seg.tool] || { dia: 12, flutes: 3, shape: 'flat', holderDia: 34, fluteLen: 26 };
-  const r = Math.max(1.5, (toolObj.dia || 12) / 2);
-  const holderR = Math.max(r * 1.8, (toolObj.holderDia || 34) / 2);
-  const fluteH = Math.min(26, toolObj.fluteLen || 26);
-  const colletH = 14;
-  const taperH = 20;
+  // Orthonormal Basis (U, V, W) where W = tilted tool axis vector (toolVec)
+  const W = toolVec || { i: 0, j: 0, k: 1 };
+  const ref = Math.abs(W.i) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
+  // U = normalize(ref x W)
+  let ux = ref.y * W.k - ref.z * W.j;
+  let uy = ref.z * W.i - ref.x * W.k;
+  let uz = ref.x * W.j - ref.y * W.i;
+  const uLen = Math.hypot(ux, uy, uz) || 1;
+  ux /= uLen; uy /= uLen; uz /= uLen;
+  // V = W x U
+  const vx = W.j * uz - W.k * uy;
+  const vy = W.k * ux - W.i * uz;
+  const vz = W.i * uy - W.j * ux;
 
-  const zTip = tip.z;
-  const zTipShoulder = (toolObj.shape === 'flat') ? zTip : zTip + Math.min(r * 1.2, 5);
-  const zFluteTop = zTip + fluteH;
-  const zColletTop = zFluteTop + colletH;
-  const zTaperTop = zColletTop + taperH;
+  function localToolPt(axialDist, rad, angle) {
+    const ca = Math.cos(angle) * rad;
+    const sa = Math.sin(angle) * rad;
+    return {
+      x: tip.x + W.i * axialDist + ux * ca + vx * sa,
+      y: tip.y + W.j * axialDist + uy * ca + vy * sa,
+      z: tip.z + W.k * axialDist + uz * ca + vz * sa
+    };
+  }
+
+  const toolObj = state.tools[seg.tool] || { dia: 10, flutes: 4, shape: 'ball', holderDia: 32, fluteLen: 24 };
+  const r = Math.max(1.5, (toolObj.dia || 10) / 2);
+  const holderR = Math.max(r * 1.8, (toolObj.holderDia || 32) / 2);
+  const fluteH = Math.min(26, toolObj.fluteLen || 24);
+  const colletH = 14;
+  const taperH = 22;
+
+  const hShoulder = (toolObj.shape === 'flat') ? 0 : Math.min(r * 1.15, 5);
+  const hFluteTop = fluteH;
+  const hColletTop = hFluteTop + colletH;
+  const hTaperTop = hColletTop + taperH;
 
   const sides = 16;
   const spin = state.sim.spindleAngle;
   const isColl = seg.isCollision;
   const facets = [];
 
-  // Helper to generate a 3D frustum/cylinder ring of shaded quads
-  function addFrustumRing(zBot, rBot, zTop, rTop, baseRgb, isFluted) {
+  function addOrientedFrustum(hBot, rBot, hTop, rTop, baseRgb, isFluted) {
     for (let i = 0; i < sides; i++) {
       const a0 = (i / sides) * Math.PI * 2 + spin;
       const a1 = ((i + 1) / sides) * Math.PI * 2 + spin;
       const midA = (a0 + a1) * 0.5;
-      // Directional light from front-top-left
       const light = 0.45 + 0.55 * Math.max(0, Math.cos(midA - 0.7));
 
-      const p0 = project3D({ x: tip.x + Math.cos(a0) * rBot, y: tip.y + Math.sin(a0) * rBot, z: zBot }, cx, cy);
-      const p1 = project3D({ x: tip.x + Math.cos(a1) * rBot, y: tip.y + Math.sin(a1) * rBot, z: zBot }, cx, cy);
-      const p2 = project3D({ x: tip.x + Math.cos(a1) * rTop, y: tip.y + Math.sin(a1) * rTop, z: zTop }, cx, cy);
-      const p3 = project3D({ x: tip.x + Math.cos(a0) * rTop, y: tip.y + Math.sin(a0) * rTop, z: zTop }, cx, cy);
+      const p0 = project3D(localToolPt(hBot, rBot, a0), cx, cy);
+      const p1 = project3D(localToolPt(hBot, rBot, a1), cx, cy);
+      const p2 = project3D(localToolPt(hTop, rTop, a1), cx, cy);
+      const p3 = project3D(localToolPt(hTop, rTop, a0), cx, cy);
 
-      // Highlight flute valleys vs cutting lands
       const isFluteValley = isFluted && (i % Math.max(2, Math.floor(sides / (toolObj.flutes || 3))) === 0);
       const shadeMul = isFluteValley ? light * 0.52 : light;
-
-      const cr = Math.min(255, Math.round(baseRgb[0] * shadeMul));
-      const cg = Math.min(255, Math.round(baseRgb[1] * shadeMul));
-      const cb = Math.min(255, Math.round(baseRgb[2] * shadeMul));
 
       facets.push({
         pts: [p0, p1, p2, p3],
         depth: (p0.depth + p1.depth + p2.depth + p3.depth) * 0.25,
-        fill: `rgb(${cr}, ${cg}, ${cb})`,
+        fill: `rgb(${Math.min(255, Math.round(baseRgb[0] * shadeMul))}, ${Math.min(255, Math.round(baseRgb[1] * shadeMul))}, ${Math.min(255, Math.round(baseRgb[2] * shadeMul))})`,
         stroke: isFluteValley ? 'rgba(255,255,255,0.22)' : null
       });
     }
   }
 
-  // 1. Tip Cone / Ball Nose (if ball or drill)
   if (toolObj.shape === 'ball' || toolObj.shape === 'drill') {
-    addFrustumRing(zTip, 0.2, zTipShoulder, r, isColl ? [255, 60, 60] : [245, 200, 75], true);
+    addOrientedFrustum(0, 0.2, hShoulder, r, isColl ? [255, 60, 60] : [245, 200, 75], true);
   }
-  // 2. Fluted Carbide Cutter Body (Gold/TiAlN Bronze Metallic Finish)
-  addFrustumRing(zTipShoulder, r, zFluteTop, r, isColl ? [255, 55, 55] : [235, 190, 68], true);
-  // 3. Collet Nut (Dark Gunmetal Steel)
-  addFrustumRing(zFluteTop, holderR * 0.85, zColletTop, holderR, [85, 95, 110], false);
-  // 4. CAT40 / BT40 Tapered Spindle Holder (Bright Machined Steel)
-  addFrustumRing(zColletTop, holderR, zTaperTop, holderR * 1.28, [150, 165, 185], false);
+  addOrientedFrustum(hShoulder, r, hFluteTop, r, isColl ? [255, 55, 55] : [235, 190, 68], true);
+  addOrientedFrustum(hFluteTop, holderR * 0.85, hColletTop, holderR, [85, 95, 110], false);
+  addOrientedFrustum(hColletTop, holderR, hTaperTop, holderR * 1.32, [155, 170, 192], false);
 
-  // Painter-sort all 3D tool facets back-to-front
   facets.sort((a, b) => a.depth - b.depth);
   for (let i = 0; i < facets.length; i++) {
     fillProjectedQuad(ctx, facets[i].pts, facets[i].fill, facets[i].stroke);
   }
 
-  // Animated Flood Coolant Spray Particles when M08 is Active
+  // Draw Tilted Tool Axis Vector Laser Line
+  const axisTop = project3D(localToolPt(hTaperTop + 14, 0, 0), cx, cy);
+  const tip2D = project3D(tip, cx, cy);
+  ctx.strokeStyle = 'rgba(210, 168, 255, 0.55)';
+  ctx.setLineDash([3, 3]);
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(tip2D.sx, tip2D.sy);
+  ctx.lineTo(axisTop.sx, axisTop.sy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
   if (state.cam.showCoolant && seg.coolant && state.sim.playing) {
-    const tip2D = project3D(tip, cx, cy);
-    ctx.fillStyle = 'rgba(57, 197, 207, 0.8)';
+    ctx.fillStyle = 'rgba(57, 197, 207, 0.82)';
     for (let p = 0; p < 8; p++) {
       const sx = tip2D.sx + (Math.random() - 0.5) * 24;
       const sy = tip2D.sy + (Math.random() - 0.2) * 18;
@@ -2409,32 +3059,68 @@ function drawBackplot() {
   const cx = w / 2, cy = h / 2;
   const isLathe = (state.kinematicsMode === 'lathe');
 
-  // 1. Deep CAD Viewport Backdrop
-  ctx.fillStyle = '#0b0e14';
+  ctx.fillStyle = '#090c12';
   ctx.fillRect(0, 0, w, h);
 
-  // 2. 3D Machine Table Grid at Z = stock.minZ
-  const tableZ = isLathe ? -state.stock.latheDia * 0.7 : state.stock.minZ;
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.045)';
+  // Machine Table Grid
+  const tableZ = isLathe ? -state.stock.latheDia * 0.7 : state.stock.minZ - 30;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  for (let g = -120; g <= 120; g += 20) {
-    const a1 = project3D({ x: g, y: -120, z: tableZ }, cx, cy);
-    const a2 = project3D({ x: g, y: 120, z: tableZ }, cx, cy);
+  for (let g = -140; g <= 140; g += 20) {
+    const a1 = project3D({ x: g, y: -140, z: tableZ }, cx, cy);
+    const a2 = project3D({ x: g, y: 140, z: tableZ }, cx, cy);
     ctx.moveTo(a1.sx, a1.sy); ctx.lineTo(a2.sx, a2.sy);
-    const b1 = project3D({ x: -120, y: g, z: tableZ }, cx, cy);
-    const b2 = project3D({ x: 120, y: g, z: tableZ }, cx, cy);
+    const b1 = project3D({ x: -140, y: g, z: tableZ }, cx, cy);
+    const b2 = project3D({ x: 140, y: g, z: tableZ }, cx, cy);
     ctx.moveTo(b1.sx, b1.sy); ctx.lineTo(b2.sx, b2.sy);
   }
   ctx.stroke();
 
-  // 3. Render 3D Solid Workpiece (Mill Block or Lathe Chuck+Bar)
-  if (state.segments.length > 0) {
-    if (isLathe) drawSolidLatheStock3D(ctx, cx, cy);
-    else drawSolidMillStock3D(ctx, cx, cy);
+  // Interpolate Active Tip & 5-Axis Rotary State
+  const tNow = state.sim.currentTimeSec;
+  let activeTip = { x: 0, y: 0, z: 0 };
+  let activeRot = { a: 0, b: 0, c: 0 };
+  let activePlane = { spa: 0, spb: 0, spc: 0 };
+  let activeSeg = state.segments[0] || null;
+  let instantFeed = 0;
+
+  for (const seg of state.segments) {
+    const isFuture = seg.startTimeSec > tNow;
+    const isCurrent = (tNow >= seg.startTimeSec && tNow <= seg.endTimeSec);
+    if (isCurrent) {
+      activeSeg = seg;
+      const frac = Math.max(0, Math.min(1, (tNow - seg.startTimeSec) / Math.max(0.0001, seg.endTimeSec - seg.startTimeSec)));
+      const partial = getPartialPolyline(seg.pts, frac);
+      activeTip = partial[partial.length - 1];
+      activeRot = {
+        a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * frac,
+        b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * frac,
+        c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * frac
+      };
+      activePlane = seg.plane || { spa: 0, spb: 0, spc: 0 };
+      instantFeed = seg.feed;
+      break;
+    } else if (!isFuture) {
+      activeTip = seg.pts[seg.pts.length - 1];
+      activeRot = { ...seg.rotEnd };
+      activePlane = seg.plane || { spa: 0, spb: 0, spc: 0 };
+      activeSeg = seg;
+      instantFeed = (tNow >= state.stats.totalTimeSec) ? 0 : seg.feed;
+    }
   }
 
-  // 4. Work Coordinate Origin Triad
+  // Render 5-Axis Swivel Trunnion & Solid Workpiece Material
+  if (state.segments.length > 0) {
+    if (isLathe) {
+      drawSolidLatheStock3D(ctx, cx, cy);
+    } else {
+      draw5AxisTrunnionAndVice(ctx, cx, cy, activeRot, activePlane);
+      drawSolidMillStock3D(ctx, cx, cy);
+    }
+  }
+
+  // Work Coordinate Origin Triad
   const orig = project3D({ x: 0, y: 0, z: 0 }, cx, cy);
   [
     { pt: { x: 16, y: 0, z: 0 }, col: '#ff7b72', lbl: isLathe ? 'X(Dia)' : 'X' },
@@ -2448,7 +3134,7 @@ function drawBackplot() {
     ctx.fillText(ax.lbl, p2.sx + 3, p2.sy + 3);
   });
 
-  // 5. Render G41/G42 Cutter Compensation Offset Path
+  // Render Radius Compensation Offset Path (RL / RR / G41 / G42)
   if (state.cam.showCutterComp && state.compPolylines.length > 0) {
     ctx.strokeStyle = '#ffa657';
     ctx.lineWidth = 2;
@@ -2464,21 +3150,13 @@ function drawBackplot() {
     });
   }
 
-  // 6. Render 3D Toolpath Curves & Interpolate Active Tool Position
-  const tNow = state.sim.currentTimeSec;
-  let activeTip = { x: 0, y: 0, z: 0 };
-  let activeSeg = state.segments[0] || null;
-  let instantFeed = 0;
-
+  // Render 3D & 5-Axis Toolpath Segments + Orientation Vectors
   for (const seg of state.segments) {
     const isFuture = seg.startTimeSec > tNow;
     const isCurrent = (tNow >= seg.startTimeSec && tNow <= seg.endTimeSec);
     const isSelectedLine = (seg.line === state.activeLine);
 
-    if (seg.type === 'G00' && !state.cam.showRapids && !isSelectedLine && !seg.isCollision) {
-      if (!isFuture) activeTip = seg.pts[seg.pts.length - 1];
-      continue;
-    }
+    if (seg.type === 'G00' && !state.cam.showRapids && !isSelectedLine && !seg.isCollision) continue;
 
     const alpha = isFuture ? 0.25 : 0.95;
     ctx.beginPath();
@@ -2494,6 +3172,10 @@ function drawBackplot() {
       ctx.strokeStyle = `rgba(248, 81, 73, ${alpha})`;
       ctx.lineWidth = 1.3;
       ctx.setLineDash([4, 4]);
+    } else if (seg.is5Ax) {
+      ctx.strokeStyle = `rgba(210, 168, 255, ${alpha})`;
+      ctx.lineWidth = 2.1;
+      ctx.setLineDash([]);
     } else if (seg.type === 'G02' || seg.type === 'G03') {
       ctx.strokeStyle = `rgba(126, 231, 135, ${alpha})`;
       ctx.lineWidth = 1.9;
@@ -2512,31 +3194,32 @@ function drawBackplot() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    if (isCurrent) {
-      activeSeg = seg;
-      const frac = Math.max(0, Math.min(1, (tNow - seg.startTimeSec) / Math.max(0.0001, seg.endTimeSec - seg.startTimeSec)));
-      const partial = getPartialPolyline(seg.pts, frac);
-      activeTip = partial[partial.length - 1];
-      instantFeed = seg.feed;
-    } else if (!isFuture) {
-      activeTip = seg.pts[seg.pts.length - 1];
-      activeSeg = seg;
-      instantFeed = (tNow >= state.stats.totalTimeSec) ? 0 : seg.feed;
+    // Draw subtle 5-axis tool orientation whiskers along simultaneous 5-axis moves
+    if (seg.is5Ax && !isFuture) {
+      const endPt = seg.pts[seg.pts.length - 1];
+      const v = computeToolAxisVector(seg.rotEnd.a, seg.rotEnd.b, seg.rotEnd.c, seg.plane.spa, seg.plane.spb, seg.plane.spc);
+      const pBase = project3D(endPt, cx, cy);
+      const pTip = project3D({ x: endPt.x + v.i * 11, y: endPt.y + v.j * 11, z: endPt.z + v.k * 11 }, cx, cy);
+      ctx.strokeStyle = 'rgba(210, 168, 255, 0.42)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pBase.sx, pBase.sy);
+      ctx.lineTo(pTip.sx, pTip.sy);
+      ctx.stroke();
     }
   }
 
-  // 7. Render Volumetric 3D Rotating Tool & Holder Assembly
+  // Render Tilted 5-Axis Volumetric Cutter & Spindle Assembly
+  const toolVec = computeToolAxisVector(activeRot.a, activeRot.b, activeRot.c, activePlane.spa, activePlane.spb, activePlane.spc);
   if (state.segments.length > 0 && activeSeg) {
-    drawVolumetric3DTool(ctx, cx, cy, activeTip, activeSeg, isLathe);
+    drawVolumetric3DTool(ctx, cx, cy, activeTip, activeSeg, isLathe, toolVec);
   }
 
-  // 8. Update Kinematic HUD
-  updateKinematicHUD(activeTip, activeSeg, instantFeed, isLathe);
-
+  updateKinematicHUD(activeTip, activeSeg, instantFeed, isLathe, activeRot, activePlane, toolVec);
   ctx.restore();
 }
 
-function updateKinematicHUD(tip, seg, instantFeed, isLathe) {
+function updateKinematicHUD(tip, seg, instantFeed, isLathe, activeRot, activePlane, toolVec) {
   const prof = getActiveProfile();
   const displayX = isLathe ? tip.x * 2 : tip.x;
   document.getElementById('hud-lbl-x').textContent = isLathe ? 'X (DIA):' : 'X:';
@@ -2544,18 +3227,26 @@ function updateKinematicHUD(tip, seg, instantFeed, isLathe) {
   document.getElementById('hud-y').textContent = tip.y.toFixed(3);
   document.getElementById('hud-z').textContent = tip.z.toFixed(3);
 
+  const is5AxVisible = !isLathe;
+  document.getElementById('hud-5ax-block').style.display = is5AxVisible ? 'block' : 'none';
+  if (is5AxVisible) {
+    document.getElementById('hud-rotary').textContent = `A${activeRot.a.toFixed(1)}° B${activeRot.b.toFixed(1)}° C${activeRot.c.toFixed(1)}°`;
+    document.getElementById('hud-ijk').textContent = `${toolVec.i.toFixed(3)}, ${toolVec.j.toFixed(3)}, ${toolVec.k.toFixed(3)}`;
+    document.getElementById('hud-plane').textContent = `SPA${activePlane.spa.toFixed(1)}° SPB${activePlane.spb.toFixed(1)}° SPC${activePlane.spc.toFixed(1)}°`;
+  }
+
   if (seg) {
     const toolObj = state.tools[seg.tool] || { dia: 10, flutes: 3, shape: 'flat' };
     document.getElementById('hud-modal').textContent = seg.modalStr;
     document.getElementById('hud-tool').textContent = `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia}mm (${toolObj.shape})`;
 
-    const maxFeedBar = Math.max(3000, prof.rapidRate || 15000);
+    const maxFeedBar = Math.max(3000, prof.rapidRate || 24000);
     document.getElementById('hud-feed').textContent = `${Math.round(instantFeed)} mm/min (${seg.type})`;
     document.getElementById('gauge-feed').style.width = `${Math.min(100, (instantFeed / maxFeedBar) * 100)}%`;
     document.getElementById('gauge-feed').style.background = (seg.type === 'G00') ? '#f85149' : '#39c5cf';
 
     const rpm = (seg.spindleDir === 'M05') ? 0 : seg.spindle;
-    const maxRpm = prof.maxRpm || 15000;
+    const maxRpm = prof.maxRpm || 24000;
     document.getElementById('hud-spindle').textContent = `${rpm} RPM (${seg.spindleDir})`;
     document.getElementById('gauge-rpm').style.width = `${Math.min(100, (rpm / maxRpm) * 100)}%`;
 
@@ -2580,10 +3271,9 @@ function animationLoop(ts) {
   const activeSeg = state.segments.find(s => state.sim.currentTimeSec >= s.startTimeSec && state.sim.currentTimeSec <= s.endTimeSec) || state.segments[state.segments.length - 1];
   const rpm = (activeSeg && activeSeg.spindleDir !== 'M05') ? activeSeg.spindle : 0;
 
-  // Spin 3D cutter flutes continuously when spindle is running
   if (rpm > 0) {
     const dirSign = (activeSeg && activeSeg.spindleDir === 'M04') ? -1 : 1;
-    const visualOmega = Math.min(32, (rpm / 60) * 0.25);
+    const visualOmega = Math.min(34, (rpm / 60) * 0.25);
     state.sim.spindleAngle += dirSign * visualOmega * dt;
   }
 
@@ -2643,6 +3333,7 @@ el.canvasContainer.addEventListener('wheel', (e) => {
 function openSetupSheetModal() {
   const doc = getActiveDoc();
   const prof = getActiveProfile();
+  const mat = MATERIAL_SHADERS[state.stock.material] || MATERIAL_SHADERS.aluminum;
   const imgDataUrl = el.canvas.toDataURL('image/png');
 
   const toolUsage = {};
@@ -2671,23 +3362,23 @@ function openSetupSheetModal() {
   document.getElementById('setup-sheet-preview-body').innerHTML = `
     <div style="border-bottom:2px solid #1f6feb; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between;">
       <div>
-        <h2 style="margin:0; font-size:18px;">CNC MACHINING SETUP SHEET</h2>
+        <h2 style="margin:0; font-size:18px;">CNC 3D / 5-AXIS MACHINING SETUP SHEET</h2>
         <div style="color:#555; font-size:12px;">Program: <strong>${escapeHtml(doc.name)}</strong> | Machine: <strong>${escapeHtml(prof.name)}</strong></div>
       </div>
       <div style="text-align:right; font-size:12px;">
-        <div>Date: ${new Date().toLocaleDateString()}</div>
+        <div>Material: <strong>${escapeHtml(mat.name)}</strong></div>
         <div>Est. Cycle Time: <strong>${mins}m ${secs}s</strong></div>
       </div>
     </div>
     <div style="display:flex; gap:12px; margin-bottom:12px;">
       <div style="flex:1; background:#f6f8fa; padding:8px; border:1px solid #d0d7de; font-size:12px;">
-        <strong>WORKPIECE &amp; EXTENTS</strong><br>
+        <strong>STOCK &amp; ENVELOPE</strong><br>
         X Range: ${state.extents.minX.toFixed(2)} to ${state.extents.maxX.toFixed(2)} mm<br>
         Y Range: ${state.extents.minY.toFixed(2)} to ${state.extents.maxY.toFixed(2)} mm<br>
         Z Range: ${state.extents.minZ.toFixed(2)} to ${state.extents.maxZ.toFixed(2)} mm<br>
-        3D Collision Verification: <strong style="color:${state.alarms.length ? '#cf222e' : '#1a7f37'};">${state.alarms.length ? state.alarms.length + ' FAULT(S)' : 'PASSED (0 FAULTS)'}</strong>
+        3D Collision Check: <strong style="color:${state.alarms.length ? '#cf222e' : '#1a7f37'};">${state.alarms.length ? state.alarms.length + ' FAULT(S)' : 'PASSED (0 FAULTS)'}</strong>
       </div>
-      <div style="width:240px; border:1px solid #d0d7de; background:#0b0e14; text-align:center;">
+      <div style="width:240px; border:1px solid #d0d7de; background:#090c12; text-align:center;">
         <img src="${imgDataUrl}" style="max-width:100%; max-height:130px; display:block; margin:auto;">
       </div>
     </div>
@@ -2732,7 +3423,7 @@ function generate50kStressTest() {
 function normalizeCNCLine(line) {
   let s = line;
   if (document.getElementById('cmp-ignore-comments').checked) s = s.replace(/\(.*?\)/g, '').split(';')[0];
-  if (document.getElementById('cmp-ignore-n').checked) s = s.replace(/^\s*N\d+\s*/i, '');
+  if (document.getElementById('cmp-ignore-n').checked) s = s.replace(/^\s*(N\d+|\d+)\s*/i, '');
   if (document.getElementById('cmp-ignore-zeros').checked) s = s.replace(/([+-]?\d+)\.0+\b/g, '$1').replace(/([+-]?\d+)\.(?=\s|$|[A-Za-z])/g, '$1');
   if (document.getElementById('cmp-ignore-ws').checked) s = s.replace(/\s+/g, '');
   else s = s.trim();
@@ -2843,9 +3534,11 @@ async function sendProgramDNC() {
 function renderDocTabs() {
   el.docTabsBar.innerHTML = '';
   state.docs.forEach(doc => {
+    const isHH = (doc.mode || '').startsWith('hh');
+    const tagTxt = doc.mode === 'hh-5ax' ? 'HH 5AX' : (doc.mode === 'hh-3ax' ? 'HH' : (doc.mode === 'lathe' ? 'LATHE' : 'ISO'));
     const tab = document.createElement('div');
     tab.className = 'doc-tab' + (doc.id === state.activeDocId ? ' active' : '');
-    tab.innerHTML = `<span>${escapeHtml(doc.name)}${doc.dirty ? ' <span class="dirty-dot">*</span>' : ''}</span>`;
+    tab.innerHTML = `<span class="dialect-tag${isHH ? ' hh' : ''}">${tagTxt}</span><span>${escapeHtml(doc.name)}${doc.dirty ? ' <span class="dirty-dot">*</span>' : ''}</span>`;
     if (state.docs.length > 1) {
       const x = document.createElement('span');
       x.className = 'close-tab'; x.textContent = '×';
@@ -2857,10 +3550,13 @@ function renderDocTabs() {
   });
   const add = document.createElement('button');
   add.className = 'doc-tab-add'; add.textContent = '+';
-  add.title = 'New Editable NC File';
+  add.title = 'New Heidenhain Klartext 5-Axis File';
   add.onclick = () => {
     const id = 'doc-' + Date.now();
-    state.docs.push({ id, mode: state.kinematicsMode, dirty: false, name: `O${1000 + state.docs.length}_NEW.nc`, content: '%\nO1005 (NEW EDITABLE PROGRAM)\nG90 G17 G21\nT01 M06\nS10000 M03\nG00 X0.000 Y0.000 Z20.000\nG01 Z-4.000 F400.0\nG01 X30.000 F1200.0\nG01 Y25.000\nG01 X0.000\nG01 Y0.000\nG00 Z25.000\nM30\n%' });
+    state.docs.push({
+      id, mode: 'hh-5ax', dirty: false, name: `5AX_PART_${state.docs.length + 1}.h`,
+      content: `0 BEGIN PGM NEW_5AX MM\n1 BLK FORM 0.1 Z X-40.0 Y-40.0 Z-25.0\n2 BLK FORM 0.2 X+40.0 Y+40.0 Z+0.0\n3 TOOL CALL 3 Z S16000 F3000 ; 10.0MM BALL NOSE\n4 FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS\n5 L X-25.0 Y-25.0 Z+15.0 A-15.0 B+15.0 C+0.0 R0 FMAX M03 M08\n6 L Z-5.0 F1000\n7 L X+25.0 Y-25.0 Z-5.0 A-15.0 B-15.0 C+90.0 F2500\n8 L X+25.0 Y+25.0 Z-5.0 A+15.0 B-15.0 C+180.0 F2500\n9 L X-25.0 Y+25.0 Z-5.0 A+15.0 B+15.0 C+270.0 F2500\n10 L X-25.0 Y-25.0 Z-5.0 A-15.0 B+15.0 C+360.0 F2500\n11 M140 MB MAX\n12 M129\n13 END PGM NEW_5AX MM`
+    });
     switchDoc(id);
   };
   el.docTabsBar.appendChild(add);
@@ -2869,10 +3565,11 @@ function renderDocTabs() {
 function switchDoc(docId) {
   state.activeDocId = docId;
   const doc = getActiveDoc();
-  if (doc.mode) {
-    state.kinematicsMode = doc.mode;
-    el.kinematicsSelect.value = doc.mode;
-  }
+  const mode = doc.mode || detectDialect(doc.content, doc.name);
+  doc.mode = mode;
+  state.kinematicsMode = mode;
+  el.kinematicsSelect.value = mode;
+
   state.linesCache = doc.content.split('\n');
   state.activeLine = 0;
   el.textarea.value = doc.content;
@@ -2894,7 +3591,7 @@ function closeDoc(docId) {
 
 function loadProfiles() {
   try {
-    const saved = localStorage.getItem('cnc_edit_v3_profiles');
+    const saved = localStorage.getItem('cnc_edit_v5_profiles');
     state.profiles = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PROFILES));
   } catch { state.profiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES)); }
   el.profileSelect.innerHTML = '';
@@ -2903,7 +3600,6 @@ function loadProfiles() {
 }
 
 function wireEvents() {
-  // Ribbon Tabs
   document.querySelectorAll('.ribbon-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.ribbon-tab').forEach(t => t.classList.remove('active'));
@@ -2914,7 +3610,6 @@ function wireEvents() {
     };
   });
 
-  // Left Dock Tabs
   document.querySelectorAll('.dock-tab').forEach(dt => {
     dt.onclick = () => {
       document.querySelectorAll('.dock-tab').forEach(b => b.classList.remove('active'));
@@ -2924,7 +3619,6 @@ function wireEvents() {
     };
   });
 
-  // DIRECT TEXTAREA EDITING EVENTS (100% Editable)
   el.textarea.addEventListener('input', () => {
     applyTextChange(el.textarea.value, true, false, false);
   });
@@ -2957,7 +3651,6 @@ function wireEvents() {
     }
   });
 
-  // VIRTUALIZED LARGE-FILE INLINE EDITING EVENTS (>15,000 lines)
   el.virtualContainer.addEventListener('scroll', renderVirtualLines);
   el.veditorLinesLayer.addEventListener('click', (e) => {
     const row = e.target.closest('.vline-row');
@@ -2969,7 +3662,6 @@ function wireEvents() {
     updateNCAssistant();
     drawBackplot();
 
-    // Open instant inline input on clicked line
     el.virtualInlineInput.style.display = 'block';
     el.virtualInlineInput.style.top = `${lineIdx * ROW_HEIGHT + 24}px`;
     el.virtualInlineInput.value = state.linesCache[lineIdx] || '';
@@ -3035,16 +3727,23 @@ function wireEvents() {
     showToast(`Replaced all occurrences of "${q}"`);
   };
 
-  // Kinematics Mode Switch (Mill vs Lathe)
+  // Dialect / Kinematics Switch
   el.kinematicsSelect.onchange = () => {
     state.kinematicsMode = el.kinematicsSelect.value;
     getActiveDoc().mode = state.kinematicsMode;
+    renderDocTabs();
     setCameraView(state.kinematicsMode === 'lathe' ? 'front' : 'iso');
     parseAndBuildSimulation(getActiveDoc().content, true);
-    showToast(`3D Kinematics: ${state.kinematicsMode === 'lathe' ? '2-Axis CNC Lathe' : '3-Axis CNC Mill'}`);
+    showToast(`Dialect / Kinematics: ${el.kinematicsSelect.options[el.kinematicsSelect.selectedIndex].text}`);
   };
 
-  // Theme & Profile
+  // Material Shader Selector
+  document.getElementById('material-shader-select').onchange = (e) => {
+    state.stock.material = e.target.value;
+    drawBackplot();
+    showToast(`Workpiece Material: ${(MATERIAL_SHADERS[state.stock.material] || {}).name}`);
+  };
+
   document.getElementById('btn-toggle-theme').onclick = () => {
     const root = document.documentElement;
     root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
@@ -3062,10 +3761,12 @@ function wireEvents() {
     const f = e.target.files[0]; if (!f) return;
     const r = new FileReader();
     r.onload = (ev) => {
+      const content = ev.target.result;
+      const mode = detectDialect(content, f.name);
       const id = 'doc-' + Date.now();
-      state.docs.push({ id, mode: state.kinematicsMode, dirty: false, name: f.name, content: ev.target.result });
+      state.docs.push({ id, mode, dirty: false, name: f.name, content });
       switchDoc(id);
-      showToast(`Opened ${f.name}`);
+      showToast(`Opened ${f.name} (${mode})`);
     };
     r.readAsText(f);
     e.target.value = '';
@@ -3094,34 +3795,12 @@ function wireEvents() {
 
   // NC Functions & Stress Test
   document.getElementById('btn-stress-test-50k').onclick = generate50kStressTest;
-  document.getElementById('btn-decimal-repair').onclick = () => {
-    const fixed = state.linesCache.map(line => {
-      let comment = '', code = line;
-      const cIdx = line.indexOf('(');
-      if (cIdx !== -1) { code = line.slice(0, cIdx); comment = line.slice(cIdx); }
-      code = code.replace(/([XYZIJKR])([+-]?\d+)(?!\.)\b/gi, (m, ax, intStr) => `${ax}${(parseInt(intStr, 10) / 1000).toFixed(3)}`);
-      return code + comment;
-    }).join('\n');
-    applyTextChange(fixed, true, true, true);
-    showToast('Converted integer coordinates to 3-place decimals');
-  };
   document.getElementById('btn-insert-spaces').onclick = () => {
-    const formatted = state.linesCache.map(l => {
-      let comment = '', code = l;
-      const cIdx = l.indexOf('(');
-      if (cIdx !== -1) { code = l.slice(0, cIdx); comment = l.slice(cIdx); }
-      code = code.replace(/\s+/g, '').replace(/([A-Za-z])([+-]?\d*\.?\d+)/g, '$1$2 ').trim();
-      return (comment && code ? code + ' ' : code) + comment;
-    }).join('\n');
+    const formatted = state.linesCache.map(l => l.replace(/\s+/g, ' ').trim()).join('\n');
     applyTextChange(formatted, true, false, false);
   };
   document.getElementById('btn-remove-spaces').onclick = () => {
-    const formatted = state.linesCache.map(l => {
-      let comment = '', code = l;
-      const cIdx = l.indexOf('(');
-      if (cIdx !== -1) { code = l.slice(0, cIdx); comment = l.slice(cIdx); }
-      return code.replace(/\s+/g, '') + comment;
-    }).join('\n');
+    const formatted = state.linesCache.map(l => l.replace(/\s+/g, '')).join('\n');
     applyTextChange(formatted, true, false, false);
   };
   document.getElementById('btn-uppercase').onclick = () => applyTextChange(getActiveDoc().content.toUpperCase(), true, false, false);
@@ -3131,20 +3810,22 @@ function wireEvents() {
   };
   document.getElementById('btn-open-renumber').onclick = () => document.getElementById('modal-renumber').classList.add('open');
   document.getElementById('btn-apply-renumber').onclick = () => {
-    const start = parseInt(document.getElementById('renum-start').value, 10) || 10;
-    const inc = parseInt(document.getElementById('renum-inc').value, 10) || 10;
+    const start = parseInt(document.getElementById('renum-start').value, 10) || 1;
+    const inc = parseInt(document.getElementById('renum-inc').value, 10) || 1;
+    const isHH = state.kinematicsMode.startsWith('hh');
     let n = start;
     const updated = state.linesCache.map(l => {
       const t = l.trim();
       if (!t || t === '%' || /^O\d+/i.test(t) || t.startsWith('(')) return l;
-      const out = `N${n} ` + l.replace(/^\s*N\d+\s*/i, '');
+      const stripped = l.replace(/^\s*(N\d+|\d+)\s*/i, '');
+      const out = isHH ? `${n} ${stripped}` : `N${n} ${stripped}`;
       n += inc; return out;
     }).join('\n');
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     applyTextChange(updated, true, false, false);
   };
   document.getElementById('btn-remove-n').onclick = () => {
-    applyTextChange(state.linesCache.map(l => l.replace(/^\s*N\d+\s*/i, '')).join('\n'), true, false, false);
+    applyTextChange(state.linesCache.map(l => l.replace(/^\s*(N\d+|\d+)\s*/i, '')).join('\n'), true, false, false);
   };
   document.getElementById('btn-open-transform').onclick = () => document.getElementById('modal-transform').classList.add('open');
   document.getElementById('btn-apply-transform').onclick = () => {
@@ -3152,7 +3833,7 @@ function wireEvents() {
     const dy = parseFloat(document.getElementById('tr-dy').value) || 0;
     const dz = parseFloat(document.getElementById('tr-dz').value) || 0;
     const sc = parseFloat(document.getElementById('tr-scale').value) || 1;
-    const updated = state.linesCache.map(l => l.replace(/([XYZIJKR])([+-]?\d*\.?\d+)/gi, (m, ax, v) => {
+    const updated = state.linesCache.map(l => l.replace(/\b([XYZIJKR])([+-]?\d*\.?\d+)/gi, (m, ax, v) => {
       let val = parseFloat(v) * sc;
       if (ax.toUpperCase() === 'X') val += dx;
       if (ax.toUpperCase() === 'Y') val += dy;
@@ -3163,29 +3844,30 @@ function wireEvents() {
     applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-mirror-x').onclick = () => {
-    const updated = state.linesCache.map(l => l.replace(/([XI])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`)).join('\n');
+    const updated = state.linesCache.map(l => l.replace(/\b([XI])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`)).join('\n');
     applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-mirror-y').onclick = () => {
-    const updated = state.linesCache.map(l => l.replace(/([YJ])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`)).join('\n');
+    const updated = state.linesCache.map(l => l.replace(/\b([YJ])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`)).join('\n');
     applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-to-metric').onclick = () => {
-    const updated = state.linesCache.map(l => l.replace(/\bG20\b/g, 'G21').replace(/([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) * 25.4).toFixed(3)}`)).join('\n');
+    const updated = state.linesCache.map(l => l.replace(/\bG20\b/g, 'G21').replace(/\bINCH\b/g, 'MM').replace(/\b([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) * 25.4).toFixed(3)}`)).join('\n');
     applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-to-inch').onclick = () => {
-    const updated = state.linesCache.map(l => l.replace(/\bG21\b/g, 'G20').replace(/([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) / 25.4).toFixed(4)}`)).join('\n');
+    const updated = state.linesCache.map(l => l.replace(/\bG21\b/g, 'G20').replace(/\bMM\b/g, 'INCH').replace(/\b([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) / 25.4).toFixed(4)}`)).join('\n');
     applyTextChange(updated, true, true, true);
+  };
+  document.getElementById('btn-insert-hh-tcpm').onclick = () => {
+    const snippet = `FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS\nPLANE SPATIAL SPA+15.0 SPB-10.0 SPC+0.0 TURN FMAX\n`;
+    applyTextChange(snippet + getActiveDoc().content, true, true, false);
   };
   document.getElementById('btn-insert-header').onclick = () => {
     applyTextChange('G90 G17 G21 G40 G80\n' + getActiveDoc().content, true, true, false);
   };
-  document.getElementById('btn-insert-drill-cycle').onclick = () => {
-    applyTextChange(getActiveDoc().content + '\nG98 G83 X0.000 Y0.000 Z-15.000 R2.000 Q3.000 F250.0\nG80', true, true, true);
-  };
 
-  // 3D Solid Simulation Toggles
+  // 3D & 5-Axis Simulation Toggles
   document.getElementById('btn-toggle-assistant').onclick = (e) => {
     const d = document.getElementById('left-dock');
     d.classList.toggle('collapsed');
@@ -3239,6 +3921,15 @@ function wireEvents() {
     e.currentTarget.classList.toggle('active', state.cam.show3DTool);
     drawBackplot();
   };
+
+  const toggleTrunnion = () => {
+    state.cam.showTrunnion = !state.cam.showTrunnion;
+    document.getElementById('btn-toggle-trunnion').classList.toggle('active', state.cam.showTrunnion);
+    document.getElementById('vp-btn-trunnion-toggle').classList.toggle('active', state.cam.showTrunnion);
+    drawBackplot();
+  };
+  document.getElementById('btn-toggle-trunnion').onclick = toggleTrunnion;
+  document.getElementById('vp-btn-trunnion-toggle').onclick = toggleTrunnion;
 
   const toggleComp = () => {
     state.cam.showCutterComp = !state.cam.showCutterComp;
@@ -3339,11 +4030,11 @@ function wireEvents() {
   document.getElementById('btn-dnc-send').onclick = sendProgramDNC;
   document.getElementById('btn-dnc-quick-send').onclick = () => { document.getElementById('dnc-panel').classList.add('active'); sendProgramDNC(); };
   document.getElementById('btn-dnc-receive').onclick = () => {
-    const sample = '%\nO8850 (CNC UPLOAD)\nG90 G17 G21\nG00 X0 Y0 Z20\nG01 Z-2 F400\nG01 X35 F1200\nM30\n%';
+    const sample = `0 BEGIN PGM TNC640_UPLOAD MM\n1 BLK FORM 0.1 Z X-35 Y-35 Z-20\n2 BLK FORM 0.2 X+35 Y+35 Z+0\n3 TOOL CALL 1 Z S12000 F2000\n4 L X+0 Y+0 Z+20 R0 FMAX M03\n5 L Z-3 F800\n6 L X+25 F1500\n7 END PGM TNC640_UPLOAD MM`;
     const id = 'doc-rx-' + Date.now();
-    state.docs.push({ id, mode: 'mill', dirty: false, name: 'O8850_CNC_RX.nc', content: sample });
+    state.docs.push({ id, mode: 'hh-3ax', dirty: false, name: 'TNC640_UPLOAD.h', content: sample });
     switchDoc(id);
-    logDNC('RX COMPLETE: Created tab O8850_CNC_RX.nc');
+    logDNC('RX COMPLETE: Created tab TNC640_UPLOAD.h');
   };
   document.getElementById('btn-dnc-quick-recv').onclick = () => document.getElementById('btn-dnc-receive').click();
   document.getElementById('btn-dnc-abort').onclick = () => { state.dnc.abortRequested = true; };
@@ -3361,12 +4052,12 @@ function wireEvents() {
   document.getElementById('btn-save-profile').onclick = () => {
     const p = getActiveProfile();
     p.name = document.getElementById('prof-name').value.trim() || p.name;
-    p.rapidRate = parseFloat(document.getElementById('prof-rapid').value) || 15000;
-    p.maxRpm = parseFloat(document.getElementById('prof-maxrpm').value) || 15000;
-    p.limX = parseFloat(document.getElementById('prof-limx').value) || 350;
-    p.limY = parseFloat(document.getElementById('prof-limy').value) || 250;
-    p.limZ = parseFloat(document.getElementById('prof-limz').value) || -250;
-    localStorage.setItem('cnc_edit_v3_profiles', JSON.stringify(state.profiles));
+    p.rapidRate = parseFloat(document.getElementById('prof-rapid').value) || 24000;
+    p.maxRpm = parseFloat(document.getElementById('prof-maxrpm').value) || 24000;
+    p.limX = parseFloat(document.getElementById('prof-limx').value) || 400;
+    p.limY = parseFloat(document.getElementById('prof-limy').value) || 400;
+    p.limZ = parseFloat(document.getElementById('prof-limz').value) || -300;
+    localStorage.setItem('cnc_edit_v5_profiles', JSON.stringify(state.profiles));
     loadProfiles();
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     parseAndBuildSimulation(getActiveDoc().content, false);
@@ -3380,8 +4071,9 @@ function wireEvents() {
 window.onload = function () {
   loadProfiles();
   wireEvents();
-  switchDoc('doc-mill-1');
-  logDNC('CNC Edit Pro v3 Solid 3D & Editable NC Engine ready.');
+  // Launch directly with the Heidenhain 5-Axis Turbine Blisk sample program open
+  switchDoc('doc-hh-5ax');
+  logDNC('CNC Edit Pro v5 — Heidenhain Klartext 5-Axis & Solid Material Engine ready.');
   requestAnimationFrame(animationLoop);
 };
 </script>
