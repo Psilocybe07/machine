@@ -208,6 +208,7 @@ html, body {
 .gutter-line { height: 20px; font-size: 11px; }
 .gutter-line.active-ln { color: var(--accent-cyan); font-weight: 700; }
 .gutter-line.err-ln { color: var(--accent-red); font-weight: 800; }
+.gutter-line.warn-ln { color: var(--accent-orange); font-weight: 800; }
 
 #code-scroll-wrap { position: relative; flex: 1; overflow: hidden; }
 #highlight-backdrop, #nc-textarea {
@@ -222,6 +223,11 @@ html, body {
   resize: none; z-index: 2; user-select: text;
 }
 #nc-textarea::selection { background: rgba(47, 129, 247, 0.35); }
+#exec-hl {
+  position: absolute; left: 0; right: 0; top: 0; height: 20px; z-index: 0;
+  background: rgba(210, 153, 34, 0.17); border-left: 3px solid var(--accent-orange);
+  pointer-events: none; display: none; will-change: transform;
+}
 
 /* Syntax Colors */
 .tok-n { color: #6e7681; }
@@ -235,6 +241,7 @@ html, body {
 .tok-kw { color: #ff7b72; font-weight: 700; }
 .line-hl-active { background: rgba(57, 197, 207, 0.11); display: inline-block; width: 100%; }
 .line-hl-coll { background: rgba(248, 81, 73, 0.22); display: inline-block; width: 100%; }
+.line-hl-warn { background: rgba(210, 153, 34, 0.16); display: inline-block; width: 100%; }
 
 /* VIRTUAL VIEWPORT FOR >15,000 LINE FILES */
 #virtual-editor {
@@ -244,6 +251,7 @@ html, body {
 }
 .v-row { height: 20px; white-space: pre; cursor: pointer; }
 .v-row:hover { background: var(--bg-hover); }
+.v-row.exec { background: rgba(210, 153, 34, 0.17); box-shadow: inset 3px 0 0 var(--accent-orange); }
 
 /* SPECIAL VIEWS: COMPARE & DNC */
 #compare-view, #dnc-view {
@@ -424,6 +432,7 @@ html, body {
           <button class="r-btn active" id="btn-toggle-assistant"><span>Left Dock</span></button>
           <button class="r-btn" id="btn-ribbon-tools" title="Manage Cutting Tools (Add / Edit / Delete)"><span>🛠 Tool Library</span></button>
           <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D Sim View</span></button>
+          <button class="r-btn" id="btn-reset-workspace" title="Discard the autosaved workspace and reload the sample programs"><span>↺ Reset</span></button>
         </div>
         <div class="ribbon-group-title">Workspace</div>
       </div>
@@ -482,6 +491,7 @@ html, body {
           <button class="r-btn active" id="btn-toggle-cutter-comp"><span>G41/G42/RL/RR</span></button>
           <button class="r-btn active" id="btn-toggle-rapids"><span>Rapids</span></button>
           <button class="r-btn active" id="btn-toggle-coolant"><span>Coolant</span></button>
+          <button class="r-btn active" id="btn-toggle-holder-check" title="Warn when the tool holder / shank touches stock"><span>Holder Check</span></button>
         </div>
         <div class="ribbon-group-title">5-Axis Kinematics &amp; Overlays</div>
       </div>
@@ -527,7 +537,7 @@ html, body {
         <div class="ribbon-group-items">
           <button class="r-btn" id="btn-dnc-connect"><span>🔌 Connect Serial Port</span></button>
           <button class="r-btn" id="btn-dnc-send"><span>📤 Drip-Feed Active File</span></button>
-          <button class="r-btn" id="btn-dnc-loopback"><span>🔁 Virtual Loopback Test</span></button>
+          <button class="r-btn" id="btn-dnc-loopback" title="Encodes the active file exactly as Drip-Feed would send it, decodes it and compares block by block (software only, no hardware)"><span>🔁 Encoding Self-Test</span></button>
         </div>
         <div class="ribbon-group-title">Web Serial DNC</div>
       </div>
@@ -546,7 +556,7 @@ html, body {
           </select>
           <select id="dnc-flow" class="compact-select">
             <option value="hardware" selected>RTS/CTS Hardware</option>
-            <option value="none">XON/XOFF Software</option>
+            <option value="none">No Flow Control</option>
           </select>
         </div>
         <div class="ribbon-group-title">Serial Framing</div>
@@ -640,6 +650,7 @@ html, body {
       <div id="editor-container">
         <div id="line-gutter"></div>
         <div id="code-scroll-wrap">
+          <div id="exec-hl"></div>
           <pre id="highlight-backdrop" aria-hidden="true"></pre>
           <textarea id="nc-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
         </div>
@@ -746,6 +757,7 @@ html, body {
       <span id="st-cursor">Ln 1, Col 1</span>
       <span id="st-lines">Lines: 0</span>
       <span id="st-extents">Extents: X[0..0] Y[0..0] Z[0..0]</span>
+      <span id="st-autosave" title="Your programs are autosaved in this browser">Autosave: on</span>
     </div>
     <div class="status-group">
       <span id="st-collisions">Collisions: 0</span>
@@ -1142,6 +1154,7 @@ const state = {
   editorMode: 'direct',
   linesCache: [],
   activeLine: 0,
+  execLine: -1,
   profiles: [],
   activeProfileId: 'ncp-5ax-table-bc',
   kinematicsMode: 'table-bc',
@@ -1156,6 +1169,9 @@ const state = {
   compPolylines: [],
   alarms: [],
   collisionLineSet: new Set(),
+  warnLineSet: new Set(),
+  holderCheck: true,
+  programMetric: true,
   extents: { minX: -1.0, maxX: 1.0, minY: -1.0, maxY: 1.0, minZ: -5.0, maxZ: 1.8 },
   stats: { cutDist: 0, rapidDist: 0, totalTimeSec: 0 },
 
@@ -1193,7 +1209,9 @@ const state = {
     spindleAngle: 0,
     coolantParticles: [],
     fpsSamples: [],
-    lastFpsUiTs: 0
+    lastFpsUiTs: 0,
+    lastHudTs: 0,
+    scrollNext: false
   },
 
   cam: {
@@ -1239,7 +1257,8 @@ const el = {
   scrubber: document.getElementById('sim-scrubber'),
   profileSelect: document.getElementById('machine-profile-select'),
   kinematicsSelect: document.getElementById('kinematics-mode-select'),
-  errorOverlay: document.getElementById('sim-error-overlay')
+  errorOverlay: document.getElementById('sim-error-overlay'),
+  execHl: document.getElementById('exec-hl')
 };
 
 function escapeHtml(s) {
@@ -1260,7 +1279,7 @@ function showSimError(err) {
 }
 
 function hideSimError() {
-  el.errorOverlay.style.display = 'none';
+  if (el.errorOverlay.style.display !== 'none') el.errorOverlay.style.display = 'none';
 }
 
 function getActiveDoc() {
@@ -1284,6 +1303,237 @@ function logDNC(msg) {
   const ts = new Date().toLocaleTimeString();
   box.textContent += `[${ts}] ${msg}\n`;
   box.scrollTop = box.scrollHeight;
+}
+
+/* ==========================================================================
+   3b. SHARED HELPERS: autosave, segment lookup, HUD cache, executing-line highlight
+   ========================================================================== */
+let parseTimer = null;
+let saveTimer = null;
+const STORE_KEY = 'nc_preview_workspace_v1';
+const MAX_AUTOSAVE_DOC_CHARS = 1500000;
+
+function scheduleWorkspaceSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveWorkspace, 700);
+}
+
+function saveWorkspace() {
+  const stEl = document.getElementById('st-autosave');
+  try {
+    const keep = state.docs.filter(d => d.content.length <= MAX_AUTOSAVE_DOC_CHARS);
+    const payload = {
+      v: 1,
+      activeDocId: keep.some(d => d.id === state.activeDocId) ? state.activeDocId : (keep[0] && keep[0].id),
+      untitledCounter: state.untitledCounter,
+      tools: state.tools,
+      docs: keep.map(d => ({ id: d.id, name: d.name, mode: d.mode, dirty: !!d.dirty, content: d.content }))
+    };
+    localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+    if (stEl) stEl.textContent = `Autosaved ${new Date().toLocaleTimeString()}` + (keep.length < state.docs.length ? ' (large files skipped)' : '');
+  } catch (e) {
+    if (stEl) stEl.textContent = 'Autosave failed (storage full?)';
+  }
+}
+
+function loadWorkspace() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.docs)) return false;
+    const docs = d.docs.filter(x => x && typeof x.id === 'string' && typeof x.name === 'string' && typeof x.content === 'string')
+      .map(x => ({ id: x.id, name: x.name, mode: x.mode || 'vmc-3ax', dirty: !!x.dirty, content: x.content }));
+    if (!docs.length) return false;
+    state.docs = docs;
+    state.activeDocId = docs.some(x => x.id === d.activeDocId) ? d.activeDocId : docs[0].id;
+    if (Number.isFinite(d.untitledCounter)) state.untitledCounter = d.untitledCounter;
+    if (d.tools && typeof d.tools === 'object') state.tools = d.tools;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Segments are time-ordered, so lookups by time or by source line are binary searches.
+function findSegIdxByTime(t) {
+  const segs = state.segments;
+  let hi = segs.length - 1, lo = 0;
+  if (hi < 0) return -1;
+  if (t > segs[hi].endTimeSec) return hi;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (segs[mid].endTimeSec >= t) hi = mid; else lo = mid + 1;
+  }
+  return lo;
+}
+
+function findSegByLine(ln) {
+  const segs = state.segments;
+  let lo = 0, hi = segs.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (segs[mid].line >= ln) hi = mid; else lo = mid + 1;
+  }
+  return segs[lo];
+}
+
+// HUD writes are cached per element and skipped when the text has not changed.
+const _hudEls = {};
+function hudSet(id, text) {
+  let e = _hudEls[id];
+  if (!e) e = _hudEls[id] = { node: document.getElementById(id), v: null };
+  if (e.v !== text) { e.v = text; e.node.textContent = text; }
+}
+function hudBar(id, pct) {
+  const w = `${pct.toFixed(1)}%`;
+  let e = _hudEls[id];
+  if (!e) e = _hudEls[id] = { node: document.getElementById(id), v: null };
+  if (e.v !== w) { e.v = w; e.node.style.width = w; }
+}
+
+// Executing-line highlight: follows the simulation in the editor (orange bar) without re-rendering the text.
+function positionExecHl() {
+  const hl = el.execHl;
+  if (!hl) return;
+  if (state.editorMode !== 'direct' || state.execLine < 0) { hl.style.display = 'none'; return; }
+  hl.style.display = 'block';
+  hl.style.transform = `translateY(${8 + state.execLine * 20 - el.textarea.scrollTop}px)`;
+}
+
+function setExecLine(line) {
+  // Follow-scroll only while playing / scrubbing, and never while the user is typing in the editor.
+  const follow = (state.sim.playing || state.sim.scrollNext) && document.activeElement !== el.textarea;
+  state.sim.scrollNext = false;
+  if (line === state.execLine) return;
+  state.execLine = line;
+  if (state.editorMode === 'virtual') {
+    const ve = el.virtualEditor;
+    if (follow && ve.clientHeight > 0) {
+      const y = line * 20 + 8;
+      if (y < ve.scrollTop || y > ve.scrollTop + ve.clientHeight - 30) ve.scrollTop = Math.max(0, y - ve.clientHeight / 2);
+    }
+    renderVirtualRows();
+    return;
+  }
+  if (follow && el.editorContainer.style.display !== 'none') {
+    const ta = el.textarea;
+    if (ta.clientHeight > 0) {
+      const y = 8 + line * 20;
+      if (y < ta.scrollTop + 4 || y > ta.scrollTop + ta.clientHeight - 28) ta.scrollTop = Math.max(0, y - ta.clientHeight / 2);
+    }
+  }
+  positionExecHl();
+}
+
+// Run fn on the code part of each line only (comments in (...) and after ';' are left alone).
+function mapCodeOnly(text, fn) {
+  return text.split('\n').map(line =>
+    line.split(/(\([^)]*\)|;[^\n]*)/).map((part, i) => (i % 2 === 1 ? part : fn(part))).join('')
+  ).join('\n');
+}
+
+function crc32(bytes) {
+  if (!crc32.table) {
+    crc32.table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      crc32.table[n] = c >>> 0;
+    }
+  }
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) crc = crc32.table[(crc ^ bytes[i]) & 255] ^ (crc >>> 8);
+  return ((crc ^ 0xFFFFFFFF) >>> 0).toString(16).toUpperCase().padStart(8, '0');
+}
+
+/* --- Soft limits, tool lint and holder collision checks (run once per parse) --- */
+function holderDims(t) {
+  const d = t.dia || 0.375;
+  return { rad: Math.max(d * 1.05, (t.holderDia || d * 2.6) * 0.5), fl: Math.max(t.overallLen || 0, t.fluteLen || 0) || d * 3.5 };   // holder face sits at the stickout length
+}
+
+function toolUnitsPlausible(t) {
+  const d = t.dia || 0;
+  return state.programMetric ? d >= 1.0 : d <= 4.0;
+}
+
+// Returns true when the tool is usable for the holder check; otherwise raises one warning per tool.
+function toolLint(seg, flagged) {
+  const t = state.tools[seg.tool];
+  const tn = `T${String(seg.tool).padStart(2, '0')}`;
+  if (!t) {
+    if (!flagged.has(seg.tool)) {
+      flagged.add(seg.tool);
+      state.warnLineSet.add(seg.line);
+      state.alarms.push({ line: seg.line, kind: 'warning', title: `${tn} NOT IN TOOL LIBRARY`, detail: 'A default diameter is assumed for the simulation. Add the tool in the Tool Library.', timeSec: seg.startTimeSec });
+    }
+    return false;
+  }
+  if (!toolUnitsPlausible(t)) {
+    if (!flagged.has(seg.tool)) {
+      flagged.add(seg.tool);
+      state.warnLineSet.add(seg.line);
+      state.alarms.push({ line: seg.line, kind: 'warning', title: `${tn} UNITS MISMATCH?`, detail: `Ø${t.dia} looks like ${state.programMetric ? 'an inch' : 'a mm'} value in a ${state.programMetric ? 'metric' : 'inch'} program. Holder check skipped for this tool; edit it in the Tool Library.`, timeSec: seg.startTimeSec });
+    }
+    return false;
+  }
+  return true;
+}
+
+// Consecutive blocks that touch with the same tool are reported as ONE alarm ("continues through Ln N").
+function noteHolder(seg, toolObj, where) {
+  if (!where) { state._holderRun = null; return; }
+  state.warnLineSet.add(seg.line);
+  const run = state._holderRun;
+  if (run && run.tool === seg.tool) {
+    run.al.detail = run.base + ` Continues through Ln ${seg.line + 1}.`;
+    return;
+  }
+  if (state._holderAlarms >= 30) return;
+  state._holderAlarms++;
+  const hd = holderDims(toolObj);
+  const base = `Holder (Ø${(hd.rad * 2).toFixed(3)}, face ${hd.fl.toFixed(3)} above tip) touches stock near ${where}. Check stickout / flute length.`;
+  const al = { line: seg.line, kind: 'warning', title: 'HOLDER / SHANK CONTACT', detail: base, timeSec: seg.startTimeSec };
+  state.alarms.push(al);
+  state._holderRun = { tool: seg.tool, al, base };
+}
+
+function checkHolderCylinder(rGrid, seg, toolObj) {
+  const hd = holderDims(toolObj);
+  const stk = state.stock;
+  const dz = Math.max(1e-4, (stk.maxZ - stk.minZ) / stk.cylZSegs);
+  // Only the underside of the holder can touch first: test a thin slab, at mid-block and block end (cheap).
+  const pseudo = { dia: hd.rad * 2, shape: 'flat', cutLen: dz * 3, startH: hd.fl };
+  return carveOrCheckCylinderGrid(rGrid, null, seg, pseudo, true, 0.48, 0.52)
+      || carveOrCheckCylinderGrid(rGrid, null, seg, pseudo, true, 0.98, 1.0);
+}
+
+function checkSoftLimits() {
+  const prof = getActiveProfile();
+  const k = state.programMetric ? 1 : 1 / 25.4;      // profile limits are in mm
+  const lim = { X: (prof.limX || 0) * k, Y: (prof.limY || 0) * k, Z: (prof.limZ || 0) * k };
+  const run = { X: null, Y: null, Z: null };
+  let n = 0;
+  for (const seg of state.segments) {
+    const hit = { X: null, Y: null, Z: null };
+    for (const p of seg.pts) {
+      if (hit.X === null && lim.X > 0 && Math.abs(p.x) > lim.X) hit.X = p.x;
+      if (hit.Y === null && lim.Y > 0 && Math.abs(p.y) > lim.Y) hit.Y = p.y;
+      if (hit.Z === null && lim.Z < 0 && p.z < lim.Z) hit.Z = p.z;
+    }
+    for (const ax of ['X', 'Y', 'Z']) {
+      if (hit[ax] === null) { run[ax] = null; continue; }
+      state.warnLineSet.add(seg.line);
+      const base = `${ax}${hit[ax].toFixed(3)} exceeds the machine envelope (${ax === 'Z' ? 'min ' : '±'}${lim[ax].toFixed(3)}). Checked in program coordinates; work offsets are not applied.`;
+      if (run[ax]) { run[ax].al.detail = run[ax].base + ` Continues through Ln ${seg.line + 1}.`; continue; }
+      if (n >= 40) continue;
+      n++;
+      const al = { line: seg.line, kind: 'limit', title: `SOFT LIMIT ${ax}`, detail: base, timeSec: seg.startTimeSec };
+      state.alarms.push(al);
+      run[ax] = { al, base };
+    }
+  }
 }
 
 /* ==========================================================================
@@ -1370,7 +1620,19 @@ function getToolAxisWorkpieceVector(rot, plane) {
 /* ==========================================================================
    5. SYNTAX HIGHLIGHTER & EDITOR RENDERING (WITH VIRTUALIZATION >15K LINES)
    ========================================================================== */
+const _hlMemo = new Map();
 function highlightLineHtml(line) {
+  const key = line || '';
+  let v = _hlMemo.get(key);
+  if (v === undefined) {
+    v = highlightLineHtmlRaw(key);
+    if (_hlMemo.size > 30000) _hlMemo.clear();
+    _hlMemo.set(key, v);
+  }
+  return v;
+}
+
+function highlightLineHtmlRaw(line) {
   let raw = String(line || '');
   let commentPart = '';
   const semiIdx = raw.indexOf(';');
@@ -1380,7 +1642,9 @@ function highlightLineHtml(line) {
   }
   let s = escapeHtml(raw);
   s = s.replace(/\([^)]*\)/g, m => `<span class="tok-comm">${m}</span>`);
-  s = s.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|TOOL\s+DEF|CYCL\s+DEF|CYCL\s+CALL|PLANE\s+SPATIAL|FUNCTION\s+TCPM|L|CC|C|CR|FMAX|RL|RR|R0)\b/g, '<span class="tok-kw">$1</span>');
+  s = s.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|TOOL\s+DEF|CYCL\s+DEF|CYCL\s+CALL|PLANE\s+SPATIAL|FUNCTION\s+TCPM|FMAX|RL|RR|R0)\b/g, '<span class="tok-kw">$1</span>');
+  // Heidenhain L / CC / CR / C are keywords only when standing alone (so the C axis word C+0.0 stays an axis).
+  s = s.replace(/(^|\s)(L|CC|CR|C)(?=\s|$)/g, '$1<span class="tok-kw">$2</span>');
   s = s.replace(/^(\s*N\d+)/i, '<span class="tok-n">$1</span>');
   s = s.replace(/\b(G\d+(?:\.\d+)?)\b/gi, '<span class="tok-g">$1</span>');
   s = s.replace(/\b(M\d+)\b/gi, '<span class="tok-m">$1</span>');
@@ -1403,6 +1667,7 @@ function renderEditorView() {
     el.editorContainer.style.display = 'none';
     el.virtualEditor.style.display = 'block';
     renderVirtualRows();
+    positionExecHl();
     return;
   }
 
@@ -1419,11 +1684,13 @@ function renderEditorView() {
   for (let i = 0; i < lines.length; i++) {
     const isAct = i === state.activeLine;
     const isColl = state.collisionLineSet.has(i);
-    gutterHtml[i] = `<div class="gutter-line${isAct ? ' active-ln' : ''}${isColl ? ' err-ln' : ''}">${i + 1}</div>`;
+    const isWarn = !isColl && state.warnLineSet.has(i);
+    gutterHtml[i] = `<div class="gutter-line${isAct ? ' active-ln' : ''}${isColl ? ' err-ln' : ''}${isWarn ? ' warn-ln' : ''}">${i + 1}</div>`;
     const hl = highlightLineHtml(lines[i]);
     codeHtml[i] = isColl
       ? `<span class="line-hl-coll">${hl || ' '}</span>`
-      : (isAct ? `<span class="line-hl-active">${hl || ' '}</span>` : (hl || ' '));
+      : (isWarn ? `<span class="line-hl-warn">${hl || ' '}</span>`
+      : (isAct ? `<span class="line-hl-active">${hl || ' '}</span>` : (hl || ' ')));
   }
   el.gutter.innerHTML = gutterHtml.join('');
   el.backdrop.innerHTML = codeHtml.join('\n') + '\n';
@@ -1441,7 +1708,7 @@ function renderVirtualRows() {
   const botPad = Math.max(0, (lines.length - endIdx) * 20);
   let html = `<div style="height:${topPad}px"></div>`;
   for (let i = startIdx; i < endIdx; i++) {
-    html += `<div class="v-row" data-ln="${i}"><span style="color:var(--text-muted);display:inline-block;width:54px;">${i + 1}</span>${highlightLineHtml(lines[i])}</div>`;
+    html += `<div class="v-row${i === state.execLine ? ' exec' : ''}" data-ln="${i}"><span style="color:var(--text-muted);display:inline-block;width:54px;">${i + 1}</span>${highlightLineHtml(lines[i])}</div>`;
   }
   html += `<div style="height:${botPad}px"></div>`;
   el.virtualEditor.innerHTML = html;
@@ -1451,6 +1718,7 @@ function syncEditorScroll() {
   el.backdrop.scrollTop = el.textarea.scrollTop;
   el.backdrop.scrollLeft = el.textarea.scrollLeft;
   el.gutter.scrollTop = el.textarea.scrollTop;
+  positionExecHl();
 }
 
 function updateCursorLineFromTextarea() {
@@ -1463,7 +1731,7 @@ function updateCursorLineFromTextarea() {
   if (ln !== state.activeLine) {
     state.activeLine = ln;
     renderEditorView();
-    const seg = state.segments.find(s => s.line >= ln);
+    const seg = findSegByLine(ln);
     if (seg) {
       state.sim.currentTimeSec = seg.endTimeSec;
       el.scrubber.value = state.stats.totalTimeSec > 0 ? Math.round((seg.endTimeSec / state.stats.totalTimeSec) * 1000) : 0;
@@ -1504,6 +1772,8 @@ function updateInspectorDock() {
 }
 
 function renderToolTableDock() {
+  const toolSig = JSON.stringify(state.tools);
+  if (toolSig !== state._toolSig) { state._toolSig = toolSig; scheduleWorkspaceSave(); }
   const container = document.getElementById('tool-list-container');
   container.innerHTML = '';
   const toolList = Object.values(state.tools).sort((a, b) => a.num - b.num);
@@ -1602,9 +1872,11 @@ function renderAlarmLogDock() {
   const container = document.getElementById('alarm-list-container');
   const badge = document.getElementById('alarm-count-badge');
   const stColl = document.getElementById('st-collisions');
+  const nColl = state.alarms.filter(a => a.kind === 'collision').length;
+  const nWarn = state.alarms.length - nColl;
   badge.textContent = `(${state.alarms.length})`;
-  stColl.textContent = `Collisions: ${state.alarms.length}`;
-  stColl.style.color = state.alarms.length > 0 ? 'var(--accent-red)' : 'var(--accent-green)';
+  stColl.textContent = `Collisions: ${nColl}` + (nWarn ? ` | Warnings: ${nWarn}` : '');
+  stColl.style.color = nColl > 0 ? 'var(--accent-red)' : (nWarn > 0 ? 'var(--accent-orange)' : 'var(--accent-green)');
 
   container.innerHTML = '';
   if (state.alarms.length === 0) {
@@ -1614,13 +1886,15 @@ function renderAlarmLogDock() {
   state.alarms.forEach(al => {
     const card = document.createElement('div');
     card.className = 'assist-badge';
-    card.style.borderColor = 'var(--accent-red)';
+    const isCollAl = al.kind === 'collision';
+    card.style.borderColor = isCollAl ? 'var(--accent-red)' : 'var(--accent-orange)';
     card.style.cursor = 'pointer';
     card.innerHTML = `
-      <div style="color:#ff7b72; font-weight:700; font-size:11px;">⚠ Ln ${al.line + 1}: ${escapeHtml(al.title)}</div>
+      <div style="color:${isCollAl ? '#ff7b72' : '#e3b341'}; font-weight:700; font-size:11px;">⚠ Ln ${al.line + 1}: ${escapeHtml(al.title)}</div>
       <div style="color:var(--text-secondary); font-size:10.5px; margin-top:3px;">${escapeHtml(al.detail)}</div>
     `;
     card.onclick = () => {
+      state.sim.scrollNext = true;
       state.activeLine = al.line;
       state.sim.currentTimeSec = al.timeSec || 0;
       rebuildStockUpToTime(state.sim.currentTimeSec, true);
@@ -1657,6 +1931,7 @@ function registerToolFromComment(tNum, desc, explicitDia = null) {
 }
 
 function parseAndBuildSimulation(sourceText, fitView = true) {
+  const parseT0 = performance.now();
   const lines = (sourceText || '').split('\n');
   const prof = getActiveProfile();
   const rapidRate = prof.rapidRate || 40000;
@@ -1668,6 +1943,7 @@ function parseAndBuildSimulation(sourceText, fitView = true) {
     parseIsoGCode(lines, prof, rapidRate, fitView);
   }
   renderToolTableDock();
+  state._lastParseMs = performance.now() - parseT0;
 }
 
 function parseHeidenhainKlartext(lines, prof, rapidRate, fitView) {
@@ -1911,7 +2187,8 @@ function parseIsoGCode(lines, prof, rapidRate, fitView) {
     if (xm || ym || zm || bm || cm) {
       const nextPos = { ...pos };
       const nextRot = { ...rot };
-      const valX = xm ? parseFloat(xm[1]) : (absMode ? pos.x : 0);
+      // Lathe X is programmed as a diameter; the simulation works in radius.
+      const valX = xm ? parseFloat(xm[1]) * (isLathe ? 0.5 : 1) : (absMode ? pos.x : 0);
       const valY = ym ? parseFloat(ym[1]) : (absMode ? pos.y : 0);
       const valZ = zm ? parseFloat(zm[1]) : (absMode ? pos.z : 0);
       nextPos.x = absMode ? valX : pos.x + valX;
@@ -2008,7 +2285,11 @@ function finalizeParsedSimulation(segments, alarms, collisionLineSet, minX, maxX
   state.segments = segments;
   state.alarms = alarms;
   state.collisionLineSet = collisionLineSet;
-  state.stats = { cutDist, rapidDist, totalTimeSec: elapsedTimeSec };
+  state.warnLineSet = new Set();
+  state.programMetric = metric;
+  let maxFeed = 0;
+  for (const s of segments) if (s.type !== 'G00' && s.feed > maxFeed) maxFeed = s.feed;
+  state.stats = { cutDist, rapidDist, totalTimeSec: elapsedTimeSec, maxFeed };
 
   if (!Number.isFinite(minX)) {
     state.extents = { minX: -1, maxX: 1, minY: -1, maxY: 1, minZ: -5, maxZ: 1.5 };
@@ -2022,6 +2303,8 @@ function finalizeParsedSimulation(segments, alarms, collisionLineSet, minX, maxX
 
   buildCutterCompPolylines();
   initStockHeightmapAndVerifyCollisions(blkFormFound, isLathe);
+  checkSoftLimits();
+  state.alarms.sort((a, b) => (a.timeSec || 0) - (b.timeSec || 0));
   renderAlarmLogDock();
 
   state.sim.currentTimeSec = 0;
@@ -2034,6 +2317,10 @@ function finalizeParsedSimulation(segments, alarms, collisionLineSet, minX, maxX
 
 function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe = false) {
   const stk = state.stock;
+  const doHolder = state.holderCheck && state.segments.length <= 20000;
+  const lintFlagged = new Set();
+  state._holderAlarms = 0;
+  state._holderRun = null;
   if (state.segments.length === 0) {
     stk.initialZ = null;
     stk.currentZ = null;
@@ -2094,6 +2381,7 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
           state.collisionLineSet.add(seg.line);
           state.alarms.push({
             line: seg.line,
+            kind: 'collision',
             title: 'RAPID-INTO-STOCK GOUGE (FMAX / G00)',
             detail: `Rapid traverse crashes through cylindrical bar at Z=${hit.z.toFixed(3)}, R=${hit.r.toFixed(3)}.`,
             timeSec: seg.startTimeSec
@@ -2102,6 +2390,13 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
       } else {
         carveOrCheckCylinderGrid(tempCyl, null, seg, toolObj, false, 0.0, 1.0);
       }
+      const toolOk = toolLint(seg, lintFlagged);
+      if (doHolder && toolOk && !state.collisionLineSet.has(seg.line)) {
+        if (!state.warnLineSet.has(seg.line) || state._holderRun) {
+          const hh = checkHolderCylinder(tempCyl, seg, toolObj);
+          noteHolder(seg, toolObj, hh ? `Z=${hh.z.toFixed(3)}` : null);
+        }
+      } else { state._holderRun = null; }
     }
     return;
   }
@@ -2127,6 +2422,7 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
         state.collisionLineSet.add(seg.line);
         state.alarms.push({
           line: seg.line,
+          kind: 'collision',
           title: 'RAPID-INTO-STOCK GOUGE (G00 / FMAX)',
           detail: `Rapid traverse collides with solid workpiece at X=${hit.x.toFixed(2)}, Y=${hit.y.toFixed(2)}, Z=${hit.z.toFixed(2)}.`,
           timeSec: seg.startTimeSec
@@ -2135,6 +2431,15 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
     } else {
       carveOrCheckGrid(tempGrid, null, seg.pts, r, false);
     }
+    const toolOkB = toolLint(seg, lintFlagged);
+    if (doHolder && toolOkB && !state.collisionLineSet.has(seg.line)) {
+      if (!state.warnLineSet.has(seg.line) || state._holderRun) {
+        const hd = holderDims(toolObj);
+        const pa = seg.pts[0], pb = seg.pts[seg.pts.length - 1];
+        const hhB = carveOrCheckGrid(tempGrid, null, [{ x: pa.x, y: pa.y, z: pa.z + hd.fl }, { x: pb.x, y: pb.y, z: pb.z + hd.fl }], hd.rad, true);
+        noteHolder(seg, toolObj, hhB ? `X=${hhB.x.toFixed(2)} Y=${hhB.y.toFixed(2)} Z=${hhB.z.toFixed(2)}` : null);
+      }
+    } else { state._holderRun = null; }
   }
 }
 
@@ -2216,7 +2521,7 @@ function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFra
   const toolR = Math.max(0.02, (toolObj.dia || 0.375) * 0.5);
   const isBall = (toolObj.shape === 'ball');
   const tipOffset = isBall ? toolR : 0.0;
-  const activeCutLen = isBall ? Math.max(toolR * 1.4, 0.32) : Math.max(toolR * 2.0, toolObj.fluteLen || 1.2);
+  const activeCutLen = toolObj.cutLen || (isBall ? Math.max(toolR * 1.4, 0.32) : Math.max(toolR * 2.0, toolObj.fluteLen || 1.2));
   const fluteSteps = Math.max(3, Math.ceil(activeCutLen / (dz * 1.4)));
 
   const pts = seg.pts;
@@ -2270,7 +2575,7 @@ function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFra
       const ballCz = tipZ + vTool.z * tipOffset;
 
       for (let fs = 0; fs <= fluteSteps; fs++) {
-        const h = (fs / fluteSteps) * activeCutLen;
+        const h = (toolObj.startH || 0) + (fs / fluteSteps) * activeCutLen;
         const cx = ballCx + vTool.x * h;
         const cy = ballCy + vTool.y * h;
         const cz = ballCz + vTool.z * h;
@@ -2458,10 +2763,30 @@ function rebuildStockUpToTime(targetTimeSec, forceFullReset = false) {
 /* ==========================================================================
    8. 3D RENDERER (B/C TABLE + SOLID CYLINDER/BILLET/LATHE + SPINDLE + HUD)
    ========================================================================== */
+// Camera trig is cached: it only changes when yaw/pitch change, not per projected point.
+const _pc = { yaw: NaN, pitch: NaN, cosY: 1, sinY: 0, cosP: 1, sinP: 0 };
+const _vc = { stamp: new Int32Array(0), objs: [], frame: 0 };
+const _fillCache = new Map();
+
+function rgbaStr(r, g, b, a) {
+  const key = ((r * 256 + g) * 256 + b) * 128 + Math.round(a * 100);
+  let s = _fillCache.get(key);
+  if (s === undefined) {
+    if (_fillCache.size > 8000) _fillCache.clear();
+    s = `rgba(${r}, ${g}, ${b}, ${a})`;
+    _fillCache.set(key, s);
+  }
+  return s;
+}
+
 function project3D(pt, cx, cy) {
-  const { yaw, pitch, zoom, panX, panY } = state.cam;
-  const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
-  const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+  const cam = state.cam;
+  if (_pc.yaw !== cam.yaw || _pc.pitch !== cam.pitch) {
+    _pc.yaw = cam.yaw; _pc.pitch = cam.pitch;
+    _pc.cosY = Math.cos(cam.yaw); _pc.sinY = Math.sin(cam.yaw);
+    _pc.cosP = Math.cos(cam.pitch); _pc.sinP = Math.sin(cam.pitch);
+  }
+  const cosY = _pc.cosY, sinY = _pc.sinY, cosP = _pc.cosP, sinP = _pc.sinP;
 
   const x1 = pt.x * cosY - pt.y * sinY;
   const y1 = pt.x * sinY + pt.y * cosY;
@@ -2470,11 +2795,11 @@ function project3D(pt, cx, cy) {
 
   const fov = 950;
   const dist = Math.max(120, fov + y2);
-  const scale = (fov / dist) * zoom;
+  const scale = (fov / dist) * cam.zoom;
 
   return {
-    sx: cx + panX + x1 * scale,
-    sy: cy + panY - z2 * scale,
+    sx: cx + cam.panX + x1 * scale,
+    sy: cy + cam.panY - z2 * scale,
     depth: -y2
   };
 }
@@ -2535,10 +2860,7 @@ function getActivePlaybackState() {
       plane: { spa: 0, spb: 0, spc: 0 }
     };
   }
-  let activeSeg = state.segments[state.segments.length - 1];
-  for (const s of state.segments) {
-    if (t <= s.endTimeSec) { activeSeg = s; break; }
-  }
+  const activeSeg = state.segments[findSegIdxByTime(t)];
   const dur = Math.max(0.0001, activeSeg.endTimeSec - activeSeg.startTimeSec);
   const frac = Math.max(0, Math.min(1, (t - activeSeg.startTimeSec) / dur));
 
@@ -2766,6 +3088,23 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       z
     }), cx, cy);
 
+    // Each grid vertex is shared by up to 4 quads: project it once per frame instead of four times.
+    const vcTk = Math.ceil(nTheta / tStep) + 2;
+    const vcZk = Math.ceil(nZ / zStep) + 3;
+    if (_vc.stamp.length < vcTk * vcZk) {
+      _vc.stamp = new Int32Array(vcTk * vcZk);
+      _vc.objs = new Array(vcTk * vcZk);
+      _vc.frame = 0;
+    }
+    const vcFrame = ++_vc.frame;
+    const vcStamp = _vc.stamp, vcObjs = _vc.objs;
+    const getV = (kt, kz, ang, rad, z) => {
+      const k = kt * vcZk + kz;
+      if (vcStamp[k] === vcFrame) return vcObjs[k];
+      vcStamp[k] = vcFrame;
+      return (vcObjs[k] = ptCyl(ang, rad, z));
+    };
+
     for (let it = 0; it < nTheta; it += tStep) {
       const itNext = (it + tStep) % nTheta;
       const a0 = (it / nTheta) * Math.PI * 2;
@@ -2812,10 +3151,11 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         const specDot = Math.max(0, nx * hx + ny * hy + nz * hz);
         const spec = Math.pow(specDot, mat.specPower) * mat.specIntensity * 255;
 
-        const p00 = ptCyl(a0, r00, z0);
-        const p10 = ptCyl(a1, r10, z0);
-        const p11 = ptCyl(a1, r11, z1);
-        const p01 = ptCyl(a0, r01, z1);
+        const kt = it / tStep, kz = iz / zStep;
+        const p00 = getV(kt, kz, a0, r00, z0);
+        const p10 = getV(kt + 1, kz, a1, r10, z0);
+        const p11 = getV(kt + 1, kz + 1, a1, r11, z1);
+        const p01 = getV(kt, kz + 1, a0, r01, z1);
         const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) * 0.25;
 
         let fillCol;
@@ -2826,7 +3166,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
           const rCol = Math.min(255, Math.round(base[0] * diff + spec));
           const gCol = Math.min(255, Math.round(base[1] * diff + spec));
           const bCol = Math.min(255, Math.round(base[2] * diff + spec));
-          fillCol = `rgba(${rCol}, ${gCol}, ${bCol}, ${0.97 * alphaMul})`;
+          fillCol = rgbaStr(rCol, gCol, bCol, 0.97 * alphaMul);
         }
 
         quads.push({
@@ -3150,6 +3490,7 @@ function draw3DSpindleAssembly(ctx, cx, cy, seg, machineTip, activeRot, activePl
 function updateAndDrawCoolant(ctx, cx, cy, machineTip, isActive) {
   if (!state.cam.showCoolant) return;
   const parts = state.sim.coolantParticles;
+  if (!state.sim.playing) { parts.length = 0; return; }   // no frozen spray while paused / scrubbing
   const scale = Math.max(0.25, (state.stock.maxX - state.stock.minX) * 0.25);
   if (isActive && state.sim.playing) {
     for (let i = 0; i < 3; i++) {
@@ -3321,35 +3662,42 @@ function drawBackplot() {
     }
 
     const seg = playState.seg;
+    const hudNow = performance.now();
+    const doHud = !state.sim.playing || hudNow - state.sim.lastHudTs > 90;   // HUD text at ~10 Hz while playing
+    if (doHud) state.sim.lastHudTs = hudNow;
     if (seg) {
       const machineTip = isTableMode ? workpieceToMachinePoint(playState.wpTip, activeRot, activePlane) : playState.wpTip;
       draw3DSpindleAssembly(ctx, cx, cy, seg, machineTip, activeRot, activePlane);
       updateAndDrawCoolant(ctx, cx, cy, machineTip, seg.coolant && seg.spindleDir !== 'M05');
+      setExecLine(seg.line);
 
-      const prof = getActiveProfile();
-      const toolObj = state.tools[seg.tool] || { dia: 0.375, flutes: 4, shape: 'ball' };
-      const ijk = getToolAxisWorkpieceVector(activeRot, activePlane);
-      document.getElementById('hud-modal').textContent = seg.modalStr;
-      document.getElementById('hud-tool').textContent = `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia} (${toolObj.shape})`;
-      document.getElementById('hud-xyz').textContent = `${machineTip.x.toFixed(3)}, ${machineTip.y.toFixed(3)}, ${machineTip.z.toFixed(3)}`;
-      document.getElementById('hud-rot').textContent = `B${activeRot.b >= 0 ? '+' : ''}${activeRot.b.toFixed(2)}°  C${activeRot.c >= 0 ? '+' : ''}${activeRot.c.toFixed(2)}°`;
-      document.getElementById('hud-ijk').textContent = `${ijk.x.toFixed(3)}, ${ijk.y.toFixed(3)}, ${ijk.z.toFixed(3)}`;
-      document.getElementById('hud-feed').textContent = `${seg.feed.toFixed(1)}`;
-      document.getElementById('hud-feed-bar').style.width = `${Math.min(100, (seg.feed / Math.max(200, prof.rapidRate || 40000)) * 100)}%`;
-      document.getElementById('hud-rpm').textContent = `${seg.spindle} RPM (${seg.spindleDir})`;
-      document.getElementById('hud-rpm-bar').style.width = `${Math.min(100, (seg.spindle / Math.max(1000, prof.maxRpm || 20000)) * 100)}%`;
-
-      const sfm = ((Math.PI * (toolObj.dia || 0.375) * seg.spindle) / 12).toFixed(0);
-      const chip = (seg.spindle > 0 ? seg.feed / (seg.spindle * (toolObj.flutes || 4)) : 0).toFixed(4);
-      document.getElementById('hud-sfm').textContent = `${sfm} SFM | ${chip}`;
-    } else {
-      document.getElementById('hud-modal').textContent = 'IDLE / EMPTY PROGRAM';
-      document.getElementById('hud-xyz').textContent = '0.000, 0.000, 0.000';
-      document.getElementById('hud-rot').textContent = 'B+0.00°  C+0.00°';
-      document.getElementById('hud-ijk').textContent = '0.000, 0.000, 1.000';
+      if (doHud) {
+        const prof = getActiveProfile();
+        const toolObj = state.tools[seg.tool] || { dia: 0.375, flutes: 4, shape: 'ball' };
+        const ijk = getToolAxisWorkpieceVector(activeRot, activePlane);
+        hudSet('hud-modal', seg.modalStr);
+        hudSet('hud-tool', `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia} (${toolObj.shape})`);
+        hudSet('hud-xyz', `${machineTip.x.toFixed(3)}, ${machineTip.y.toFixed(3)}, ${machineTip.z.toFixed(3)}`);
+        hudSet('hud-rot', `B${activeRot.b >= 0 ? '+' : ''}${activeRot.b.toFixed(2)}°  C${activeRot.c >= 0 ? '+' : ''}${activeRot.c.toFixed(2)}°`);
+        hudSet('hud-ijk', `${ijk.x.toFixed(3)}, ${ijk.y.toFixed(3)}, ${ijk.z.toFixed(3)}`);
+        hudSet('hud-feed', `${seg.feed.toFixed(1)}`);
+        // Feed bar is relative to the fastest cutting feed in the program (rapids show full).
+        const feedRef = Math.max(1, state.stats.maxFeed || 1);
+        hudBar('hud-feed-bar', seg.type === 'G00' ? 100 : Math.min(100, (seg.feed / feedRef) * 100));
+        hudSet('hud-rpm', `${seg.spindle} RPM (${seg.spindleDir})`);
+        hudBar('hud-rpm-bar', Math.min(100, (seg.spindle / Math.max(1000, prof.maxRpm || 20000)) * 100));
+        const sfm = ((Math.PI * (toolObj.dia || 0.375) * seg.spindle) / 12).toFixed(0);
+        const chip = (seg.spindle > 0 ? seg.feed / (seg.spindle * (toolObj.flutes || 4)) : 0).toFixed(4);
+        hudSet('hud-sfm', `${sfm} SFM | ${chip}`);
+      }
+    } else if (doHud) {
+      hudSet('hud-modal', 'IDLE / EMPTY PROGRAM');
+      hudSet('hud-xyz', '0.000, 0.000, 0.000');
+      hudSet('hud-rot', 'B+0.00°  C+0.00°');
+      hudSet('hud-ijk', '0.000, 0.000, 1.000');
     }
 
-    document.getElementById('sim-time-label').textContent = `${formatTime(tNow)} / ${formatTime(state.stats.totalTimeSec)}`;
+    if (doHud) hudSet('sim-time-label', `${formatTime(tNow)} / ${formatTime(state.stats.totalTimeSec)}`);
     hideSimError();
   } catch (err) {
     showSimError(err);
@@ -3373,13 +3721,13 @@ function animationLoop(ts) {
       if (fpsEl) fpsEl.textContent = `${avgFps} FPS`;
     }
 
-    const playState = getActivePlaybackState();
-    if (playState.seg && playState.seg.spindleDir !== 'M05') {
-      const dir = playState.seg.spindleDir === 'M04' ? -1 : 1;
-      state.sim.spindleAngle += dir * dt * 18;
-    }
-
+    // Work only while playing: no idle redraws and no spindle spin while paused.
     if (state.sim.playing && state.stats.totalTimeSec > 0) {
+      const playState = getActivePlaybackState();
+      if (playState.seg && playState.seg.spindleDir !== 'M05') {
+        const dir = playState.seg.spindleDir === 'M04' ? -1 : 1;
+        state.sim.spindleAngle += dir * dt * 18;
+      }
       state.sim.currentTimeSec += dt * state.sim.speedMultiplier;
       if (state.sim.currentTimeSec >= state.stats.totalTimeSec) {
         state.sim.currentTimeSec = state.stats.totalTimeSec;
@@ -3388,8 +3736,6 @@ function animationLoop(ts) {
       }
       el.scrubber.value = Math.round((state.sim.currentTimeSec / state.stats.totalTimeSec) * 1000);
       rebuildStockUpToTime(state.sim.currentTimeSec, false);
-      drawBackplot();
-    } else if (playState.seg && playState.seg.spindleDir !== 'M05') {
       drawBackplot();
     }
   } catch (err) {
@@ -3402,13 +3748,44 @@ function animationLoop(ts) {
 /* ==========================================================================
    9. NC FUNCTIONS, FILE COMPARE, SETUP SHEET & WEB SERIAL DNC
    ========================================================================== */
-function applyTransformToActiveDoc(transformFn, msg) {
+// Applies a text transform through the textarea's own edit pipeline (execCommand insertText)
+// so Ctrl+Z / Ctrl+Y keep working. If the selection spans several lines, only those lines are transformed.
+function applyTransformToActiveDoc(transformFn, msg, opts = {}) {
   const doc = getActiveDoc();
-  doc.content = transformFn(doc.content);
+  const ta = el.textarea;
+  const full = doc.content;
+  const direct = state.editorMode === 'direct' && el.editorContainer.style.display !== 'none';
+  let start = 0, end = full.length, scoped = false;
+  if (direct && opts.allowSelection !== false) {
+    let a = ta.selectionStart, b = ta.selectionEnd;
+    if (b > a && full.slice(a, b).includes('\n')) {
+      a = a > 0 ? full.lastIndexOf('\n', a - 1) + 1 : 0;
+      const nl = full.indexOf('\n', b);
+      b = nl === -1 ? full.length : nl;
+      start = a; end = b; scoped = true;
+    }
+  }
+  const oldPart = full.slice(start, end);
+  const newPart = transformFn(oldPart);
+  if (newPart === oldPart) { showToast('No changes'); return; }
+  const expected = full.slice(0, start) + newPart + full.slice(end);
+  const scrollTop = ta.scrollTop;
+  let ok = false;
+  if (direct) {
+    ta.focus();
+    ta.setSelectionRange(start, end);
+    try { ok = document.execCommand('insertText', false, newPart); } catch (e) { ok = false; }
+    if (ok && ta.value !== expected) ok = false;
+  }
+  if (!ok) { ta.value = expected; }          // fallback: works, but not undoable
+  doc.content = expected;
   doc.dirty = true;
   renderDocTabs();
+  clearTimeout(parseTimer);
   parseAndBuildSimulation(doc.content, true);
-  showToast(msg);
+  ta.scrollTop = scrollTop;
+  syncEditorScroll();
+  showToast(msg + (scoped ? ' (selection)' : '') + (ok || !direct ? '' : ' — not undoable in this browser'));
 }
 
 function runCncFileCompare() {
@@ -3506,6 +3883,7 @@ function downloadSetupSheetHtml() {
    10. DOCUMENT TABS & EVENT WIRING
    ========================================================================== */
 function renderDocTabs() {
+  scheduleWorkspaceSave();
   el.docTabsBar.innerHTML = '';
   state.docs.forEach(doc => {
     const isHH = /\.h$/i.test(doc.name) || /\bBEGIN\s+PGM\b/i.test(doc.content);
@@ -3561,6 +3939,7 @@ function createBlankNewFile() {
 function switchDoc(docId) {
   state.activeDocId = docId;
   state.activeLine = 0;
+  state.execLine = -1;
   const doc = getActiveDoc();
   if (doc && doc.mode) {
     state.kinematicsMode = doc.mode;
@@ -3572,6 +3951,8 @@ function switchDoc(docId) {
 
 function closeDoc(docId) {
   if (state.docs.length <= 1) return;
+  const closing = state.docs.find(d => d.id === docId);
+  if (closing && closing.dirty && !confirm(`"${closing.name}" has unsaved changes (they will be removed from the autosaved workspace too). Close it anyway?`)) return;
   const idx = state.docs.findIndex(d => d.id === docId);
   state.docs.splice(idx, 1);
   if (state.activeDocId === docId) {
@@ -3654,15 +4035,16 @@ function wireEvents() {
   };
 
   // Live Code Editor Input & Scroll
-  let parseTimer = null;
   el.textarea.addEventListener('input', () => {
     const doc = getActiveDoc();
     doc.content = el.textarea.value;
+    const wasDirty = !!doc.dirty;
     doc.dirty = true;
-    renderDocTabs();
+    if (!wasDirty) renderDocTabs();   // tab bar only changes on the clean -> dirty transition
     renderEditorView();
+    scheduleWorkspaceSave();
     clearTimeout(parseTimer);
-    parseTimer = setTimeout(() => parseAndBuildSimulation(doc.content, false), 220);
+    parseTimer = setTimeout(() => parseAndBuildSimulation(doc.content, false), Math.min(2000, Math.max(220, (state._lastParseMs || 0) * 1.5)));
   });
   el.textarea.addEventListener('scroll', syncEditorScroll);
   el.textarea.addEventListener('click', updateCursorLineFromTextarea);
@@ -3732,7 +4114,7 @@ function wireEvents() {
     const q = document.getElementById('find-input').value;
     const r = document.getElementById('replace-input').value;
     if (!q) return;
-    applyTransformToActiveDoc(txt => txt.split(q).join(r), `Replaced all occurrences of "${q}"`);
+    applyTransformToActiveDoc(txt => txt.split(q).join(r), `Replaced all occurrences of "${q}"`, { allowSelection: false });
   };
 
   window.addEventListener('keydown', (e) => {
@@ -3855,34 +4237,43 @@ function wireEvents() {
     const dz = parseFloat(document.getElementById('tr-dz').value) || 0;
     const sc = parseFloat(document.getElementById('tr-scale').value) || 1.0;
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
-    applyTransformToActiveDoc(txt => txt.replace(/\b([XYZIJ])([+-]?\d*\.?\d+)\b/gi, (_, ax, num) => {
+    applyTransformToActiveDoc(txt => mapCodeOnly(txt, code => code.replace(/\b([XYZIJ])([+-]?\d*\.?\d+)\b/gi, (_, ax, num) => {
       let v = parseFloat(num) * sc;
       const u = ax.toUpperCase();
       if (u === 'X') v += dx;
       if (u === 'Y') v += dy;
       if (u === 'Z') v += dz;
       return `${ax}${v.toFixed(4)}`;
-    }), 'Applied Shift / Scale transform');
+    })), 'Applied Shift / Scale transform');
   };
 
   const mirrorAxis = (axisChar) => {
-    applyTransformToActiveDoc(txt => txt.split('\n').map(line => {
-      let out = line.replace(new RegExp(`\\b(${axisChar})([+-]?\\d*\\.?\\d+)\\b`, 'gi'), (_, a, n) => `${a}${(-parseFloat(n)).toFixed(4)}`);
+    applyTransformToActiveDoc(txt => mapCodeOnly(txt, code => {
+      let out = code.replace(new RegExp(`\\b(${axisChar})([+-]?\\d*\\.?\\d+)\\b`, 'gi'), (_, a, n) => `${a}${(-parseFloat(n)).toFixed(4)}`);
       if (axisChar === 'X') out = out.replace(/\bI([+-]?\d*\.?\d+)\b/gi, (_, n) => `I${(-parseFloat(n)).toFixed(4)}`);
       if (axisChar === 'Y') out = out.replace(/\bJ([+-]?\d*\.?\d+)\b/gi, (_, n) => `J${(-parseFloat(n)).toFixed(4)}`);
       out = out.replace(/\bG0?2\b/gi, '__G03__').replace(/\bG0?3\b/gi, 'G02').replace(/__G03__/g, 'G03');
       return out;
-    }).join('\n'), `Mirrored ${axisChar}-axis & inverted G02/G03 arcs`);
+    }), `Mirrored ${axisChar}-axis & inverted G02/G03 arcs`);
   };
   document.getElementById('btn-mirror-x').onclick = () => mirrorAxis('X');
   document.getElementById('btn-mirror-y').onclick = () => mirrorAxis('Y');
 
-  document.getElementById('btn-to-metric').onclick = () => {
-    applyTransformToActiveDoc(txt => txt.replace(/\bG20\b/gi, 'G21').replace(/\b([XYZIJRF])([+-]?\d*\.?\d+)\b/gi, (_, a, n) => `${a}${(parseFloat(n) * 25.4).toFixed(3)}`), 'Converted Inch → Metric (G21)');
+  // Unit conversion touches code only (never comments), leaves zero values such as R0 untouched,
+  // and flips the Heidenhain BEGIN/END PGM unit tag.
+  const convertUnits = (toMetric) => {
+    const f = toMetric ? 25.4 : 1 / 25.4;
+    const dec = toMetric ? 3 : 4;
+    applyTransformToActiveDoc(txt => {
+      let out = mapCodeOnly(txt, code => code
+        .replace(toMetric ? /\bG20\b/gi : /\bG21\b/gi, toMetric ? 'G21' : 'G20')
+        .replace(/\b([XYZIJRF])([+-]?\d*\.?\d+)\b/gi, (m, a, n) => parseFloat(n) === 0 ? m : `${a}${(parseFloat(n) * f).toFixed(dec)}`));
+      out = out.replace(/^(\s*\d*\s*(?:BEGIN|END)\s+PGM\s+\S+\s+)(INCH|MM)\b/gim, (m, pre) => pre + (toMetric ? 'MM' : 'INCH'));
+      return out;
+    }, toMetric ? 'Converted Inch → Metric (G21)' : 'Converted Metric → Inch (G20)');
   };
-  document.getElementById('btn-to-inch').onclick = () => {
-    applyTransformToActiveDoc(txt => txt.replace(/\bG21\b/gi, 'G20').replace(/\b([XYZIJRF])([+-]?\d*\.?\d+)\b/gi, (_, a, n) => `${a}${(parseFloat(n) / 25.4).toFixed(4)}`), 'Converted Metric → Inch (G20)');
-  };
+  document.getElementById('btn-to-metric').onclick = () => convertUnits(true);
+  document.getElementById('btn-to-inch').onclick = () => convertUnits(false);
 
   // Setup Sheet
   document.getElementById('btn-setup-sheet').onclick = openSetupSheetModal;
@@ -3984,6 +4375,17 @@ function wireEvents() {
     e.currentTarget.classList.toggle('active', state.cam.showRapids);
     drawBackplot();
   };
+  document.getElementById('btn-toggle-holder-check').onclick = (e) => {
+    state.holderCheck = !state.holderCheck;
+    e.currentTarget.classList.toggle('active', state.holderCheck);
+    parseAndBuildSimulation(getActiveDoc().content, false);
+    showToast(`Holder check ${state.holderCheck ? 'ON' : 'OFF'}`);
+  };
+  document.getElementById('btn-reset-workspace').onclick = () => {
+    if (!confirm('Discard the autosaved workspace (all open programs and tool edits) and reload the sample programs?')) return;
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    location.reload();
+  };
   document.getElementById('btn-toggle-coolant').onclick = (e) => {
     state.cam.showCoolant = !state.cam.showCoolant;
     e.currentTarget.classList.toggle('active', state.cam.showCoolant);
@@ -4043,6 +4445,7 @@ function wireEvents() {
     e.currentTarget.textContent = state.sim.playing ? '⏸ Pause' : '▶ Play';
   };
   document.getElementById('btn-sim-stop').onclick = () => {
+    state.sim.scrollNext = true;
     state.sim.playing = false;
     document.getElementById('btn-sim-play').textContent = '▶ Play';
     state.sim.currentTimeSec = 0;
@@ -4055,6 +4458,7 @@ function wireEvents() {
     document.getElementById('btn-sim-play').textContent = '▶ Play';
     const nextSeg = state.segments.find(s => s.endTimeSec > state.sim.currentTimeSec + 0.001);
     if (nextSeg) {
+      state.sim.scrollNext = true;
       state.sim.currentTimeSec = nextSeg.endTimeSec;
       el.scrubber.value = Math.round((state.sim.currentTimeSec / Math.max(0.01, state.stats.totalTimeSec)) * 1000);
       rebuildStockUpToTime(state.sim.currentTimeSec, false);
@@ -4064,6 +4468,7 @@ function wireEvents() {
   el.scrubber.oninput = () => {
     state.sim.playing = false;
     document.getElementById('btn-sim-play').textContent = '▶ Play';
+    state.sim.scrollNext = true;
     state.sim.currentTimeSec = (parseInt(el.scrubber.value, 10) / 1000) * state.stats.totalTimeSec;
     rebuildStockUpToTime(state.sim.currentTimeSec, false);
     drawBackplot();
@@ -4087,7 +4492,9 @@ function wireEvents() {
     try {
       const port = await navigator.serial.requestPort();
       const baudRate = parseInt(document.getElementById('dnc-baud').value, 10) || 115200;
-      await port.open({ baudRate });
+      const parity = document.getElementById('dnc-parity').value;
+      const flowControl = document.getElementById('dnc-flow').value === 'hardware' ? 'hardware' : 'none';
+      await port.open({ baudRate, dataBits: 8, stopBits: 1, parity, flowControl });
       state.dnc.port = port;
       document.getElementById('dnc-port-status').textContent = `Port: Connected @ ${baudRate} Baud`;
       document.getElementById('dnc-port-status').style.color = 'var(--accent-green)';
@@ -4107,17 +4514,27 @@ function wireEvents() {
     const writer = state.dnc.port.writable.getWriter();
     const enc = new TextEncoder();
     for (const line of doc.content.split('\n')) {
-      await writer.write(enc.encode(line + '\r\n'));
+      await writer.write(enc.encode(line.replace(/\r$/, '') + '\r\n'));
     }
     writer.releaseLock();
     logDNC(`Completed transmitting ${doc.name}.`);
   };
 
   document.getElementById('btn-dnc-loopback').onclick = () => {
+    // Software-only self-test: encode the file exactly as Drip-Feed would send it, decode it, compare block by block.
     const doc = getActiveDoc();
-    const lines = doc.content.split('\n');
-    logDNC(`LOOPBACK START: Verifying ${lines.length} blocks of ${doc.name}...`);
-    logDNC(`LOOPBACK OK: 100% checksum match (${doc.content.length} bytes).`);
+    const lines = doc.content.split('\n').map(l => l.replace(/\r$/, ''));
+    logDNC(`SELF-TEST START: ${lines.length} blocks of ${doc.name} (software only, no serial hardware involved).`);
+    const tx = new TextEncoder().encode(lines.map(l => l + '\r\n').join(''));
+    const rx = new TextDecoder().decode(tx).split('\r\n');
+    rx.pop();
+    let bad = 0, firstBad = -1;
+    if (rx.length !== lines.length) { bad = Math.abs(rx.length - lines.length); firstBad = 0; }
+    for (let i = 0; i < lines.length; i++) {
+      if (rx[i] !== lines[i]) { bad++; if (firstBad < 0) firstBad = i; }
+    }
+    if (bad === 0) logDNC(`SELF-TEST OK: ${lines.length} blocks, ${tx.length} bytes, CRC-32 ${crc32(tx)}.`);
+    else logDNC(`SELF-TEST FAILED: ${bad} block(s) differ, first at Ln ${firstBad + 1}.`);
   };
 
   // Profile Modal
@@ -4158,9 +4575,11 @@ function wireEvents() {
 window.onload = function () {
   loadProfiles();
   wireEvents();
+  const restored = loadWorkspace();
   document.getElementById('btn-sim-play').textContent = '⏸ Pause';
-  switchDoc('doc-5ax-sphere-bar');
+  switchDoc(state.activeDocId);
   logDNC('NC Preview — 5-Axis Table-Table (B/C) & Solid Material Engine ready.');
+  if (restored) showToast('Restored your last session');
   requestAnimationFrame(animationLoop);
 };
 </script>
