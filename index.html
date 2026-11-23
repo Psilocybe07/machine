@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CNC Edit Pro v2 — Portable NC Editor, 3D Stock Sim &amp; DNC Suite</title>
+<title>CNC Edit Pro v3 — Portable NC Editor, 3D Solid Simulator &amp; DNC Suite</title>
 <style>
 /* ==========================================================================
-   1. DESIGN TOKENS & INDUSTRIAL CAD/CAM THEME
+   1. DESIGN TOKENS & CIMCO-INSPIRED DARK/LIGHT INDUSTRIAL CAM THEME
    ========================================================================== */
 :root {
-  --bg-app: #12151a;
-  --bg-ribbon: #1a1e24;
-  --bg-ribbon-group: #21262e;
-  --bg-panel: #161a20;
-  --bg-editor: #0e1116;
-  --bg-gutter: #14181f;
-  --bg-input: #0b0d11;
-  --bg-hover: #2a313c;
+  --bg-app: #111419;
+  --bg-ribbon: #181c23;
+  --bg-ribbon-group: #1f242d;
+  --bg-panel: #151920;
+  --bg-editor: #0d1015;
+  --bg-gutter: #13171e;
+  --bg-input: #0a0c10;
+  --bg-hover: #28303c;
   --bg-active: #1d4ed8;
-  --border-color: #2b323b;
-  --border-strong: #3d4654;
+  --border-color: #2a313c;
+  --border-strong: #3c4554;
   --text-primary: #e6edf3;
   --text-secondary: #8b949e;
   --text-muted: #656d76;
@@ -93,7 +93,6 @@ html, body {
   width: 100%; height: 100%; overflow: hidden;
   font-family: var(--font-ui); font-size: 12px;
   background: var(--bg-app); color: var(--text-primary);
-  user-select: none;
 }
 
 /* ==========================================================================
@@ -104,7 +103,7 @@ html, body {
 #ribbon-header {
   display: flex; align-items: center; justify-content: space-between;
   background: var(--bg-app); border-bottom: 1px solid var(--border-color);
-  padding: 0 10px; height: 32px; flex-shrink: 0;
+  padding: 0 10px; height: 32px; flex-shrink: 0; user-select: none;
 }
 .brand-badge { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 12px; }
 .brand-pill {
@@ -136,7 +135,7 @@ select.compact-select:focus, input.compact-input:focus {
 #ribbon-body {
   display: flex; align-items: stretch; gap: 6px;
   background: var(--bg-ribbon); border-bottom: 1px solid var(--border-color);
-  padding: 5px 10px; height: 74px; flex-shrink: 0; overflow-x: auto;
+  padding: 5px 10px; height: 74px; flex-shrink: 0; overflow-x: auto; user-select: none;
 }
 .ribbon-pane { display: none; align-items: stretch; gap: 6px; width: 100%; }
 .ribbon-pane.active { display: flex; }
@@ -158,7 +157,6 @@ select.compact-select:focus, input.compact-input:focus {
 }
 .r-btn:hover { background: var(--bg-hover); border-color: var(--border-color); }
 .r-btn.active { background: var(--bg-active); border-color: var(--accent-blue); color: #fff; }
-.r-btn.danger-btn { border-color: rgba(248, 81, 73, 0.4); color: #ff7b72; }
 .r-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 .r-btn-col { display: flex; flex-direction: column; gap: 2px; }
 .r-btn-sm {
@@ -168,7 +166,6 @@ select.compact-select:focus, input.compact-input:focus {
 }
 .r-btn-sm:hover { background: var(--bg-hover); border-color: var(--border-color); }
 .r-btn-sm.active { background: var(--bg-active); border-color: var(--accent-blue); color: #fff; }
-.r-btn-sm svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
 /* ==========================================================================
    3. DOCUMENT TABS BAR
@@ -176,7 +173,7 @@ select.compact-select:focus, input.compact-input:focus {
 #doc-tabs-bar {
   display: flex; align-items: center; gap: 2px;
   background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
-  padding: 3px 8px 0 8px; height: 28px; flex-shrink: 0; overflow-x: auto;
+  padding: 3px 8px 0 8px; height: 28px; flex-shrink: 0; overflow-x: auto; user-select: none;
 }
 .doc-tab {
   display: flex; align-items: center; gap: 6px; padding: 4px 10px; height: 24px;
@@ -188,6 +185,7 @@ select.compact-select:focus, input.compact-input:focus {
   background: var(--bg-editor); color: var(--text-primary); font-weight: 600;
   border-top: 2px solid var(--accent-blue);
 }
+.doc-tab .dirty-dot { color: var(--accent-orange); font-weight: bold; }
 .doc-tab .close-tab {
   font-size: 13px; line-height: 1; padding: 0 3px; border-radius: 3px; color: var(--text-muted);
 }
@@ -199,7 +197,7 @@ select.compact-select:focus, input.compact-input:focus {
 .doc-tab-add:hover { background: var(--bg-hover); color: var(--text-primary); border-radius: 4px; }
 
 /* ==========================================================================
-   4. MAIN WORKSPACE & VIRTUALIZED G-CODE EDITOR
+   4. MAIN WORKSPACE & HYBRID EDITABLE CODE EDITOR
    ========================================================================== */
 #workspace {
   display: flex; flex: 1; min-height: 0; width: 100%; overflow: hidden; position: relative;
@@ -207,9 +205,9 @@ select.compact-select:focus, input.compact-input:focus {
 
 /* Left Side Panel: NC-Assistant + Tool Table + Collision Log */
 #left-dock {
-  width: 255px; flex-shrink: 0;
+  width: 250px; flex-shrink: 0;
   background: var(--bg-panel); border-right: 1px solid var(--border-color);
-  display: flex; flex-direction: column; overflow: hidden;
+  display: flex; flex-direction: column; overflow: hidden; user-select: none;
 }
 #left-dock.collapsed { display: none; }
 .dock-tabs {
@@ -249,50 +247,102 @@ select.compact-select:focus, input.compact-input:focus {
   padding: 6px 8px; cursor: pointer; font-size: 11px;
 }
 .alarm-item:hover { background: rgba(248, 81, 73, 0.22); }
-.alarm-item.warn {
-  background: rgba(210, 153, 34, 0.12); border-color: rgba(210, 153, 34, 0.45);
-  border-left-color: var(--accent-orange);
-}
 
-/* Virtualized Editor Viewport (Handles 50,000+ lines at 60fps) */
+/* Center Editor Pane */
 #editor-pane {
-  flex: 1; min-width: 240px; display: flex; flex-direction: column;
+  flex: 1; min-width: 250px; display: flex; flex-direction: column;
   background: var(--bg-editor); position: relative; overflow: hidden;
 }
-#veditor-viewport {
-  flex: 1; position: relative; overflow-y: auto; overflow-x: auto;
+
+/* Find & Replace Floating Bar */
+#find-bar {
+  display: none; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 5px 10px; background: var(--bg-ribbon);
+  border-bottom: 1px solid var(--border-color); z-index: 15;
+}
+#find-bar.open { display: flex; }
+
+/* Mode 1: Direct Full-Text Editable Syntax Editor (<= 15,000 lines) */
+#direct-editor-container {
+  display: flex; flex: 1; position: relative; overflow: hidden;
+}
+#line-gutter {
+  width: 54px; flex-shrink: 0;
+  background: var(--bg-gutter); border-right: 1px solid var(--border-color);
+  color: var(--text-muted); font-family: var(--font-mono); font-size: 13px;
+  line-height: 20px; padding: 8px 6px 8px 0; text-align: right;
+  overflow: hidden; user-select: none;
+}
+.gutter-line { height: 20px; padding-right: 2px; }
+.gutter-line.active-line {
+  color: var(--accent-blue); font-weight: 700;
+  background: rgba(47, 129, 247, 0.14);
+}
+.gutter-line.collision-line {
+  color: #fff; background: rgba(248, 81, 73, 0.65); font-weight: 700;
+}
+#code-stage {
+  position: relative; flex: 1; overflow: hidden;
+}
+#syntax-backdrop, #gcode-textarea {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  margin: 0; padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 13px; line-height: 20px;
+  letter-spacing: 0px; tab-size: 4;
+  white-space: pre; overflow: auto;
+  border: none; outline: none; resize: none;
+  font-variant-ligatures: none;
+}
+#syntax-backdrop {
+  pointer-events: none; z-index: 1;
+  color: var(--text-primary); background: var(--bg-editor);
+}
+#gcode-textarea {
+  z-index: 2; background: transparent;
+  color: transparent; caret-color: var(--text-primary);
+  -webkit-text-fill-color: transparent;
+}
+#gcode-textarea::selection {
+  background: rgba(47, 129, 247, 0.38);
+}
+.active-line-highlight {
+  display: inline-block; min-width: 100%;
+  background: rgba(47, 129, 247, 0.11);
+}
+.collision-line-highlight {
+  display: inline-block; min-width: 100%;
+  background: rgba(248, 81, 73, 0.18);
+}
+
+/* Mode 2: Virtualized Large-File Editor (> 15,000 lines, e.g. 50k stress test) */
+#virtual-editor-container {
+  display: none; flex: 1; position: relative; overflow-y: auto; overflow-x: auto;
   font-family: var(--font-mono); font-size: 13px; line-height: 20px;
   background: var(--bg-editor);
 }
-#veditor-spacer {
-  position: relative; width: 100%; min-width: max-content;
+#veditor-banner {
+  position: sticky; top: 0; z-index: 12;
+  background: rgba(47, 129, 247, 0.18); border-bottom: 1px solid var(--accent-blue);
+  color: var(--text-primary); padding: 3px 10px; font-family: var(--font-ui); font-size: 11px;
+  display: flex; justify-content: space-between; align-items: center;
 }
-#veditor-lines-layer {
-  position: sticky; top: 0; left: 0; width: 100%;
-  pointer-events: auto;
-}
-.vline-row {
-  display: flex; align-items: center; height: 20px; width: 100%;
-  cursor: text;
-}
-.vline-row:hover { background: rgba(255, 255, 255, 0.03); }
+#veditor-spacer { position: relative; width: 100%; min-width: max-content; }
+#veditor-lines-layer { position: sticky; top: 24px; left: 0; width: 100%; }
+.vline-row { display: flex; align-items: center; height: 20px; width: 100%; cursor: text; }
+.vline-row:hover { background: rgba(255,255,255,0.03); }
 .vline-row.active { background: rgba(47, 129, 247, 0.16); }
-.vline-row.collision-line { background: rgba(248, 81, 73, 0.22); }
 .vline-num {
-  width: 56px; flex-shrink: 0; padding-right: 8px; text-align: right;
+  width: 54px; flex-shrink: 0; padding-right: 8px; text-align: right;
   background: var(--bg-gutter); border-right: 1px solid var(--border-color);
   color: var(--text-muted); user-select: none; font-size: 12px;
 }
-.vline-row.active .vline-num { color: var(--accent-blue); font-weight: 700; }
-.vline-code {
-  flex: 1; padding: 0 12px; white-space: pre; color: var(--text-primary);
-}
-#inline-line-editor {
-  position: absolute; left: 56px; right: 0; height: 20px;
+.vline-code { flex: 1; padding: 0 12px; white-space: pre; }
+#virtual-inline-input {
+  position: absolute; left: 54px; right: 0; height: 20px;
   background: var(--bg-input); color: var(--text-primary);
   border: 1px solid var(--accent-blue); outline: none;
   font-family: var(--font-mono); font-size: 13px; padding: 0 11px;
-  display: none; z-index: 10;
+  display: none; z-index: 20;
 }
 
 /* Syntax Token Classes */
@@ -310,12 +360,13 @@ select.compact-select:focus, input.compact-input:focus {
 .tok-macro { color: var(--tok-macro); }
 
 /* ==========================================================================
-   5. RIGHT PANE: 3D BACKPLOTTER, STOCK REMOVAL & KINEMATIC ANIMATION
+   5. RIGHT PANE: TRUE 3D SOLID WORKPIECE & VOLUMETRIC TOOL VIEWPORT
    ========================================================================== */
 #backplot-pane {
-  width: 52%; min-width: 320px; flex-shrink: 0;
+  width: 53%; min-width: 320px; flex-shrink: 0;
   display: flex; flex-direction: column;
-  background: #0b0e13; border-left: 1px solid var(--border-color); position: relative;
+  background: #0b0e14; border-left: 1px solid var(--border-color);
+  position: relative; user-select: none;
 }
 #backplot-pane.hidden { display: none; }
 #viewport-toolbar {
@@ -336,13 +387,13 @@ select.compact-select:focus, input.compact-input:focus {
 #canvas-container:active { cursor: grabbing; }
 #backplot-canvas { display: block; width: 100%; height: 100%; }
 
-/* Telemetry & Kinematic Speed/Feed Gauges HUD */
+/* Telemetry & Kinematic Feeds/Speeds HUD */
 #hud-telemetry {
   position: absolute; top: 8px; left: 8px;
-  background: rgba(13, 17, 23, 0.88); backdrop-filter: blur(5px);
+  background: rgba(13, 17, 23, 0.86); backdrop-filter: blur(5px);
   border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-md);
   padding: 7px 9px; color: #e6edf3; font-family: var(--font-mono); font-size: 11px;
-  pointer-events: none; min-width: 225px;
+  pointer-events: none; min-width: 222px;
 }
 .hud-row { display: flex; justify-content: space-between; gap: 10px; line-height: 1.45; }
 .hud-label { color: #8b949e; }
@@ -355,7 +406,7 @@ select.compact-select:focus, input.compact-input:focus {
 
 #hud-legend {
   position: absolute; top: 8px; right: 8px;
-  background: rgba(13, 17, 23, 0.85); border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(13, 17, 23, 0.84); border: 1px solid rgba(255,255,255,0.14);
   border-radius: var(--radius-sm); padding: 6px 8px;
   color: #c9d1d9; font-size: 10px; pointer-events: none;
   display: flex; flex-direction: column; gap: 3px;
@@ -396,14 +447,8 @@ select.compact-select:focus, input.compact-input:focus {
 .diff-row.added { background: rgba(46, 160, 67, 0.22); }
 .diff-row.removed { background: rgba(248, 81, 73, 0.22); }
 .diff-row.modified { background: rgba(210, 153, 34, 0.24); }
-.diff-row.focused { outline: 2px solid var(--accent-blue); outline-offset: -2px; }
 .diff-ln { width: 38px; color: var(--text-muted); user-select: none; flex-shrink: 0; }
-.diff-text { flex: 1; white-space: pre; overflow-x: auto; user-select: text; }
-.merge-btn {
-  padding: 0 5px; font-size: 10px; background: var(--bg-ribbon-group);
-  border: 1px solid var(--border-color); border-radius: 3px; color: var(--text-primary); cursor: pointer;
-}
-.merge-btn:hover { background: var(--accent-blue); color: #fff; }
+.diff-text { flex: 1; white-space: pre; overflow-x: auto; }
 
 #dnc-panel {
   width: 330px; flex-shrink: 0; display: none; flex-direction: column;
@@ -416,7 +461,7 @@ select.compact-select:focus, input.compact-input:focus {
 .dnc-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border-bottom: 1px solid var(--border-color); }
 .progress-track { width: 100%; height: 8px; background: var(--bg-input); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color); }
 .progress-fill { height: 100%; width: 0%; background: var(--accent-green); transition: width 0.15s; }
-#dnc-terminal { flex: 1; background: #0a0c10; color: #58a6ff; font-family: var(--font-mono); font-size: 11px; padding: 8px; overflow-y: auto; white-space: pre-wrap; user-select: text; }
+#dnc-terminal { flex: 1; background: #0a0c10; color: #58a6ff; font-family: var(--font-mono); font-size: 11px; padding: 8px; overflow-y: auto; white-space: pre-wrap; }
 
 /* ==========================================================================
    7. BUTTONS, MODALS & STATUS BAR
@@ -450,7 +495,7 @@ select.compact-select:focus, input.compact-input:focus {
 #status-bar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 12px; height: 24px; flex-shrink: 0;
-  background: var(--accent-blue); color: #ffffff; font-size: 11px; font-weight: 500;
+  background: var(--accent-blue); color: #ffffff; font-size: 11px; font-weight: 500; user-select: none;
 }
 .status-group { display: flex; align-items: center; gap: 14px; }
 
@@ -475,22 +520,22 @@ select.compact-select:focus, input.compact-input:focus {
   <header id="ribbon-header">
     <div style="display:flex; align-items:center; height:100%;">
       <div class="brand-badge">
-        <span class="brand-pill">CNC v2</span>
-        <span>EDIT PRO</span>
+        <span class="brand-pill">CNC v3</span>
+        <span>EDIT PRO 3D</span>
       </div>
       <nav class="ribbon-tabs" id="ribbon-tabs">
         <button class="ribbon-tab active" data-tab="tab-editor">Editor</button>
         <button class="ribbon-tab" data-tab="tab-nc">NC Functions</button>
-        <button class="ribbon-tab" data-tab="tab-backplot">Simulation &amp; Stock</button>
+        <button class="ribbon-tab" data-tab="tab-backplot">3D Solid Simulation</button>
         <button class="ribbon-tab" data-tab="tab-compare">File Compare</button>
         <button class="ribbon-tab" data-tab="tab-dnc">Transmission (DNC)</button>
       </nav>
     </div>
     <div class="header-controls">
       <label style="color:var(--text-secondary); font-size:11px;">Kinematics:</label>
-      <select id="kinematics-mode-select" class="compact-select" title="Switch Mill vs Lathe Kinematics">
-        <option value="mill">3-Axis Mill (XYZ)</option>
-        <option value="lathe">2-Axis Lathe (XZ Dia)</option>
+      <select id="kinematics-mode-select" class="compact-select" title="Switch Mill vs Lathe 3D Kinematics">
+        <option value="mill">3-Axis Mill (XYZ Solid)</option>
+        <option value="lathe">2-Axis Lathe (XZ Chuck)</option>
       </select>
       <select id="machine-profile-select" class="compact-select" title="Active Machine Configuration Profile"></select>
       <button class="vp-btn" id="btn-open-profile-modal" title="Configure Machine & Soft Limits">⚙</button>
@@ -526,6 +571,10 @@ select.compact-select:focus, input.compact-input:focus {
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
+          <button class="r-btn" id="btn-toggle-find" title="Ctrl+F Find & Replace">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>Find / Repl</span>
+          </button>
           <div class="r-btn-col">
             <button class="r-btn-sm" id="btn-insert-spaces"><span>Insert Spaces</span></button>
             <button class="r-btn-sm" id="btn-remove-spaces"><span>Remove Spaces</span></button>
@@ -535,14 +584,14 @@ select.compact-select:focus, input.compact-input:focus {
             <button class="r-btn-sm" id="btn-strip-comments"><span>Strip Comments</span></button>
           </div>
         </div>
-        <div class="ribbon-group-title">Formatting</div>
+        <div class="ribbon-group-title">Edit &amp; Formatting</div>
       </div>
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
           <button class="r-btn active" id="btn-toggle-assistant"><span>Inspector Dock</span></button>
-          <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D Stock Sim</span></button>
-          <button class="r-btn" id="btn-stress-test-50k" title="Generate a 50,000-line 3D surfacing file to benchmark virtualized scrolling"><span>⚡ 50k Stress Test</span></button>
+          <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D Solid View</span></button>
+          <button class="r-btn" id="btn-stress-test-50k" title="Generate 50,000-line 3D surfacing file"><span>⚡ 50k Stress Test</span></button>
         </div>
         <div class="ribbon-group-title">Workspace &amp; Benchmark</div>
       </div>
@@ -583,34 +632,36 @@ select.compact-select:focus, input.compact-input:focus {
       </div>
     </div>
 
-    <!-- TAB 3: SIMULATION & STOCK -->
+    <!-- TAB 3: 3D SOLID SIMULATION -->
     <div class="ribbon-pane" id="tab-backplot">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-open-stock-modal"><span>📦 Stock Setup</span></button>
-          <button class="r-btn active" id="btn-toggle-stock-removal"><span>2.5D Stock Cut</span></button>
+          <button class="r-btn" id="btn-open-stock-modal"><span>📦 Stock Size</span></button>
+          <button class="r-btn active" id="btn-cycle-stock-render" title="Cycle Solid Shaded / Translucent / Wireframe Stock"><span>🧊 Solid Stock</span></button>
           <button class="r-btn" id="btn-reset-stock"><span>Reset Stock</span></button>
         </div>
-        <div class="ribbon-group-title">Material Removal</div>
+        <div class="ribbon-group-title">3D Solid Workpiece</div>
       </div>
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn active" id="btn-toggle-cutter-comp"><span>G41/G42 Offset</span></button>
+          <button class="r-btn active" id="btn-toggle-3d-tool"><span>3D Endmill</span></button>
+          <button class="r-btn active" id="btn-toggle-cutter-comp"><span>G41/G42 Path</span></button>
           <button class="r-btn active" id="btn-toggle-rapids"><span>Show Rapids</span></button>
           <button class="r-btn active" id="btn-toggle-coolant"><span>Coolant FX</span></button>
         </div>
-        <div class="ribbon-group-title">Tooling &amp; Compensation</div>
+        <div class="ribbon-group-title">3D Tooling &amp; Overlays</div>
       </div>
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn" data-view="iso"><span>Isometric</span></button>
+          <button class="r-btn active" data-view="iso"><span>ISO 3D</span></button>
           <button class="r-btn" data-view="top"><span>Top (XY)</span></button>
           <button class="r-btn" data-view="front"><span>Front (XZ)</span></button>
-          <button class="r-btn" id="btn-fit-view"><span>Fit View</span></button>
+          <button class="r-btn" data-view="side"><span>Side (YZ)</span></button>
+          <button class="r-btn" id="btn-fit-view"><span>Fit Stock</span></button>
         </div>
-        <div class="ribbon-group-title">Camera Presets</div>
+        <div class="ribbon-group-title">3D Camera Views</div>
       </div>
     </div>
 
@@ -656,19 +707,19 @@ select.compact-select:focus, input.compact-input:focus {
     <aside id="left-dock">
       <div class="dock-tabs">
         <button class="dock-tab active" data-dock="dock-assist">NC-ASSIST</button>
-        <button class="dock-tab" data-dock="dock-tools">TOOLS</button>
+        <button class="dock-tab" data-dock="dock-tools">TOOLS (3D)</button>
         <button class="dock-tab" data-dock="dock-alarms" id="tab-btn-alarms">ALARMS (0)</button>
       </div>
 
       <!-- Dock 1: NC-Assistant -->
       <div class="dock-pane active" id="dock-assist">
         <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-secondary);">
-          <span>BLOCK INSPECTOR (Double-click line to edit)</span>
+          <span>BLOCK INSPECTOR</span>
           <span id="assist-line-badge" style="color:var(--accent-blue); font-weight:700;">Ln 1</span>
         </div>
         <div class="assist-badge">
           <div class="code-title" id="assist-code-title">Ready</div>
-          <div class="code-desc" id="assist-code-desc">Click any line in the editor to inspect and live-edit NC words.</div>
+          <div class="code-desc" id="assist-code-desc">Type directly in the editor or edit NC words below.</div>
         </div>
         <div class="word-grid" id="assist-word-grid"></div>
         <div style="margin-top:auto; border-top:1px solid var(--border-color); padding-top:8px;">
@@ -679,44 +730,69 @@ select.compact-select:focus, input.compact-input:focus {
         </div>
       </div>
 
-      <!-- Dock 2: Tool & Offset Table -->
+      <!-- Dock 2: 3D Tool & Cutter Geometry Library -->
       <div class="dock-pane" id="dock-tools">
-        <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">ACTIVE TOOL LIBRARY &amp; OFFSETS</div>
+        <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">3D CUTTING TOOL GEOMETRY</div>
         <div id="tool-list-container" style="display:flex; flex-direction:column; gap:6px;"></div>
       </div>
 
       <!-- Dock 3: Collision & Gouge Alarm Log -->
       <div class="dock-pane" id="dock-alarms">
-        <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">COLLISION &amp; GOUGE VERIFICATION</div>
+        <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">3D SOLID GOUGE &amp; COLLISION LOG</div>
         <div id="alarm-list-container" style="display:flex; flex-direction:column; gap:6px;">
           <div style="color:var(--accent-green); font-size:11px;">✓ No collisions or gouges detected.</div>
         </div>
       </div>
     </aside>
 
-    <!-- CENTER: VIRTUALIZED G-CODE EDITOR -->
+    <!-- CENTER: HYBRID EDITABLE CODE EDITOR -->
     <section id="editor-pane">
-      <div id="veditor-viewport" tabindex="0">
+      <!-- Ctrl+F Find & Replace Bar -->
+      <div id="find-bar">
+        <input type="text" id="find-input" class="compact-input" placeholder="Find NC text (e.g. F1800)..." style="width:140px;">
+        <input type="text" id="replace-input" class="compact-input" placeholder="Replace with..." style="width:130px;">
+        <button class="vp-btn" id="btn-find-next">Find Next</button>
+        <button class="vp-btn" id="btn-replace-one">Replace</button>
+        <button class="btn-primary" id="btn-replace-all">Replace All</button>
+        <button class="vp-btn" id="btn-close-find">✕</button>
+      </div>
+
+      <!-- Mode 1: Direct Full-Text Syntax-Highlighted Editable Code Stage (<= 15,000 lines) -->
+      <div id="direct-editor-container">
+        <div id="line-gutter"></div>
+        <div id="code-stage">
+          <pre id="syntax-backdrop" aria-hidden="true"></pre>
+          <textarea id="gcode-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+        </div>
+      </div>
+
+      <!-- Mode 2: Virtualized Large-File Editor (> 15,000 lines, e.g., 50k Stress Test) -->
+      <div id="virtual-editor-container" tabindex="0">
+        <div id="veditor-banner">
+          <span>⚡ Virtualized Large-File Mode Active — Click any line to edit inline</span>
+          <button class="vp-btn" id="btn-force-full-edit">Switch to Full Textarea</button>
+        </div>
         <div id="veditor-spacer">
           <div id="veditor-lines-layer"></div>
-          <input type="text" id="inline-line-editor" spellcheck="false" autocomplete="off">
+          <input type="text" id="virtual-inline-input" spellcheck="false" autocomplete="off">
         </div>
       </div>
     </section>
 
-    <!-- RIGHT: INTERACTIVE 3D BACKPLOTTER & KINEMATIC ANIMATION -->
+    <!-- RIGHT: TRUE 3D SOLID SIMULATION & VOLUMETRIC TOOL VIEWPORT -->
     <section id="backplot-pane">
       <div id="viewport-toolbar">
         <div class="vp-btn-group">
-          <button class="vp-btn active" data-view="iso">ISO</button>
+          <button class="vp-btn active" data-view="iso">ISO 3D</button>
           <button class="vp-btn" data-view="top">XY</button>
           <button class="vp-btn" data-view="front">XZ</button>
+          <button class="vp-btn" data-view="side">YZ</button>
           <button class="vp-btn" id="vp-btn-fit">Fit</button>
-          <button class="vp-btn active" id="vp-btn-stock-toggle" title="Toggle 2.5D/3D Stock Removal Mesh">Stock</button>
-          <button class="vp-btn active" id="vp-btn-comp-toggle" title="Toggle G41/G42 Cutter Compensation Path">G41/42</button>
+          <button class="vp-btn active" id="vp-btn-stock-mode" title="Cycle Solid / Translucent / Wireframe Stock">Solid</button>
+          <button class="vp-btn active" id="vp-btn-comp-toggle" title="Toggle G41/G42 Offset Path">G41/42</button>
         </div>
         <div class="vp-btn-group">
-          <span style="font-size:10px; color:var(--text-secondary);">Drag: Orbit | Shift/Right: Pan | Wheel: Zoom</span>
+          <span style="font-size:10px; color:var(--text-secondary);">Drag: 3D Orbit | Shift/Right: Pan | Wheel: Zoom</span>
         </div>
       </div>
 
@@ -726,16 +802,14 @@ select.compact-select:focus, input.compact-input:focus {
         <!-- Kinematic Feeds & Speeds HUD -->
         <div id="hud-telemetry">
           <div class="hud-row"><span class="hud-label">MODAL:</span><span id="hud-modal">G00 G90 G17 G40</span></div>
-          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T01 Ø12.0mm</span></div>
+          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T01 Ø12.0mm Flat</span></div>
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label" id="hud-lbl-x">X:</span><span class="hud-val-x" id="hud-x">0.000</span></div>
           <div class="hud-row"><span class="hud-label">Y:</span><span class="hud-val-y" id="hud-y">0.000</span></div>
           <div class="hud-row"><span class="hud-label">Z:</span><span class="hud-val-z" id="hud-z">0.000</span></div>
           <div class="hud-divider"></div>
-          <!-- Animated Feedrate Gauge -->
           <div class="hud-row"><span class="hud-label">FEED:</span><span id="hud-feed" style="color:#39c5cf; font-weight:700;">0 mm/min</span></div>
           <div class="gauge-bar-wrap"><div class="gauge-bar-fill" id="gauge-feed" style="background:#39c5cf;"></div></div>
-          <!-- Animated Spindle RPM & Surface Speed Gauge -->
           <div class="hud-row"><span class="hud-label">SPINDLE:</span><span id="hud-spindle" style="color:#ffa657; font-weight:700;">0 RPM (M05)</span></div>
           <div class="gauge-bar-wrap"><div class="gauge-bar-fill" id="gauge-rpm" style="background:#ffa657;"></div></div>
           <div class="hud-row"><span class="hud-label">SURF / LOAD:</span><span id="hud-chipload">0 m/min | 0.000 fz</span></div>
@@ -749,18 +823,18 @@ select.compact-select:focus, input.compact-input:focus {
           <div class="legend-item"><span class="swatch-feed"></span><span>Linear Feed (G01)</span></div>
           <div class="legend-item"><span class="swatch-arc"></span><span>Arc (G02/G03)</span></div>
           <div class="legend-item"><span class="swatch-comp"></span><span>Comp Centerline (G41/42)</span></div>
-          <div class="legend-item"><span class="swatch-coll"></span><span>Collision / Gouge</span></div>
+          <div class="legend-item"><span class="swatch-coll"></span><span>Rapid Gouge / Collision</span></div>
         </div>
       </div>
 
       <!-- Kinematic Playback Scrubber Bar -->
       <div id="sim-controls">
-        <button class="btn-primary" id="sim-play" style="min-width:66px;">▶ Play</button>
+        <button class="btn-primary" id="sim-play" style="min-width:68px;">▶ Play</button>
         <button class="vp-btn" id="sim-step-back" title="Previous Block">⏮</button>
         <button class="vp-btn" id="sim-step-fwd" title="Next Block">⏭</button>
         <input type="range" id="sim-scrubber" min="0" max="1000" value="1000">
         <label style="font-size:10px; color:var(--text-secondary);">Speed:</label>
-        <select id="sim-speed" class="compact-select" title="Feedrate Override / Animation Speed Multiplier">
+        <select id="sim-speed" class="compact-select" title="Feedrate Override / Animation Speed">
           <option value="0.25">0.25x</option>
           <option value="1" selected>1x (Real-Time)</option>
           <option value="2.5">2.5x</option>
@@ -782,8 +856,6 @@ select.compact-select:focus, input.compact-input:focus {
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
           <span id="cmp-stats" style="font-weight:600; color:var(--accent-orange); margin-right:6px;">0 differences</span>
-          <button class="vp-btn" id="cmp-prev-diff">▲ Prev Diff</button>
-          <button class="vp-btn" id="cmp-next-diff">▼ Next Diff</button>
           <button class="btn-secondary" id="cmp-close-btn">✕ Close Compare</button>
         </div>
       </div>
@@ -864,7 +936,7 @@ select.compact-select:focus, input.compact-input:focus {
   <!-- STATUS BAR -->
   <footer id="status-bar">
     <div class="status-group">
-      <span id="st-cursor">Ln 1</span>
+      <span id="st-cursor">Ln 1, Col 1</span>
       <span id="st-lines">Lines: 0</span>
       <span id="st-extents">Extents: X[0..0] Y[0..0] Z[0..0]</span>
     </div>
@@ -881,20 +953,20 @@ select.compact-select:focus, input.compact-input:focus {
 <!-- MODAL: STOCK SETUP -->
 <div class="modal-backdrop" id="modal-stock">
   <div class="modal-card">
-    <div class="modal-head"><span>Workpiece Stock Setup (2.5D / 3D Removal)</span><button class="vp-btn modal-close">✕</button></div>
+    <div class="modal-head"><span>3D Solid Workpiece Stock Dimensions</span><button class="vp-btn modal-close">✕</button></div>
     <div class="modal-body">
       <div class="form-row"><label>Auto-Fit Stock to Toolpath Bounds:</label><input type="checkbox" id="stk-autofit" checked></div>
-      <div class="form-row"><label>Stock Min X / Max X (mm):</label>
+      <div class="form-row"><label>Mill Block Min X / Max X (mm):</label>
         <div style="display:flex;gap:4px;"><input type="number" id="stk-minx" class="compact-input" style="width:75px;" value="-55"><input type="number" id="stk-maxx" class="compact-input" style="width:75px;" value="55"></div>
       </div>
-      <div class="form-row"><label>Stock Min Y / Max Y (mm):</label>
+      <div class="form-row"><label>Mill Block Min Y / Max Y (mm):</label>
         <div style="display:flex;gap:4px;"><input type="number" id="stk-miny" class="compact-input" style="width:75px;" value="-40"><input type="number" id="stk-maxy" class="compact-input" style="width:75px;" value="40"></div>
       </div>
-      <div class="form-row"><label>Stock Bottom Z / Top Z (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-20"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0"></div>
+      <div class="form-row"><label>Mill Block Bottom Z / Top Z (mm):</label>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-22"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0"></div>
       </div>
-      <div class="form-row"><label>Lathe Cylinder Dia / Length (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="65"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="95"></div>
+      <div class="form-row"><label>Lathe Bar Stock Dia / Length (mm):</label>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="66"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="85"></div>
       </div>
     </div>
     <div class="modal-foot">
@@ -973,15 +1045,16 @@ select.compact-select:focus, input.compact-input:focus {
 
 <script>
 /* ==========================================================================
-   1. SAMPLE NC PROGRAMS (MILL + CUTTER COMP + COLLISION DEMO + LATHE SHAFT)
+   1. SAMPLE NC PROGRAMS (ALL EDITABLE)
    ========================================================================== */
 const SAMPLE_PROGRAMS = [
   {
     id: 'doc-mill-1',
     mode: 'mill',
+    dirty: false,
     name: 'O1001_POCKET_G41_MILL.nc',
     content: `%
-O1001 (AEROSPACE BRACKET - G41 CUTTER COMP & POCKET)
+O1001 (AEROSPACE BRACKET - 3D SOLID POCKET & G41 CONTOUR)
 (MATERIAL: 6061-T6 ALUMINUM | WORK OFFSET: G54)
 N10 G90 G17 G21 G40 G80
 N20 T01 M06 (12.0MM 3-FLUTE CARBIDE ENDMILL)
@@ -989,7 +1062,7 @@ N30 S12000 M03
 N40 G00 G54 X-55.000 Y-40.000
 N50 G43 H01 Z20.000 M08
 N60 G00 Z2.000
-N70 G01 Z-4.500 F450.0
+N70 G01 Z-5.500 F450.0
 (ENGAGE G41 LEFT CUTTER COMPENSATION D01)
 N80 G41 D01 G01 X-45.000 Y-30.000 F1600.0
 N90 G01 X35.000 F2200.0
@@ -1001,36 +1074,42 @@ N140 G03 X-45.000 Y20.000 I0.000 J-10.000
 N150 G01 Y-20.000
 N160 G03 X-35.000 Y-30.000 I10.000 J0.000
 N170 G40 G01 X-55.000 Y-40.000
-(INNER POCKET CLEARING)
+(DEEP INNER POCKET CLEARING)
 N180 G00 Z5.000
 N190 G00 X-22.000 Y-14.000
-N200 G01 Z-7.000 F500.0
+N200 G01 Z-10.000 F500.0
 N210 G01 X22.000 F1800.0
 N220 G01 Y14.000
 N230 G01 X-22.000
 N240 G01 Y-14.000
-N250 G00 Z20.000 M09
-(PECK DRILLING 4X HOLES)
-N260 T02 M06 (6.0MM CARBIDE DRILL)
-N270 S6500 M03
-N280 G00 X-30.000 Y-16.000
-N290 G43 H02 Z12.000 M08
-N300 G83 Z-15.000 R2.000 Q3.500 F340.0
-N310 X30.000 Y-16.000
-N320 X30.000 Y16.000
-N330 X-30.000 Y16.000
-N340 G80 G00 Z35.000 M09
-N350 M05
-N360 M30
+N250 G00 X-12.000 Y-6.000
+N260 G01 X12.000
+N270 G01 Y6.000
+N280 G01 X-12.000
+N290 G01 Y-6.000
+N300 G00 Z20.000 M09
+(PECK DRILLING 4X HOLES WITH T02 DRILL)
+N310 T02 M06 (6.0MM CARBIDE DRILL)
+N320 S6500 M03
+N330 G00 X-30.000 Y-16.000
+N340 G43 H02 Z12.000 M08
+N350 G83 Z-18.000 R2.000 Q3.500 F340.0
+N360 X30.000 Y-16.000
+N370 X30.000 Y16.000
+N380 X-30.000 Y16.000
+N390 G80 G00 Z35.000 M09
+N400 M05
+N410 M30
 %`
   },
   {
     id: 'doc-lathe-1',
     mode: 'lathe',
+    dirty: false,
     name: 'O3010_LATHE_STEPPED_SHAFT.nc',
     content: `%
 O3010 (CNC LATHE STEPPED SHAFT - G71 ROUGH & G70 FINISH)
-(CHUCK OD: 65.0MM | Z0 AT PART FACE | DIAMETER MODE)
+(CHUCK OD: 66.0MM | Z0 AT PART FACE | DIAMETER MODE)
 N10 G90 G18 G21 G40 G99
 N20 T0101 (CNMG432 OD ROUGHING INSERT)
 N30 G96 S220 M03
@@ -1059,15 +1138,16 @@ N210 M30
   {
     id: 'doc-collision-demo',
     mode: 'mill',
+    dirty: false,
     name: 'O9911_COLLISION_CHECK_DEMO.nc',
     content: `%
 O9911 (RAPID-INTO-STOCK COLLISION VERIFICATION DEMO)
 G90 G17 G21 G40
-T01 M06 (10.0MM ENDMILL)
+T01 M06 (10.0MM FLAT ENDMILL)
 S9000 M03
 G00 X-30.000 Y-20.000 Z15.000
 G00 Z2.000
-G01 Z-5.000 F600.0
+G01 Z-6.500 F600.0
 G01 X30.000 F1500.0
 (INTENTIONAL OPERATOR BUG: G00 RAPID MOVE WHILE BELOW Z0 STOCK!)
 G00 X-30.000 Y20.000
@@ -1121,48 +1201,55 @@ const GCODE_DICTIONARY = {
 /* ==========================================================================
    2. APPLICATION STATE
    ========================================================================== */
+const VIRTUAL_THRESHOLD = 15000; // Lines threshold to switch from full textarea to virtualized editor
+const ROW_HEIGHT = 20;
+
 const state = {
   docs: JSON.parse(JSON.stringify(SAMPLE_PROGRAMS)),
   activeDocId: 'doc-mill-1',
-  linesCache: [],          // Virtualized editor backing array of lines
+  editorMode: 'direct',    // 'direct' (<=15k lines) or 'virtual' (>15k lines)
+  linesCache: [],          // Split lines array
   activeLine: 0,
   profiles: [],
   activeProfileId: 'haas-vf2',
   kinematicsMode: 'mill',  // 'mill' or 'lathe'
 
-  // Tool Library (Auto-populated from Txx M06 + defaults)
+  // 3D Tool Library (shape: 'flat' | 'ball' | 'drill')
   tools: {
-    1: { num: 1, name: '12.0mm 3-Flute Endmill', dia: 12.0, flutes: 3, holderDia: 32, fluteLen: 26 },
-    2: { num: 2, name: '6.0mm Carbide Drill', dia: 6.0, flutes: 2, holderDia: 25, fluteLen: 35 },
-    3: { num: 3, name: '10.0mm Ball Endmill', dia: 10.0, flutes: 4, holderDia: 30, fluteLen: 22 }
+    1: { num: 1, name: '12.0mm 3-Flute Endmill', shape: 'flat', dia: 12.0, flutes: 3, holderDia: 34, fluteLen: 26 },
+    2: { num: 2, name: '6.0mm Carbide Drill', shape: 'drill', dia: 6.0, flutes: 2, holderDia: 26, fluteLen: 34 },
+    3: { num: 3, name: '10.0mm Ball Endmill', shape: 'ball', dia: 10.0, flutes: 4, holderDia: 30, fluteLen: 22 }
   },
 
   // Parsed Toolpath & Compensation Data
   segments: [],
-  compPolylines: [],       // G41/G42 offset paths
-  alarms: [],              // Collisions, gouges, soft limits
+  compPolylines: [],
+  alarms: [],
   collisionLineSet: new Set(),
-  extents: { minX: -55, maxX: 55, minY: -40, maxY: 40, minZ: -20, maxZ: 25 },
+  extents: { minX: -55, maxX: 55, minY: -40, maxY: 40, minZ: -22, maxZ: 25 },
   stats: { cutDist: 0, rapidDist: 0, totalTimeSec: 0 },
 
-  // 2.5D Z-Map Heightfield Stock Grid
+  // 3D Solid Workpiece Z-Map Heightfield + Collision Gouge Flags
   stock: {
     autoFit: true,
-    minX: -55, maxX: 55, minY: -40, maxY: 40, minZ: -20, maxZ: 0,
-    latheDia: 65, latheLen: 80,
-    cols: 64, rows: 48,
-    initialZ: null,        // Float32Array
-    currentZ: null         // Float32Array carved dynamically up to currentTimeSec
+    minX: -55, maxX: 55, minY: -40, maxY: 40, minZ: -22, maxZ: 0,
+    latheDia: 66, latheLen: 80,
+    cols: 44, rows: 34,
+    initialZ: null,
+    currentZ: null,
+    gougeFlags: null       // Uint8Array marking cells hit by G00 rapid collisions
   },
 
-  // Camera & Display Options
+  // 3D Perspective Camera & Display Options
   cam: {
-    rotX: -0.65,
-    rotZ: 0.65,
-    zoom: 3.4,
+    yaw: 0.62,             // Azimuth rotation around Z (radians)
+    pitch: 0.56,           // Elevation tilt from XY plane (radians)
+    zoom: 4.2,             // Pixels per mm scale
     panX: 0,
     panY: 0,
-    showStockRemoval: true,
+    fov: 750,              // Perspective focal distance
+    stockRenderMode: 'solid', // 'solid' | 'translucent' | 'wireframe'
+    show3DTool: true,
     showCutterComp: true,
     showRapids: true,
     showCoolant: true
@@ -1171,10 +1258,9 @@ const state = {
   // Real-Time Kinematic Animation State
   sim: {
     playing: false,
-    currentTimeSec: 0,     // Current elapsed simulation time in seconds
+    currentTimeSec: 0,
     lastFrameTs: 0,
-    spindleAngle: 0,       // Visual rotation angle of cutter flutes
-    coolantParticles: []   // Animated coolant droplets
+    spindleAngle: 0
   },
 
   // Compare & DNC State
@@ -1182,16 +1268,18 @@ const state = {
   dnc: { port: null, sending: false, abortRequested: false }
 };
 
-const ROW_HEIGHT = 20;
-
 /* ==========================================================================
    3. DOM CACHE & HELPERS
    ========================================================================== */
 const el = {
-  veditorViewport: document.getElementById('veditor-viewport'),
+  directContainer: document.getElementById('direct-editor-container'),
+  textarea: document.getElementById('gcode-textarea'),
+  backdrop: document.getElementById('syntax-backdrop'),
+  gutter: document.getElementById('line-gutter'),
+  virtualContainer: document.getElementById('virtual-editor-container'),
   veditorSpacer: document.getElementById('veditor-spacer'),
   veditorLinesLayer: document.getElementById('veditor-lines-layer'),
-  inlineEditor: document.getElementById('inline-line-editor'),
+  virtualInlineInput: document.getElementById('virtual-inline-input'),
   docTabsBar: document.getElementById('doc-tabs-bar'),
   canvas: document.getElementById('backplot-canvas'),
   canvasContainer: document.getElementById('canvas-container'),
@@ -1222,7 +1310,7 @@ function getActiveProfile() {
 }
 
 /* ==========================================================================
-   4. VIRTUALIZED LARGE-FILE CODE EDITOR (50,000+ LINES AT 60 FPS)
+   4. HYBRID EDITABLE CODE EDITOR (DIRECT TEXTAREA + VIRTUALIZED LARGE-FILE)
    ========================================================================== */
 function tokenizeLine(line) {
   let codePart = line;
@@ -1260,65 +1348,117 @@ function tokenizeLine(line) {
   return hCode + hComm;
 }
 
-function renderVirtualEditor() {
-  const totalLines = state.linesCache.length;
-  el.veditorSpacer.style.height = `${Math.max(totalLines * ROW_HEIGHT, 200)}px`;
+function renderEditorView(forceFullDirect = false) {
+  const lines = state.linesCache;
+  const totalLines = lines.length;
+  document.getElementById('st-lines').textContent = `Lines: ${totalLines.toLocaleString()}`;
 
-  const scrollTop = el.veditorViewport.scrollTop;
-  const viewHeight = el.veditorViewport.clientHeight || 500;
-  const startLine = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 4);
-  const visibleCount = Math.ceil(viewHeight / ROW_HEIGHT) + 10;
+  if (!forceFullDirect && totalLines > VIRTUAL_THRESHOLD) {
+    // Switch to Virtualized Mode for massive 15k+ line files
+    state.editorMode = 'virtual';
+    el.directContainer.style.display = 'none';
+    el.virtualContainer.style.display = 'block';
+    renderVirtualLines();
+  } else {
+    // Direct Editable Syntax-Highlighted Textarea Mode
+    state.editorMode = 'direct';
+    el.virtualContainer.style.display = 'none';
+    el.directContainer.style.display = 'flex';
+
+    let htmlLines = new Array(totalLines);
+    let gutterLines = new Array(totalLines);
+    for (let i = 0; i < totalLines; i++) {
+      const isAct = (i === state.activeLine);
+      const isColl = state.collisionLineSet.has(i);
+      const tok = tokenizeLine(lines[i]) || ' ';
+      if (isColl) {
+        htmlLines[i] = `<span class="collision-line-highlight">${tok}</span>`;
+      } else if (isAct) {
+        htmlLines[i] = `<span class="active-line-highlight">${tok}</span>`;
+      } else {
+        htmlLines[i] = tok;
+      }
+      gutterLines[i] = `<div class="gutter-line${isColl ? ' collision-line' : (isAct ? ' active-line' : '')}">${i + 1}</div>`;
+    }
+    el.backdrop.innerHTML = htmlLines.join('\n') + '\n';
+    el.gutter.innerHTML = gutterLines.join('');
+    syncDirectEditorScroll();
+  }
+}
+
+function syncDirectEditorScroll() {
+  el.backdrop.scrollTop = el.textarea.scrollTop;
+  el.backdrop.scrollLeft = el.textarea.scrollLeft;
+  el.gutter.scrollTop = el.textarea.scrollTop;
+}
+
+function renderVirtualLines() {
+  const totalLines = state.linesCache.length;
+  el.veditorSpacer.style.height = `${Math.max(totalLines * ROW_HEIGHT + 30, 200)}px`;
+
+  const scrollTop = el.virtualContainer.scrollTop;
+  const viewHeight = el.virtualContainer.clientHeight || 500;
+  const startLine = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 3);
+  const visibleCount = Math.ceil(viewHeight / ROW_HEIGHT) + 8;
   const endLine = Math.min(totalLines, startLine + visibleCount);
 
   let html = '';
   for (let i = startLine; i < endLine; i++) {
     const isAct = (i === state.activeLine);
-    const isColl = state.collisionLineSet.has(i);
-    const cls = `vline-row${isAct ? ' active' : ''}${isColl ? ' collision-line' : ''}`;
-    html += `<div class="${cls}" data-line="${i}"><span class="vline-num">${i + 1}</span><span class="vline-code">${tokenizeLine(state.linesCache[i]) || ' '}</span></div>`;
+    html += `<div class="vline-row${isAct ? ' active' : ''}" data-line="${i}"><span class="vline-num">${i + 1}</span><span class="vline-code">${tokenizeLine(state.linesCache[i]) || ' '}</span></div>`;
   }
   el.veditorLinesLayer.innerHTML = html;
-  document.getElementById('st-lines').textContent = `Lines: ${totalLines.toLocaleString()}`;
 }
 
 function scrollToEditorLine(lineIdx) {
   state.activeLine = Math.max(0, Math.min(state.linesCache.length - 1, lineIdx));
-  const targetTop = state.activeLine * ROW_HEIGHT;
-  const viewHeight = el.veditorViewport.clientHeight || 400;
-  if (targetTop < el.veditorViewport.scrollTop || targetTop > el.veditorViewport.scrollTop + viewHeight - 40) {
-    el.veditorViewport.scrollTop = Math.max(0, targetTop - viewHeight * 0.35);
-  }
   document.getElementById('st-cursor').textContent = `Ln ${state.activeLine + 1}`;
-  renderVirtualEditor();
+
+  if (state.editorMode === 'direct') {
+    const targetTop = state.activeLine * ROW_HEIGHT;
+    const viewH = el.textarea.clientHeight || 400;
+    if (targetTop < el.textarea.scrollTop || targetTop > el.textarea.scrollTop + viewH - 40) {
+      el.textarea.scrollTop = Math.max(0, targetTop - viewH * 0.35);
+    }
+    renderEditorView();
+  } else {
+    const targetTop = state.activeLine * ROW_HEIGHT;
+    const viewH = el.virtualContainer.clientHeight || 400;
+    if (targetTop < el.virtualContainer.scrollTop || targetTop > el.virtualContainer.scrollTop + viewH - 40) {
+      el.virtualContainer.scrollTop = Math.max(0, targetTop - viewH * 0.35);
+    }
+    renderVirtualLines();
+  }
   updateNCAssistant();
 }
 
-function openInlineLineEditor(lineIdx) {
-  state.activeLine = lineIdx;
-  el.inlineEditor.style.display = 'block';
-  el.inlineEditor.style.top = `${lineIdx * ROW_HEIGHT}px`;
-  el.inlineEditor.value = state.linesCache[lineIdx] || '';
-  el.inlineEditor.focus();
-  el.inlineEditor.select();
-}
-
-function commitInlineLineEditor() {
-  if (el.inlineEditor.style.display === 'none') return;
-  state.linesCache[state.activeLine] = el.inlineEditor.value;
-  el.inlineEditor.style.display = 'none';
-  syncLinesCacheToDoc(false);
-}
-
-function syncLinesCacheToDoc(fitView = false) {
+let parseDebounceTimer = null;
+function applyTextChange(newText, markDirty = true, immediateParse = false, fitView = false) {
   const doc = getActiveDoc();
-  doc.content = state.linesCache.join('\n');
-  renderVirtualEditor();
-  parseAndBuildSimulation(doc.content, fitView);
+  doc.content = newText;
+  if (markDirty && !doc.dirty) {
+    doc.dirty = true;
+    renderDocTabs();
+  }
+  state.linesCache = newText.split('\n');
+  if (state.editorMode === 'direct' && el.textarea.value !== newText) {
+    el.textarea.value = newText;
+  }
+  renderEditorView();
   updateNCAssistant();
+
+  clearTimeout(parseDebounceTimer);
+  if (immediateParse) {
+    parseAndBuildSimulation(newText, fitView);
+  } else {
+    parseDebounceTimer = setTimeout(() => {
+      parseAndBuildSimulation(newText, fitView);
+    }, 150);
+  }
 }
 
 /* ==========================================================================
-   5. NC-ASSISTANT & TOOL TABLE INSPECTOR
+   5. NC-ASSISTANT, TOOL TABLE & ALARM LOG
    ========================================================================== */
 function updateNCAssistant() {
   const rawLine = state.linesCache[state.activeLine] || '';
@@ -1362,11 +1502,12 @@ function updateNCAssistant() {
       const nv = inp.value.trim();
       if (!nv || isNaN(Number(nv))) return;
       let count = 0;
-      state.linesCache[state.activeLine] = state.linesCache[state.activeLine].replace(
+      const lines = [...state.linesCache];
+      lines[state.activeLine] = lines[state.activeLine].replace(
         /([A-Za-z])([+-]?\d*\.?\d+)/g,
         (match, l) => (count++ === idx ? `${l}${nv}` : match)
       );
-      syncLinesCacheToDoc(false);
+      applyTextChange(lines.join('\n'), true, true, false);
     };
     cell.appendChild(inp);
     grid.appendChild(cell);
@@ -1388,20 +1529,24 @@ function renderToolTableDock() {
       <div style="display:flex; justify-content:space-between; font-weight:700; color:var(--accent-cyan);">
         <span>T${String(t.num).padStart(2, '0')} — ${escapeHtml(t.name)}</span>
       </div>
-      <div style="display:flex; gap:6px; margin-top:5px; align-items:center;">
-        <label style="font-size:10px; color:var(--text-secondary);">Dia (mm):</label>
-        <input type="number" step="0.1" value="${t.dia}" class="compact-input" style="width:62px;" data-tnum="${t.num}" data-field="dia">
-        <label style="font-size:10px; color:var(--text-secondary);">Flutes:</label>
-        <input type="number" step="1" value="${t.flutes}" class="compact-input" style="width:45px;" data-tnum="${t.num}" data-field="flutes">
+      <div style="display:flex; gap:5px; margin-top:5px; align-items:center; flex-wrap:wrap;">
+        <label style="font-size:10px; color:var(--text-secondary);">Dia:</label>
+        <input type="number" step="0.5" value="${t.dia}" class="compact-input" style="width:54px;" data-tnum="${t.num}" data-field="dia">
+        <label style="font-size:10px; color:var(--text-secondary);">Tip:</label>
+        <select class="compact-select" data-tnum="${t.num}" data-field="shape">
+          <option value="flat" ${t.shape === 'flat' ? 'selected' : ''}>Flat Endmill</option>
+          <option value="ball" ${t.shape === 'ball' ? 'selected' : ''}>Ball Nose</option>
+          <option value="drill" ${t.shape === 'drill' ? 'selected' : ''}>Drill Point</option>
+        </select>
       </div>
     `;
-    card.querySelectorAll('input').forEach(inp => {
+    card.querySelectorAll('input, select').forEach(inp => {
       inp.onchange = () => {
         const tn = parseInt(inp.dataset.tnum, 10);
         const fld = inp.dataset.field;
-        state.tools[tn][fld] = parseFloat(inp.value) || 1;
+        state.tools[tn][fld] = fld === 'dia' ? (parseFloat(inp.value) || 1) : inp.value;
         parseAndBuildSimulation(getActiveDoc().content, false);
-        showToast(`Updated T${String(tn).padStart(2, '0')} geometry`);
+        showToast(`Updated 3D geometry for T${String(tn).padStart(2, '0')}`);
       };
     });
     container.appendChild(card);
@@ -1416,18 +1561,17 @@ function renderAlarmLogDock() {
   document.getElementById('st-collisions').style.color = state.alarms.length > 0 ? '#ffd33d' : '#ffffff';
 
   if (state.alarms.length === 0) {
-    container.innerHTML = `<div style="color:var(--accent-green); font-size:11px; padding:4px;">✓ Zero collisions, gouges, or soft-limit faults detected.</div>`;
+    container.innerHTML = `<div style="color:var(--accent-green); font-size:11px; padding:4px;">✓ Zero collisions or rapid gouges detected.</div>`;
     return;
   }
 
   container.innerHTML = '';
   state.alarms.forEach(al => {
     const div = document.createElement('div');
-    div.className = `alarm-item${al.severity === 'warn' ? ' warn' : ''}`;
+    div.className = 'alarm-item';
     div.innerHTML = `<strong>[Ln ${al.line + 1}] ${escapeHtml(al.title)}</strong><div style="color:var(--text-secondary); margin-top:2px;">${escapeHtml(al.detail)}</div>`;
     div.onclick = () => {
       scrollToEditorLine(al.line);
-      // Scrub simulation directly to that collision event
       if (al.timeSec !== undefined && state.stats.totalTimeSec > 0) {
         state.sim.playing = false;
         el.simPlayBtn.textContent = '▶ Play';
@@ -1442,7 +1586,7 @@ function renderAlarmLogDock() {
 }
 
 /* ==========================================================================
-   6. G-CODE PARSER (MILL + LATHE G71/G70 + G41/G42 + COLLISION ENGINE)
+   6. G-CODE MOTION PARSER & 3D SOLID STOCK REMOVAL ENGINE
    ========================================================================== */
 function parseAndBuildSimulation(text, fitView = false) {
   const lines = text.split('\n');
@@ -1450,26 +1594,28 @@ function parseAndBuildSimulation(text, fitView = false) {
   const prof = getActiveProfile();
   const rapidRate = prof ? prof.rapidRate : 15000;
 
-  // Scan tool comments (T01 M06 (12MM ENDMILL))
+  // Auto-detect tool descriptions from comments
   lines.forEach(l => {
     const tm = l.match(/T0*(\d+)\s*M0?6\s*\(([^)]+)\)/i);
     if (tm) {
       const tNum = parseInt(tm[1], 10);
       const desc = tm[2].trim();
       const diaMatch = desc.match(/(\d+\.?\d*)\s*MM/i);
+      const isBall = /BALL/i.test(desc);
+      const isDrill = /DRILL/i.test(desc);
+      const shape = isBall ? 'ball' : (isDrill ? 'drill' : 'flat');
       if (!state.tools[tNum]) {
-        state.tools[tNum] = { num: tNum, name: desc, dia: diaMatch ? parseFloat(diaMatch[1]) : 10.0, flutes: 3, holderDia: 30, fluteLen: 28 };
+        state.tools[tNum] = { num: tNum, name: desc, shape, dia: diaMatch ? parseFloat(diaMatch[1]) : 10.0, flutes: 3, holderDia: 32, fluteLen: 28 };
       } else {
         state.tools[tNum].name = desc;
+        state.tools[tNum].shape = shape;
         if (diaMatch) state.tools[tNum].dia = parseFloat(diaMatch[1]);
       }
     }
   });
   renderToolTableDock();
 
-  // Expand Lathe G71 / G70 cycles into executable blocks before kinematic pass
   const expandedBlocks = expandCannedLatheCycles(lines, isLathe);
-
   const segments = [];
   const alarms = [];
   const collisionLineSet = new Set();
@@ -1479,14 +1625,14 @@ function parseAndBuildSimulation(text, fitView = false) {
   let absMode = true;
   let plane = isLathe ? 'G18' : 'G17';
   let metric = true;
-  let compMode = 'G40'; // G40, G41, G42
+  let compMode = 'G40';
   let compReg = 1;
   let feed = 500;
-  let feedPerRev = false; // G99 vs G98
+  let feedPerRev = false;
   let spindle = 0;
-  let spindleDir = 'M05'; // M03, M04, M05
-  let cssMode = false;    // G96 vs G97
-  let coolant = false;    // M08/M07
+  let spindleDir = 'M05';
+  let cssMode = false;
+  let coolant = false;
   let tool = 1;
   let cannedR = 2, cannedZ = -10;
 
@@ -1560,17 +1706,13 @@ function parseAndBuildSimulation(text, fitView = false) {
     const hasMotion = ('X' in words || 'Y' in words || 'Z' in words || 'U' in words || 'W' in words);
     if (!hasMotion) continue;
 
-    // Effective RPM (supports G96 Constant Surface Speed on Lathe)
     const activeDia = Math.max(2, Math.abs(pos.x * 2));
     const effectiveRpm = (isLathe && cssMode)
       ? Math.min(prof.maxRpm || 4000, Math.round((spindle * 1000) / (Math.PI * activeDia)))
       : spindle;
-
-    // Effective Feed in mm/min (supports G99 Feed-per-Rev)
     const effectiveFeedMmMin = feedPerRev ? Math.max(10, feed * Math.max(100, effectiveRpm)) : Math.max(1, feed);
     const modalStr = `${motionMode} ${absMode ? 'G90' : 'G91'} ${plane} ${compMode} ${spindleDir}`;
 
-    // Canned Drilling Cycles
     if (['G81', 'G82', 'G83'].includes(motionMode)) {
       const hx = 'X' in words ? (absMode ? words.X : pos.x + words.X) : pos.x;
       const hy = 'Y' in words ? (absMode ? words.Y : pos.y + words.Y) : pos.y;
@@ -1583,7 +1725,7 @@ function parseAndBuildSimulation(text, fitView = false) {
       cutDist += d;
       segments.push({
         line: lineIdx, type: 'G01', pts, modalStr, tool, spindle: effectiveRpm, spindleDir,
-        feed: effectiveFeedMmMin, rawFeed: feed, feedPerRev, coolant, compMode, compReg,
+        feed: effectiveFeedMmMin, coolant, compMode, compReg,
         startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
       });
       elapsedTimeSec += dur;
@@ -1592,7 +1734,6 @@ function parseAndBuildSimulation(text, fitView = false) {
       continue;
     }
 
-    // Target Coordinate Resolution (Lathe X is Diameter -> Radial X = X / 2)
     let tx = pos.x, ty = pos.y, tz = pos.z;
     if ('X' in words) tx = absMode ? (isLathe ? words.X / 2 : words.X) : pos.x + (isLathe ? words.X / 2 : words.X);
     if ('U' in words) tx = pos.x + (isLathe ? words.U / 2 : words.U);
@@ -1621,13 +1762,12 @@ function parseAndBuildSimulation(text, fitView = false) {
     if (motionMode === 'G00') rapidDist += segLen;
     else cutDist += segLen;
 
-    // Soft Overtravel Limit Check
     let isCollision = false;
     if (Math.abs(target.x) > prof.limX || Math.abs(target.y) > prof.limY || target.z < prof.limZ) {
       isCollision = true;
       collisionLineSet.add(lineIdx);
       alarms.push({
-        line: lineIdx, severity: 'error', title: 'Soft Overtravel Limit Exceeded',
+        line: lineIdx, title: 'Soft Overtravel Limit Exceeded',
         detail: `Target (${target.x.toFixed(1)}, ${target.y.toFixed(1)}, ${target.z.toFixed(1)}) exceeds machine envelope.`,
         timeSec: elapsedTimeSec
       });
@@ -1635,7 +1775,7 @@ function parseAndBuildSimulation(text, fitView = false) {
 
     segments.push({
       line: lineIdx, type: motionMode, pts, modalStr, tool,
-      spindle: effectiveRpm, spindleDir, feed: rate, rawFeed: feed, feedPerRev,
+      spindle: effectiveRpm, spindleDir, feed: rate,
       coolant, compMode, compReg,
       startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision
     });
@@ -1653,24 +1793,20 @@ function parseAndBuildSimulation(text, fitView = false) {
   state.stats = { cutDist, rapidDist, totalTimeSec: elapsedTimeSec };
   state.alarms = alarms;
   state.collisionLineSet = collisionLineSet;
-
-  // Compute G41 / G42 Cutter Compensation Offset Polylines (Mill XY Plane)
   state.compPolylines = !isLathe ? computeCutterCompPolylines(segments) : [];
 
-  // Initialize Stock Heightmap & Run Rapid-Into-Stock Collision Verification
   initStockHeightmapAndVerifyCollisions();
 
   document.getElementById('st-units').textContent = metric ? 'Units: Metric (G21)' : 'Units: Inch (G20)';
   document.getElementById('st-extents').textContent =
     `Extents: X[${minX.toFixed(1)}..${maxX.toFixed(1)}] Y[${minY.toFixed(1)}..${maxY.toFixed(1)}] Z[${minZ.toFixed(1)}..${maxZ.toFixed(1)}]`;
 
-  // Set default playback cursor to end of program on initial load
   state.sim.currentTimeSec = elapsedTimeSec;
   el.scrubber.value = 1000;
   rebuildStockUpToTime(state.sim.currentTimeSec);
 
   renderAlarmLogDock();
-  renderVirtualEditor();
+  renderEditorView();
   if (fitView) fitCameraToExtents();
   else drawBackplot();
 }
@@ -1683,15 +1819,10 @@ function expandCannedLatheCycles(lines, isLathe) {
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     const m1 = l.match(/G71\s+U([+-]?\d*\.?\d+)\s+R([+-]?\d*\.?\d+)/i);
-    if (m1) {
-      g71Depth = parseFloat(m1[1]) || 2.0;
-      g71Retract = parseFloat(m1[2]) || 1.0;
-      continue;
-    }
+    if (m1) { g71Depth = parseFloat(m1[1]) || 2.0; g71Retract = parseFloat(m1[2]) || 1.0; continue; }
     const m2 = l.match(/G71\s+P(\d+)\s+Q(\d+)/i);
     if (m2) {
-      const pStart = parseInt(m2[1], 10);
-      const qEnd = parseInt(m2[2], 10);
+      const pStart = parseInt(m2[1], 10), qEnd = parseInt(m2[2], 10);
       const profilePts = [];
       for (let j = 0; j < lines.length; j++) {
         const nm = lines[j].match(/^\s*N(\d+)\b/i);
@@ -1703,8 +1834,7 @@ function expandCannedLatheCycles(lines, isLathe) {
             if (xm || zm) {
               profilePts.push({
                 x: xm ? parseFloat(xm[1]) : (profilePts.length ? profilePts[profilePts.length - 1].x : 60),
-                z: zm ? parseFloat(zm[1]) : (profilePts.length ? profilePts[profilePts.length - 1].z : 0),
-                line: j
+                z: zm ? parseFloat(zm[1]) : (profilePts.length ? profilePts[profilePts.length - 1].z : 0)
               });
             }
           }
@@ -1715,7 +1845,6 @@ function expandCannedLatheCycles(lines, isLathe) {
         const maxDia = Math.max(...profilePts.map(p => p.x));
         const zStart = profilePts[0].z + 2;
         for (let d = maxDia - g71Depth; d >= minDia; d -= g71Depth) {
-          // Find Z intersection on profile at diameter d
           let targetZ = profilePts[profilePts.length - 1].z;
           for (let k = 1; k < profilePts.length; k++) {
             if (profilePts[k].x >= d) { targetZ = profilePts[k - 1].z; break; }
@@ -1729,15 +1858,12 @@ function expandCannedLatheCycles(lines, isLathe) {
     }
     const m70 = l.match(/G70\s+P(\d+)\s+Q(\d+)/i);
     if (m70) {
-      const pStart = parseInt(m70[1], 10);
-      const qEnd = parseInt(m70[2], 10);
+      const pStart = parseInt(m70[1], 10), qEnd = parseInt(m70[2], 10);
       for (let j = 0; j < lines.length; j++) {
         const nm = lines[j].match(/^\s*N(\d+)\b/i);
         if (nm) {
           const nVal = parseInt(nm[1], 10);
-          if (nVal >= pStart && nVal <= qEnd) {
-            out.push({ text: lines[j].replace(/^\s*N\d+\s*/i, ''), line: j });
-          }
+          if (nVal >= pStart && nVal <= qEnd) out.push({ text: lines[j].replace(/^\s*N\d+\s*/i, ''), line: j });
         }
       }
       continue;
@@ -1749,19 +1875,9 @@ function expandCannedLatheCycles(lines, isLathe) {
 
 function interpolateArc(start, end, words, isCW, plane) {
   let u1, v1, w1, u2, v2, w2, iOff = 0, jOff = 0;
-  if (plane === 'G17') {
-    u1 = start.x; v1 = start.y; w1 = start.z;
-    u2 = end.x;   v2 = end.y;   w2 = end.z;
-    iOff = words.I || 0; jOff = words.J || 0;
-  } else if (plane === 'G18') {
-    u1 = start.z; v1 = start.x; w1 = start.y;
-    u2 = end.z;   v2 = end.x;   w2 = end.y;
-    iOff = words.K || 0; jOff = words.I || 0;
-  } else {
-    u1 = start.y; v1 = start.z; w1 = start.x;
-    u2 = end.y;   v2 = end.z;   w2 = end.x;
-    iOff = words.J || 0; jOff = words.K || 0;
-  }
+  if (plane === 'G17') { u1 = start.x; v1 = start.y; w1 = start.z; u2 = end.x; v2 = end.y; w2 = end.z; iOff = words.I || 0; jOff = words.J || 0; }
+  else if (plane === 'G18') { u1 = start.z; v1 = start.x; w1 = start.y; u2 = end.z; v2 = end.x; w2 = end.y; iOff = words.K || 0; jOff = words.I || 0; }
+  else { u1 = start.y; v1 = start.z; w1 = start.x; u2 = end.y; v2 = end.z; w2 = end.x; iOff = words.J || 0; jOff = words.K || 0; }
 
   let cu, cv, radius;
   if ('R' in words && !('I' in words || 'J' in words || 'K' in words)) {
@@ -1773,31 +1889,24 @@ function interpolateArc(start, end, words, isCW, plane) {
     const mu = (u1 + u2) / 2, mv = (v1 + v2) / 2;
     const nx = -dv / chord, ny = du / chord;
     const sign = (isCW ? -1 : 1) * (words.R < 0 ? -1 : 1);
-    cu = mu + sign * h * nx;
-    cv = mv + sign * h * ny;
-    radius = r;
+    cu = mu + sign * h * nx; cv = mv + sign * h * ny; radius = r;
   } else {
-    cu = u1 + iOff;
-    cv = v1 + jOff;
+    cu = u1 + iOff; cv = v1 + jOff;
     radius = Math.hypot(u1 - cu, v1 - cv);
   }
-
   if (radius < 1e-5) return [{ ...start }, { ...end }];
 
-  let a1 = Math.atan2(v1 - cv, u1 - cu);
-  let a2 = Math.atan2(v2 - cv, u2 - cu);
+  let a1 = Math.atan2(v1 - cv, u1 - cu), a2 = Math.atan2(v2 - cv, u2 - cu);
   let sweep = a2 - a1;
   if (isCW) { if (sweep >= -1e-6) sweep -= 2 * Math.PI; }
   else { if (sweep <= 1e-6) sweep += 2 * Math.PI; }
 
-  const steps = Math.max(12, Math.min(72, Math.ceil(Math.abs(sweep) * 16)));
+  const steps = Math.max(12, Math.min(64, Math.ceil(Math.abs(sweep) * 16)));
   const pts = [];
   for (let s = 0; s <= steps; s++) {
     const t = s / steps;
     const ang = a1 + sweep * t;
-    const u = cu + radius * Math.cos(ang);
-    const v = cv + radius * Math.sin(ang);
-    const w = w1 + (w2 - w1) * t;
+    const u = cu + radius * Math.cos(ang), v = cv + radius * Math.sin(ang), w = w1 + (w2 - w1) * t;
     if (plane === 'G17') pts.push({ x: u, y: v, z: w });
     else if (plane === 'G18') pts.push({ x: v, y: w, z: u });
     else pts.push({ x: w, y: u, z: v });
@@ -1805,49 +1914,32 @@ function interpolateArc(start, end, words, isCW, plane) {
   return pts;
 }
 
-/* ==========================================================================
-   7. G41 / G42 CUTTER RADIUS COMPENSATION OFFSET ENGINE
-   ========================================================================== */
 function computeCutterCompPolylines(segments) {
   const chains = [];
   let currentChain = null;
-
   for (const seg of segments) {
     if (seg.compMode === 'G41' || seg.compMode === 'G42') {
       const toolObj = state.tools[seg.compReg] || state.tools[seg.tool] || { dia: 10 };
       const r = (toolObj.dia || 10) / 2;
       const side = seg.compMode === 'G41' ? 1 : -1;
-
       if (!currentChain || currentChain.side !== side || currentChain.radius !== r) {
         currentChain = { side, radius: r, pts: [] };
         chains.push(currentChain);
       }
-
       for (let i = 1; i < seg.pts.length; i++) {
-        const p0 = seg.pts[i - 1];
-        const p1 = seg.pts[i];
-        const dx = p1.x - p0.x;
-        const dy = p1.y - p0.y;
+        const p0 = seg.pts[i - 1], p1 = seg.pts[i];
+        const dx = p1.x - p0.x, dy = p1.y - p0.y;
         const len = Math.hypot(dx, dy);
         if (len < 1e-5) continue;
-        // Left normal (-dy, dx) for G41, Right normal (dy, -dx) for G42
-        const nx = (-dy / len) * side * r;
-        const ny = (dx / len) * side * r;
-        if (currentChain.pts.length === 0) {
-          currentChain.pts.push({ x: p0.x + nx, y: p0.y + ny, z: p0.z });
-        }
+        const nx = (-dy / len) * side * r, ny = (dx / len) * side * r;
+        if (currentChain.pts.length === 0) currentChain.pts.push({ x: p0.x + nx, y: p0.y + ny, z: p0.z });
         currentChain.pts.push({ x: p1.x + nx, y: p1.y + ny, z: p1.z });
       }
-    } else {
-      currentChain = null;
-    }
+    } else currentChain = null;
   }
   return chains;
 }
 
-/* ==========================================================================
-   8. 2.5D Z-MAP STOCK REMOVAL & RAPID-INTO-STOCK COLLISION ENGINE
-   ========================================================================== */
 function initStockHeightmapAndVerifyCollisions() {
   const stk = state.stock;
   if (stk.autoFit && state.segments.length > 0) {
@@ -1855,45 +1947,42 @@ function initStockHeightmapAndVerifyCollisions() {
     stk.maxX = Math.ceil(state.extents.maxX + 6);
     stk.minY = Math.floor(state.extents.minY - 6);
     stk.maxY = Math.ceil(state.extents.maxY + 6);
-    stk.minZ = Math.min(-15, Math.floor(state.extents.minZ - 4));
+    stk.minZ = Math.min(-18, Math.floor(state.extents.minZ - 4));
     stk.maxZ = 0;
   }
 
   const totalCells = stk.cols * stk.rows;
   stk.initialZ = new Float32Array(totalCells);
   stk.currentZ = new Float32Array(totalCells);
+  stk.gougeFlags = new Uint8Array(totalCells);
   stk.initialZ.fill(stk.maxZ);
   stk.currentZ.fill(stk.maxZ);
 
-  // Full pass over segments to detect Rapid-Into-Stock collisions before animation
   const tempGrid = new Float32Array(totalCells);
   tempGrid.fill(stk.maxZ);
 
   for (const seg of state.segments) {
-    const toolObj = state.tools[seg.tool] || { dia: 10, holderDia: 28, fluteLen: 26 };
+    const toolObj = state.tools[seg.tool] || { dia: 10 };
     const r = (toolObj.dia || 10) / 2;
-
     if (seg.type === 'G00') {
-      // Check if rapid move intersects remaining stock heightmap
-      const hit = carveOrCheckGrid(tempGrid, seg.pts, r, true);
+      const hit = carveOrCheckGrid(tempGrid, null, seg.pts, r, true);
       if (hit) {
         seg.isCollision = true;
         state.collisionLineSet.add(seg.line);
         state.alarms.push({
           line: seg.line,
-          severity: 'error',
-          title: 'RAPID-INTO-STOCK COLLISION (G00)',
-          detail: `Rapid traverse intersects unremoved workpiece material at Z=${hit.z.toFixed(2)}mm.`,
+          title: 'RAPID-INTO-STOCK GOUGE (G00)',
+          detail: `Rapid move crashes through stock at Z=${hit.z.toFixed(2)}mm.`,
           timeSec: seg.startTimeSec
         });
       }
     } else {
-      carveOrCheckGrid(tempGrid, seg.pts, r, false);
+      carveOrCheckGrid(tempGrid, null, seg.pts, r, false);
     }
   }
 }
 
-function carveOrCheckGrid(grid, pts, toolRadius, checkOnly) {
+function carveOrCheckGrid(grid, gougeArr, pts, toolRadius, isRapid) {
   const stk = state.stock;
   const spanX = Math.max(1, stk.maxX - stk.minX);
   const spanY = Math.max(1, stk.maxY - stk.minY);
@@ -1901,10 +1990,10 @@ function carveOrCheckGrid(grid, pts, toolRadius, checkOnly) {
   const cellH = spanY / stk.rows;
   const radCellsX = Math.max(1, Math.ceil(toolRadius / cellW));
   const radCellsY = Math.max(1, Math.ceil(toolRadius / cellH));
+  let firstHit = null;
 
   for (let i = 1; i < pts.length; i++) {
-    const p0 = pts[i - 1];
-    const p1 = pts[i];
+    const p0 = pts[i - 1], p1 = pts[i];
     const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
     const steps = Math.max(1, Math.ceil(dist / Math.min(cellW, cellH)));
 
@@ -1913,7 +2002,6 @@ function carveOrCheckGrid(grid, pts, toolRadius, checkOnly) {
       const cx = p0.x + (p1.x - p0.x) * t;
       const cy = p0.y + (p1.y - p0.y) * t;
       const cz = p0.z + (p1.z - p0.z) * t;
-
       const gx = Math.floor(((cx - stk.minX) / spanX) * stk.cols);
       const gy = Math.floor(((cy - stk.minY) / spanY) * stk.rows);
 
@@ -1927,42 +2015,43 @@ function carveOrCheckGrid(grid, pts, toolRadius, checkOnly) {
           const worldY = stk.minY + (ny + 0.5) * cellH;
           if (Math.hypot(worldX - cx, worldY - cy) <= toolRadius) {
             const idx = ny * stk.cols + nx;
-            if (checkOnly) {
-              // Tolerance 0.15mm below current stock surface triggers rapid collision
+            if (isRapid) {
               if (cz < grid[idx] - 0.15 && cz >= stk.minZ) {
-                return { x: cx, y: cy, z: cz };
+                if (!firstHit) firstHit = { x: cx, y: cy, z: cz };
+                if (gougeArr) {
+                  grid[idx] = Math.max(stk.minZ, cz);
+                  gougeArr[idx] = 1;
+                }
               }
-            } else {
-              if (cz < grid[idx]) {
-                grid[idx] = Math.max(stk.minZ, cz);
-              }
+            } else if (cz < grid[idx]) {
+              grid[idx] = Math.max(stk.minZ, cz);
             }
           }
         }
       }
     }
   }
-  return null;
+  return firstHit;
 }
 
 function rebuildStockUpToTime(targetTimeSec) {
   const stk = state.stock;
   if (!stk.initialZ || !stk.currentZ) return;
   stk.currentZ.set(stk.initialZ);
+  stk.gougeFlags.fill(0);
 
   for (const seg of state.segments) {
     if (seg.startTimeSec > targetTimeSec) break;
-    if (seg.type === 'G00') continue;
     const toolObj = state.tools[seg.tool] || { dia: 10 };
     const r = (toolObj.dia || 10) / 2;
+    const isRapid = (seg.type === 'G00');
 
     if (targetTimeSec >= seg.endTimeSec) {
-      carveOrCheckGrid(stk.currentZ, seg.pts, r, false);
+      carveOrCheckGrid(stk.currentZ, stk.gougeFlags, seg.pts, r, isRapid);
     } else {
-      // Partial segment carve up to fractional progress
       const frac = Math.max(0, (targetTimeSec - seg.startTimeSec) / Math.max(0.001, seg.endTimeSec - seg.startTimeSec));
       const partialPts = getPartialPolyline(seg.pts, frac);
-      carveOrCheckGrid(stk.currentZ, partialPts, r, false);
+      carveOrCheckGrid(stk.currentZ, stk.gougeFlags, partialPts, r, isRapid);
     }
   }
 }
@@ -1982,16 +2071,27 @@ function getPartialPolyline(pts, frac) {
 }
 
 /* ==========================================================================
-   9. 3D PROJECTION, STOCK RENDERER & KINEMATIC TOOL ANIMATION
+   7. TRUE 3D PERSPECTIVE CAMERA, SOLID WORKPIECE MESH & VOLUMETRIC 3D TOOL
    ========================================================================== */
 function project3D(pt, cx, cy) {
-  const { rotX, rotZ, zoom, panX, panY } = state.cam;
-  const cosZ = Math.cos(rotZ), sinZ = Math.sin(rotZ);
-  const x1 = pt.x * cosZ - pt.y * sinZ;
-  const y1 = pt.x * sinZ + pt.y * cosZ;
-  const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-  const y2 = y1 * cosX - pt.z * sinX;
-  return { sx: cx + panX + x1 * zoom, sy: cy + panY - y2 * zoom };
+  const { yaw, pitch, zoom, panX, panY, fov } = state.cam;
+  // 1. Rotate around vertical Z-axis (yaw)
+  const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+  const x1 = pt.x * cosY - pt.y * sinY;
+  const y1 = pt.x * sinY + pt.y * cosY;
+
+  // 2. Tilt by elevation angle (pitch)
+  const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+  const depth = y1 * cosP + pt.z * sinP; // Distance toward viewer
+  const screenY3D = pt.z * cosP - y1 * sinP;
+
+  // 3. Perspective foreshortening
+  const persp = fov / Math.max(200, fov - depth * zoom * 0.38);
+  return {
+    sx: cx + panX + x1 * zoom * persp,
+    sy: cy + panY - screenY3D * zoom * persp,
+    depth
+  };
 }
 
 function fitCameraToExtents() {
@@ -2011,10 +2111,284 @@ function fitCameraToExtents() {
 
 function setCameraView(preset) {
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === preset));
-  if (preset === 'top') { state.cam.rotX = 0; state.cam.rotZ = 0; }
-  else if (preset === 'front') { state.cam.rotX = -Math.PI / 2; state.cam.rotZ = 0; }
-  else { state.cam.rotX = -0.65; state.cam.rotZ = 0.65; }
+  if (preset === 'top') { state.cam.pitch = Math.PI / 2 - 0.001; state.cam.yaw = 0; }
+  else if (preset === 'front') { state.cam.pitch = 0.04; state.cam.yaw = 0; }
+  else if (preset === 'side') { state.cam.pitch = 0.04; state.cam.yaw = -Math.PI / 2; }
+  else { state.cam.pitch = 0.56; state.cam.yaw = 0.62; }
   fitCameraToExtents();
+}
+
+function fillProjectedQuad(ctx, pts2D, fillStyle, strokeStyle) {
+  ctx.beginPath();
+  ctx.moveTo(pts2D[0].sx, pts2D[0].sy);
+  for (let i = 1; i < pts2D.length; i++) ctx.lineTo(pts2D[i].sx, pts2D[i].sy);
+  ctx.closePath();
+  if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
+  if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = 0.7; ctx.stroke(); }
+}
+
+/**
+ * Renders the 3D Solid Illuminated Workpiece Block with painter-sorted cells
+ * and 3D vertical step walls where pockets/holes have been machined.
+ */
+function drawSolidMillStock3D(ctx, cx, cy) {
+  const stk = state.stock;
+  if (!stk.currentZ) return;
+  const mode = state.cam.stockRenderMode; // 'solid' | 'translucent' | 'wireframe'
+  const alphaMul = mode === 'translucent' ? 0.42 : 1.0;
+
+  const spanX = stk.maxX - stk.minX;
+  const spanY = stk.maxY - stk.minY;
+  const cellW = spanX / stk.cols;
+  const cellH = spanY / stk.rows;
+  const depthRange = Math.max(1, stk.maxZ - stk.minZ);
+
+  // Outer 3D Block Side Faces (Back-to-Front Painter Order)
+  const b0 = project3D({ x: stk.minX, y: stk.minY, z: stk.minZ }, cx, cy);
+  const b1 = project3D({ x: stk.maxX, y: stk.minY, z: stk.minZ }, cx, cy);
+  const b2 = project3D({ x: stk.maxX, y: stk.maxY, z: stk.minZ }, cx, cy);
+  const b3 = project3D({ x: stk.minX, y: stk.maxY, z: stk.minZ }, cx, cy);
+  const t0 = project3D({ x: stk.minX, y: stk.minY, z: stk.maxZ }, cx, cy);
+  const t1 = project3D({ x: stk.maxX, y: stk.minY, z: stk.maxZ }, cx, cy);
+  const t2 = project3D({ x: stk.maxX, y: stk.maxY, z: stk.maxZ }, cx, cy);
+  const t3 = project3D({ x: stk.minX, y: stk.maxY, z: stk.maxZ }, cx, cy);
+
+  if (mode !== 'wireframe') {
+    const walls = [
+      { pts: [b0, b1, t1, t0], depth: (b0.depth + b1.depth) * 0.5, col: `rgba(68, 79, 96, ${0.95 * alphaMul})` },
+      { pts: [b1, b2, t2, t1], depth: (b1.depth + b2.depth) * 0.5, col: `rgba(52, 61, 75, ${0.95 * alphaMul})` },
+      { pts: [b2, b3, t3, t2], depth: (b2.depth + b3.depth) * 0.5, col: `rgba(42, 50, 62, ${0.95 * alphaMul})` },
+      { pts: [b3, b0, t0, t3], depth: (b3.depth + b0.depth) * 0.5, col: `rgba(60, 70, 86, ${0.95 * alphaMul})` }
+    ];
+    walls.sort((a, b) => a.depth - b.depth);
+    walls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, `rgba(140,160,185,${0.3 * alphaMul})`));
+
+    // Painter-sorted 3D Top Surface Quads + Vertical Step Walls
+    const quads = [];
+    for (let r = 0; r < stk.rows; r++) {
+      for (let c = 0; c < stk.cols; c++) {
+        const idx = r * stk.cols + c;
+        const zVal = stk.currentZ[idx];
+        const isGouge = stk.gougeFlags[idx] === 1;
+        const x0 = stk.minX + c * cellW;
+        const y0 = stk.minY + r * cellH;
+        const x1 = x0 + cellW;
+        const y1 = y0 + cellH;
+
+        const p00 = project3D({ x: x0, y: y0, z: zVal }, cx, cy);
+        const p10 = project3D({ x: x1, y: y0, z: zVal }, cx, cy);
+        const p11 = project3D({ x: x1, y: y1, z: zVal }, cx, cy);
+        const p01 = project3D({ x: x0, y: y1, z: zVal }, cx, cy);
+        const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) * 0.25;
+
+        const cutDepth = stk.maxZ - zVal;
+        let fillCol;
+        if (isGouge) {
+          fillCol = `rgba(235, 52, 52, ${0.95 * alphaMul})`;
+        } else if (cutDepth <= 0.05) {
+          // Raw Brushed Aluminum Top Skin
+          fillCol = `rgba(116, 130, 150, ${0.92 * alphaMul})`;
+        } else {
+          // Freshly Machined Pocket Floor (brighter metallic cyan-silver shaded by depth)
+          const ratio = Math.min(1, cutDepth / depthRange);
+          const rCol = Math.round(72 - ratio * 25);
+          const gCol = Math.round(145 - ratio * 45);
+          const bCol = Math.round(195 - ratio * 35);
+          fillCol = `rgba(${rCol}, ${gCol}, ${bCol}, ${0.96 * alphaMul})`;
+        }
+
+        quads.push({ pts: [p00, p10, p11, p01], depth: avgDepth, fill: fillCol, stroke: null });
+
+        // Add 3D vertical step walls if neighbor cell is higher
+        if (c > 0 && stk.currentZ[idx - 1] > zVal + 0.1) {
+          const zUp = stk.currentZ[idx - 1];
+          const u00 = project3D({ x: x0, y: y0, z: zUp }, cx, cy);
+          const u01 = project3D({ x: x0, y: y1, z: zUp }, cx, cy);
+          quads.push({
+            pts: [p00, p01, u01, u00],
+            depth: avgDepth + 0.05,
+            fill: isGouge ? `rgba(195, 35, 35, ${alphaMul})` : `rgba(50, 98, 135, ${alphaMul})`,
+            stroke: null
+          });
+        }
+        if (r > 0 && stk.currentZ[idx - stk.cols] > zVal + 0.1) {
+          const zUp = stk.currentZ[idx - stk.cols];
+          const u00 = project3D({ x: x0, y: y0, z: zUp }, cx, cy);
+          const u10 = project3D({ x: x1, y: y0, z: zUp }, cx, cy);
+          quads.push({
+            pts: [p00, p10, u10, u00],
+            depth: avgDepth + 0.05,
+            fill: isGouge ? `rgba(195, 35, 35, ${alphaMul})` : `rgba(42, 85, 120, ${alphaMul})`,
+            stroke: null
+          });
+        }
+      }
+    }
+
+    quads.sort((a, b) => a.depth - b.depth);
+    for (let i = 0; i < quads.length; i++) {
+      fillProjectedQuad(ctx, quads[i].pts, quads[i].fill, quads[i].stroke);
+    }
+  }
+
+  // Crisp Outer CAD Bounding Edges
+  const edges = [[b0,b1],[b1,b2],[b2,b3],[b3,b0],[t0,t1],[t1,t2],[t2,t3],[t3,t0],[b0,t0],[b1,t1],[b2,t2],[b3,t3]];
+  ctx.strokeStyle = 'rgba(175, 195, 220, 0.45)';
+  ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  edges.forEach(([pA, pB]) => { ctx.moveTo(pA.sx, pA.sy); ctx.lineTo(pB.sx, pB.sy); });
+  ctx.stroke();
+}
+
+/**
+ * Renders a 3D Cylindrical Lathe Workpiece Bar & 3-Jaw Chuck
+ */
+function drawSolidLatheStock3D(ctx, cx, cy) {
+  const stk = state.stock;
+  const r = stk.latheDia / 2;
+  const zFront = 0;
+  const zBack = -stk.latheLen;
+  const zChuckBack = zBack - 28;
+  const chuckR = r * 1.38;
+  const segs = 24;
+  const mode = state.cam.stockRenderMode;
+  const alpha = mode === 'translucent' ? 0.4 : 0.92;
+
+  // Draw 3D Cylindrical Workpiece Facets
+  const facets = [];
+  for (let i = 0; i < segs; i++) {
+    const a0 = (i / segs) * Math.PI * 2 + state.sim.spindleAngle * 0.4;
+    const a1 = ((i + 1) / segs) * Math.PI * 2 + state.sim.spindleAngle * 0.4;
+    const midA = (a0 + a1) * 0.5;
+    const shade = 0.55 + 0.45 * Math.cos(midA - 0.8);
+
+    // Workpiece Cylinder Quad
+    const p0 = project3D({ x: Math.cos(a0) * r, y: Math.sin(a0) * r, z: zFront }, cx, cy);
+    const p1 = project3D({ x: Math.cos(a1) * r, y: Math.sin(a1) * r, z: zFront }, cx, cy);
+    const p2 = project3D({ x: Math.cos(a1) * r, y: Math.sin(a1) * r, z: zBack }, cx, cy);
+    const p3 = project3D({ x: Math.cos(a0) * r, y: Math.sin(a0) * r, z: zBack }, cx, cy);
+    const lum = Math.round(70 + shade * 85);
+    facets.push({
+      pts: [p0, p1, p2, p3],
+      depth: (p0.depth + p2.depth) * 0.5,
+      fill: mode === 'wireframe' ? null : `rgba(${lum}, ${lum + 12}, ${lum + 26}, ${alpha})`,
+      stroke: mode === 'wireframe' ? 'rgba(150,170,195,0.4)' : null
+    });
+
+    // 3-Jaw Chuck Body Quad
+    const c0 = project3D({ x: Math.cos(a0) * chuckR, y: Math.sin(a0) * chuckR, z: zBack }, cx, cy);
+    const c1 = project3D({ x: Math.cos(a1) * chuckR, y: Math.sin(a1) * chuckR, z: zBack }, cx, cy);
+    const c2 = project3D({ x: Math.cos(a1) * chuckR, y: Math.sin(a1) * chuckR, z: zChuckBack }, cx, cy);
+    const c3 = project3D({ x: Math.cos(a0) * chuckR, y: Math.sin(a0) * chuckR, z: zChuckBack }, cx, cy);
+    const cLum = Math.round(42 + shade * 45);
+    facets.push({
+      pts: [c0, c1, c2, c3],
+      depth: (c0.depth + c2.depth) * 0.5,
+      fill: mode === 'wireframe' ? null : `rgba(${cLum}, ${cLum + 5}, ${cLum + 10}, ${alpha})`,
+      stroke: mode === 'wireframe' ? 'rgba(120,130,145,0.4)' : null
+    });
+  }
+  facets.sort((a, b) => a.depth - b.depth);
+  facets.forEach(f => fillProjectedQuad(ctx, f.pts, f.fill, f.stroke));
+}
+
+/**
+ * Volumetric 3D Rotating Endmill / Ball-Nose / Drill & CAT40 Tool Holder
+ */
+function drawVolumetric3DTool(ctx, cx, cy, tip, seg, isLathe) {
+  if (!state.cam.show3DTool) return;
+
+  if (isLathe) {
+    // 3D Lathe Turning Tool Holder Block + Golden Carbide Diamond Insert
+    const pTip = project3D(tip, cx, cy);
+    const pBack1 = project3D({ x: tip.x + 8, y: -3, z: tip.z - 6 }, cx, cy);
+    const pBack2 = project3D({ x: tip.x + 8, y: 3, z: tip.z + 6 }, cx, cy);
+    const pShank1 = project3D({ x: tip.x + 34, y: -4, z: tip.z - 6 }, cx, cy);
+    const pShank2 = project3D({ x: tip.x + 34, y: 4, z: tip.z + 6 }, cx, cy);
+
+    fillProjectedQuad(ctx, [pBack1, pBack2, pShank2, pShank1], '#3b4351', '#8b949e');
+    fillProjectedQuad(ctx, [pTip, pBack1, pBack2], '#e3b341', '#fff3b0');
+    return;
+  }
+
+  const toolObj = state.tools[seg.tool] || { dia: 12, flutes: 3, shape: 'flat', holderDia: 34, fluteLen: 26 };
+  const r = Math.max(1.5, (toolObj.dia || 12) / 2);
+  const holderR = Math.max(r * 1.8, (toolObj.holderDia || 34) / 2);
+  const fluteH = Math.min(26, toolObj.fluteLen || 26);
+  const colletH = 14;
+  const taperH = 20;
+
+  const zTip = tip.z;
+  const zTipShoulder = (toolObj.shape === 'flat') ? zTip : zTip + Math.min(r * 1.2, 5);
+  const zFluteTop = zTip + fluteH;
+  const zColletTop = zFluteTop + colletH;
+  const zTaperTop = zColletTop + taperH;
+
+  const sides = 16;
+  const spin = state.sim.spindleAngle;
+  const isColl = seg.isCollision;
+  const facets = [];
+
+  // Helper to generate a 3D frustum/cylinder ring of shaded quads
+  function addFrustumRing(zBot, rBot, zTop, rTop, baseRgb, isFluted) {
+    for (let i = 0; i < sides; i++) {
+      const a0 = (i / sides) * Math.PI * 2 + spin;
+      const a1 = ((i + 1) / sides) * Math.PI * 2 + spin;
+      const midA = (a0 + a1) * 0.5;
+      // Directional light from front-top-left
+      const light = 0.45 + 0.55 * Math.max(0, Math.cos(midA - 0.7));
+
+      const p0 = project3D({ x: tip.x + Math.cos(a0) * rBot, y: tip.y + Math.sin(a0) * rBot, z: zBot }, cx, cy);
+      const p1 = project3D({ x: tip.x + Math.cos(a1) * rBot, y: tip.y + Math.sin(a1) * rBot, z: zBot }, cx, cy);
+      const p2 = project3D({ x: tip.x + Math.cos(a1) * rTop, y: tip.y + Math.sin(a1) * rTop, z: zTop }, cx, cy);
+      const p3 = project3D({ x: tip.x + Math.cos(a0) * rTop, y: tip.y + Math.sin(a0) * rTop, z: zTop }, cx, cy);
+
+      // Highlight flute valleys vs cutting lands
+      const isFluteValley = isFluted && (i % Math.max(2, Math.floor(sides / (toolObj.flutes || 3))) === 0);
+      const shadeMul = isFluteValley ? light * 0.52 : light;
+
+      const cr = Math.min(255, Math.round(baseRgb[0] * shadeMul));
+      const cg = Math.min(255, Math.round(baseRgb[1] * shadeMul));
+      const cb = Math.min(255, Math.round(baseRgb[2] * shadeMul));
+
+      facets.push({
+        pts: [p0, p1, p2, p3],
+        depth: (p0.depth + p1.depth + p2.depth + p3.depth) * 0.25,
+        fill: `rgb(${cr}, ${cg}, ${cb})`,
+        stroke: isFluteValley ? 'rgba(255,255,255,0.22)' : null
+      });
+    }
+  }
+
+  // 1. Tip Cone / Ball Nose (if ball or drill)
+  if (toolObj.shape === 'ball' || toolObj.shape === 'drill') {
+    addFrustumRing(zTip, 0.2, zTipShoulder, r, isColl ? [255, 60, 60] : [245, 200, 75], true);
+  }
+  // 2. Fluted Carbide Cutter Body (Gold/TiAlN Bronze Metallic Finish)
+  addFrustumRing(zTipShoulder, r, zFluteTop, r, isColl ? [255, 55, 55] : [235, 190, 68], true);
+  // 3. Collet Nut (Dark Gunmetal Steel)
+  addFrustumRing(zFluteTop, holderR * 0.85, zColletTop, holderR, [85, 95, 110], false);
+  // 4. CAT40 / BT40 Tapered Spindle Holder (Bright Machined Steel)
+  addFrustumRing(zColletTop, holderR, zTaperTop, holderR * 1.28, [150, 165, 185], false);
+
+  // Painter-sort all 3D tool facets back-to-front
+  facets.sort((a, b) => a.depth - b.depth);
+  for (let i = 0; i < facets.length; i++) {
+    fillProjectedQuad(ctx, facets[i].pts, facets[i].fill, facets[i].stroke);
+  }
+
+  // Animated Flood Coolant Spray Particles when M08 is Active
+  if (state.cam.showCoolant && seg.coolant && state.sim.playing) {
+    const tip2D = project3D(tip, cx, cy);
+    ctx.fillStyle = 'rgba(57, 197, 207, 0.8)';
+    for (let p = 0; p < 8; p++) {
+      const sx = tip2D.sx + (Math.random() - 0.5) * 24;
+      const sy = tip2D.sy + (Math.random() - 0.2) * 18;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 }
 
 function drawBackplot() {
@@ -2035,34 +2409,32 @@ function drawBackplot() {
   const cx = w / 2, cy = h / 2;
   const isLathe = (state.kinematicsMode === 'lathe');
 
-  // 1. Background
-  ctx.fillStyle = '#0b0e13';
+  // 1. Deep CAD Viewport Backdrop
+  ctx.fillStyle = '#0b0e14';
   ctx.fillRect(0, 0, w, h);
 
-  // 2. Reference Floor Grid
+  // 2. 3D Machine Table Grid at Z = stock.minZ
+  const tableZ = isLathe ? -state.stock.latheDia * 0.7 : state.stock.minZ;
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.045)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let g = -120; g <= 120; g += 20) {
-    const a1 = project3D({ x: g, y: -120, z: 0 }, cx, cy);
-    const a2 = project3D({ x: g, y: 120, z: 0 }, cx, cy);
+    const a1 = project3D({ x: g, y: -120, z: tableZ }, cx, cy);
+    const a2 = project3D({ x: g, y: 120, z: tableZ }, cx, cy);
     ctx.moveTo(a1.sx, a1.sy); ctx.lineTo(a2.sx, a2.sy);
-    const b1 = project3D({ x: -120, y: g, z: 0 }, cx, cy);
-    const b2 = project3D({ x: 120, y: g, z: 0 }, cx, cy);
+    const b1 = project3D({ x: -120, y: g, z: tableZ }, cx, cy);
+    const b2 = project3D({ x: 120, y: g, z: tableZ }, cx, cy);
     ctx.moveTo(b1.sx, b1.sy); ctx.lineTo(b2.sx, b2.sy);
   }
   ctx.stroke();
 
-  // 3. Render 2.5D/3D Stock Removal Mesh (or Lathe Revolving Blank)
-  if (state.cam.showStockRemoval && state.segments.length > 0) {
-    if (isLathe) {
-      drawLatheStockCylinder(ctx, cx, cy);
-    } else {
-      drawMillStockHeightmap(ctx, cx, cy);
-    }
+  // 3. Render 3D Solid Workpiece (Mill Block or Lathe Chuck+Bar)
+  if (state.segments.length > 0) {
+    if (isLathe) drawSolidLatheStock3D(ctx, cx, cy);
+    else drawSolidMillStock3D(ctx, cx, cy);
   }
 
-  // 4. Work Origin Triad
+  // 4. Work Coordinate Origin Triad
   const orig = project3D({ x: 0, y: 0, z: 0 }, cx, cy);
   [
     { pt: { x: 16, y: 0, z: 0 }, col: '#ff7b72', lbl: isLathe ? 'X(Dia)' : 'X' },
@@ -2092,7 +2464,7 @@ function drawBackplot() {
     });
   }
 
-  // 6. Render Toolpath Segments & Determine Exact Interpolated Tool Tip at currentTimeSec
+  // 6. Render 3D Toolpath Curves & Interpolate Active Tool Position
   const tNow = state.sim.currentTimeSec;
   let activeTip = { x: 0, y: 0, z: 0 };
   let activeSeg = state.segments[0] || null;
@@ -2108,9 +2480,7 @@ function drawBackplot() {
       continue;
     }
 
-    // Dim future unexecuted segments slightly so operator sees progress clearly
-    const alpha = isFuture ? 0.22 : 0.92;
-
+    const alpha = isFuture ? 0.25 : 0.95;
     ctx.beginPath();
     if (seg.isCollision) {
       ctx.strokeStyle = '#ff2a2a';
@@ -2122,15 +2492,15 @@ function drawBackplot() {
       ctx.setLineDash([]);
     } else if (seg.type === 'G00') {
       ctx.strokeStyle = `rgba(248, 81, 73, ${alpha})`;
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1.3;
       ctx.setLineDash([4, 4]);
     } else if (seg.type === 'G02' || seg.type === 'G03') {
       ctx.strokeStyle = `rgba(126, 231, 135, ${alpha})`;
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 1.9;
       ctx.setLineDash([]);
     } else {
       ctx.strokeStyle = `rgba(57, 197, 207, ${alpha})`;
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 1.9;
       ctx.setLineDash([]);
     }
 
@@ -2155,160 +2525,15 @@ function drawBackplot() {
     }
   }
 
-  // 7. Render Animated Rotating Cutting Tool Assembly + Coolant Spray
+  // 7. Render Volumetric 3D Rotating Tool & Holder Assembly
   if (state.segments.length > 0 && activeSeg) {
-    drawAnimatedToolAssembly(ctx, cx, cy, activeTip, activeSeg, isLathe);
+    drawVolumetric3DTool(ctx, cx, cy, activeTip, activeSeg, isLathe);
   }
 
-  // 8. Update Real-Time Kinematic Feeds & Speeds HUD Gauges
+  // 8. Update Kinematic HUD
   updateKinematicHUD(activeTip, activeSeg, instantFeed, isLathe);
 
   ctx.restore();
-}
-
-function drawMillStockHeightmap(ctx, cx, cy) {
-  const stk = state.stock;
-  if (!stk.currentZ) return;
-  const spanX = stk.maxX - stk.minX;
-  const spanY = stk.maxY - stk.minY;
-  const cellW = spanX / stk.cols;
-  const cellH = spanY / stk.rows;
-  const depthRange = Math.max(1, stk.maxZ - stk.minZ);
-
-  // Render colored heightfield cells showing uncut top vs carved pockets
-  for (let r = 0; r < stk.rows; r++) {
-    for (let c = 0; c < stk.cols; c++) {
-      const zVal = stk.currentZ[r * stk.cols + c];
-      const cutDepth = stk.maxZ - zVal;
-      const x0 = stk.minX + c * cellW;
-      const y0 = stk.minY + r * cellH;
-      const p0 = project3D({ x: x0, y: y0, z: zVal }, cx, cy);
-      const p1 = project3D({ x: x0 + cellW, y: y0 + cellH, z: zVal }, cx, cy);
-      const rad = Math.max(2, Math.hypot(p1.sx - p0.sx, p1.sy - p0.sy) * 0.55);
-
-      if (cutDepth <= 0.05) {
-        // Uncut raw aluminum billet surface
-        ctx.fillStyle = 'rgba(130, 145, 165, 0.16)';
-      } else {
-        // Machined pocket floor shaded by depth
-        const ratio = Math.min(1, cutDepth / depthRange);
-        const gCol = Math.round(180 - ratio * 70);
-        const bCol = Math.round(240 - ratio * 40);
-        ctx.fillStyle = `rgba(45, ${gCol}, ${bCol}, 0.42)`;
-      }
-      ctx.fillRect(p0.sx - rad * 0.5, p0.sy - rad * 0.5, rad, rad);
-    }
-  }
-
-  // Stock wireframe bounding box
-  const corners = [
-    { x: stk.minX, y: stk.minY, z: stk.minZ }, { x: stk.maxX, y: stk.minY, z: stk.minZ },
-    { x: stk.maxX, y: stk.maxY, z: stk.minZ }, { x: stk.minX, y: stk.maxY, z: stk.minZ },
-    { x: stk.minX, y: stk.minY, z: stk.maxZ }, { x: stk.maxX, y: stk.minY, z: stk.maxZ },
-    { x: stk.maxX, y: stk.maxY, z: stk.maxZ }, { x: stk.minX, y: stk.maxY, z: stk.maxZ }
-  ].map(p => project3D(p, cx, cy));
-  const edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
-  ctx.strokeStyle = 'rgba(139, 148, 158, 0.35)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  edges.forEach(([i, j]) => { ctx.moveTo(corners[i].sx, corners[i].sy); ctx.lineTo(corners[j].sx, corners[j].sy); });
-  ctx.stroke();
-}
-
-function drawLatheStockCylinder(ctx, cx, cy) {
-  const stk = state.stock;
-  const r = stk.latheDia / 2;
-  const z0 = 0;
-  const z1 = -stk.latheLen;
-  const pTop0 = project3D({ x: r, y: 0, z: z0 }, cx, cy);
-  const pBot0 = project3D({ x: -r, y: 0, z: z0 }, cx, cy);
-  const pTop1 = project3D({ x: r, y: 0, z: z1 }, cx, cy);
-  const pBot1 = project3D({ x: -r, y: 0, z: z1 }, cx, cy);
-
-  ctx.fillStyle = 'rgba(130, 145, 165, 0.14)';
-  ctx.strokeStyle = 'rgba(139, 148, 158, 0.4)';
-  ctx.beginPath();
-  ctx.moveTo(pTop0.sx, pTop0.sy);
-  ctx.lineTo(pTop1.sx, pTop1.sy);
-  ctx.lineTo(pBot1.sx, pBot1.sy);
-  ctx.lineTo(pBot0.sx, pBot0.sy);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawAnimatedToolAssembly(ctx, cx, cy, tip, seg, isLathe) {
-  const toolObj = state.tools[seg.tool] || { dia: 10, flutes: 3, holderDia: 28, fluteLen: 26 };
-  const tip2D = project3D(tip, cx, cy);
-
-  if (isLathe) {
-    // Draw Lathe Turning Tool Holder & Carbide Insert Diamond
-    ctx.fillStyle = '#d29922';
-    ctx.strokeStyle = '#ffd33d';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(tip2D.sx, tip2D.sy);
-    ctx.lineTo(tip2D.sx + 10, tip2D.sy - 14);
-    ctx.lineTo(tip2D.sx + 28, tip2D.sy - 14);
-    ctx.lineTo(tip2D.sx + 28, tip2D.sy - 4);
-    ctx.lineTo(tip2D.sx + 12, tip2D.sy - 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  } else {
-    // 3D Rotating Endmill Cutter + Tapered Tool Holder
-    const r = (toolObj.dia || 10) / 2;
-    const fluteTopZ = tip.z + Math.min(22, toolObj.fluteLen || 22);
-    const holderTopZ = fluteTopZ + 16;
-
-    const topFlute2D = project3D({ x: tip.x, y: tip.y, z: fluteTopZ }, cx, cy);
-    const topHolder2D = project3D({ x: tip.x, y: tip.y, z: holderTopZ }, cx, cy);
-    const edgePt2D = project3D({ x: tip.x + r, y: tip.y, z: tip.z }, cx, cy);
-    const screenRad = Math.max(4, Math.hypot(edgePt2D.sx - tip2D.sx, edgePt2D.sy - tip2D.sy));
-
-    // Cutter Body Cylinder
-    ctx.fillStyle = seg.isCollision ? 'rgba(255, 42, 42, 0.55)' : 'rgba(255, 211, 61, 0.25)';
-    ctx.strokeStyle = seg.isCollision ? '#ff2a2a' : '#ffd33d';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.rect(topFlute2D.sx - screenRad, topFlute2D.sy, screenRad * 2, tip2D.sy - topFlute2D.sy);
-    ctx.fill();
-    ctx.stroke();
-
-    // Animated Rotating Helical Flutes (driven by Spindle RPM & M03/M04 direction)
-    const flutes = toolObj.flutes || 3;
-    for (let f = 0; f < flutes; f++) {
-      const ang = state.sim.spindleAngle + (f * Math.PI * 2) / flutes;
-      const offset = Math.sin(ang) * screenRad;
-      ctx.strokeStyle = (seg.spindleDir === 'M05') ? 'rgba(255,255,255,0.3)' : '#ffffff';
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(tip2D.sx + offset, tip2D.sy);
-      ctx.lineTo(topFlute2D.sx - offset * 0.7, topFlute2D.sy);
-      ctx.stroke();
-    }
-
-    // Tool Holder Collar
-    const holderRad = screenRad * 1.9;
-    ctx.fillStyle = 'rgba(110, 118, 129, 0.55)';
-    ctx.strokeStyle = '#8b949e';
-    ctx.beginPath();
-    ctx.rect(topHolder2D.sx - holderRad, topHolder2D.sy, holderRad * 2, topFlute2D.sy - topHolder2D.sy);
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  // Animated Flood Coolant Jet Particles when M08 is Active
-  if (state.cam.showCoolant && seg.coolant && state.sim.playing) {
-    ctx.fillStyle = 'rgba(57, 197, 207, 0.75)';
-    for (let p = 0; p < 6; p++) {
-      const spreadX = (Math.random() - 0.5) * 18;
-      const spreadY = (Math.random() - 0.2) * 14;
-      ctx.beginPath();
-      ctx.arc(tip2D.sx + spreadX, tip2D.sy + spreadY, 1.8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
 }
 
 function updateKinematicHUD(tip, seg, instantFeed, isLathe) {
@@ -2320,17 +2545,15 @@ function updateKinematicHUD(tip, seg, instantFeed, isLathe) {
   document.getElementById('hud-z').textContent = tip.z.toFixed(3);
 
   if (seg) {
-    const toolObj = state.tools[seg.tool] || { dia: 10, flutes: 3 };
+    const toolObj = state.tools[seg.tool] || { dia: 10, flutes: 3, shape: 'flat' };
     document.getElementById('hud-modal').textContent = seg.modalStr;
-    document.getElementById('hud-tool').textContent = `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia}mm`;
+    document.getElementById('hud-tool').textContent = `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia}mm (${toolObj.shape})`;
 
-    // Feedrate & Gauge Bar
     const maxFeedBar = Math.max(3000, prof.rapidRate || 15000);
     document.getElementById('hud-feed').textContent = `${Math.round(instantFeed)} mm/min (${seg.type})`;
     document.getElementById('gauge-feed').style.width = `${Math.min(100, (instantFeed / maxFeedBar) * 100)}%`;
     document.getElementById('gauge-feed').style.background = (seg.type === 'G00') ? '#f85149' : '#39c5cf';
 
-    // Spindle RPM, Surface Speed (Vc m/min), and Chip Load (fz)
     const rpm = (seg.spindleDir === 'M05') ? 0 : seg.spindle;
     const maxRpm = prof.maxRpm || 15000;
     document.getElementById('hud-spindle').textContent = `${rpm} RPM (${seg.spindleDir})`;
@@ -2347,21 +2570,20 @@ function updateKinematicHUD(tip, seg, instantFeed, isLathe) {
 }
 
 /* ==========================================================================
-   10. REAL-TIME KINEMATIC ANIMATION LOOP & MOUSE ORBIT/PAN/ZOOM
+   8. REAL-TIME ANIMATION LOOP & 3D CAMERA MOUSE ORBIT/PAN/ZOOM
    ========================================================================== */
 function animationLoop(ts) {
   if (!state.sim.lastFrameTs) state.sim.lastFrameTs = ts;
   const dt = Math.min(0.1, (ts - state.sim.lastFrameTs) / 1000);
   state.sim.lastFrameTs = ts;
 
-  const activeSeg = state.segments.find(s => state.sim.currentTimeSec >= s.startTimeSec && state.sim.currentTimeSec <= s.endTimeSec);
+  const activeSeg = state.segments.find(s => state.sim.currentTimeSec >= s.startTimeSec && state.sim.currentTimeSec <= s.endTimeSec) || state.segments[state.segments.length - 1];
   const rpm = (activeSeg && activeSeg.spindleDir !== 'M05') ? activeSeg.spindle : 0;
 
-  // Spin cutter flutes continuously whenever spindle is ON or playing
-  if (rpm > 0 && (state.sim.playing || state.sim.currentTimeSec < state.stats.totalTimeSec)) {
+  // Spin 3D cutter flutes continuously when spindle is running
+  if (rpm > 0) {
     const dirSign = (activeSeg && activeSeg.spindleDir === 'M04') ? -1 : 1;
-    // Visual angular velocity scaled so human eye perceives flute rotation clearly
-    const visualOmega = Math.min(38, (rpm / 60) * 0.35);
+    const visualOmega = Math.min(32, (rpm / 60) * 0.25);
     state.sim.spindleAngle += dirSign * visualOmega * dt;
   }
 
@@ -2389,7 +2611,6 @@ function animationLoop(ts) {
   requestAnimationFrame(animationLoop);
 }
 
-// Mouse Orbit / Pan / Zoom
 let isDragging = false, dragMode = 'orbit', lastMouse = { x: 0, y: 0 };
 el.canvasContainer.addEventListener('mousedown', (e) => {
   isDragging = true;
@@ -2403,8 +2624,8 @@ window.addEventListener('mousemove', (e) => {
   const dx = e.clientX - lastMouse.x, dy = e.clientY - lastMouse.y;
   lastMouse = { x: e.clientX, y: e.clientY };
   if (dragMode === 'orbit') {
-    state.cam.rotZ += dx * 0.01;
-    state.cam.rotX = Math.max(-Math.PI, Math.min(0, state.cam.rotX + dy * 0.01));
+    state.cam.yaw += dx * 0.01;
+    state.cam.pitch = Math.max(-Math.PI * 0.48, Math.min(Math.PI * 0.49, state.cam.pitch + dy * 0.01));
   } else {
     state.cam.panX += dx; state.cam.panY += dy;
   }
@@ -2417,14 +2638,13 @@ el.canvasContainer.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 /* ==========================================================================
-   11. PRINTABLE CNC SHOP SETUP SHEET GENERATOR
+   9. SETUP SHEET, 50K STRESS TEST, FILE COMPARE & WEB SERIAL DNC
    ========================================================================== */
 function openSetupSheetModal() {
   const doc = getActiveDoc();
   const prof = getActiveProfile();
   const imgDataUrl = el.canvas.toDataURL('image/png');
 
-  // Gather per-tool statistics
   const toolUsage = {};
   state.segments.forEach(s => {
     if (!toolUsage[s.tool]) {
@@ -2448,7 +2668,7 @@ function openSetupSheetModal() {
   const mins = Math.floor(state.stats.totalTimeSec / 60);
   const secs = Math.floor(state.stats.totalTimeSec % 60);
 
-  const reportHtml = `
+  document.getElementById('setup-sheet-preview-body').innerHTML = `
     <div style="border-bottom:2px solid #1f6feb; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between;">
       <div>
         <h2 style="margin:0; font-size:18px;">CNC MACHINING SETUP SHEET</h2>
@@ -2465,34 +2685,21 @@ function openSetupSheetModal() {
         X Range: ${state.extents.minX.toFixed(2)} to ${state.extents.maxX.toFixed(2)} mm<br>
         Y Range: ${state.extents.minY.toFixed(2)} to ${state.extents.maxY.toFixed(2)} mm<br>
         Z Range: ${state.extents.minZ.toFixed(2)} to ${state.extents.maxZ.toFixed(2)} mm<br>
-        Collision Verification: <strong style="color:${state.alarms.length ? '#cf222e' : '#1a7f37'};">${state.alarms.length ? state.alarms.length + ' FAULT(S)' : 'PASSED (0 FAULTS)'}</strong>
+        3D Collision Verification: <strong style="color:${state.alarms.length ? '#cf222e' : '#1a7f37'};">${state.alarms.length ? state.alarms.length + ' FAULT(S)' : 'PASSED (0 FAULTS)'}</strong>
       </div>
-      <div style="width:240px; border:1px solid #d0d7de; background:#0b0e13; text-align:center;">
+      <div style="width:240px; border:1px solid #d0d7de; background:#0b0e14; text-align:center;">
         <img src="${imgDataUrl}" style="max-width:100%; max-height:130px; display:block; margin:auto;">
       </div>
     </div>
     <h3 style="margin:0 0 6px 0; font-size:13px;">TOOLING &amp; OFFSET LIST</h3>
     <table style="width:100%; border-collapse:collapse; font-size:12px;">
-      <thead>
-        <tr style="background:#eef1f5;">
-          <th style="padding:6px; border:1px solid #ccc; text-align:left;">Tool</th>
-          <th style="padding:6px; border:1px solid #ccc; text-align:left;">Description</th>
-          <th style="padding:6px; border:1px solid #ccc; text-align:left;">Diameter</th>
-          <th style="padding:6px; border:1px solid #ccc; text-align:left;">Min Z Depth</th>
-          <th style="padding:6px; border:1px solid #ccc; text-align:left;">Est. Time</th>
-        </tr>
-      </thead>
+      <thead><tr style="background:#eef1f5;"><th style="padding:6px; border:1px solid #ccc; text-align:left;">Tool</th><th style="padding:6px; border:1px solid #ccc; text-align:left;">Description</th><th style="padding:6px; border:1px solid #ccc; text-align:left;">Diameter</th><th style="padding:6px; border:1px solid #ccc; text-align:left;">Min Z</th><th style="padding:6px; border:1px solid #ccc; text-align:left;">Est. Time</th></tr></thead>
       <tbody>${toolRowsHtml}</tbody>
     </table>
   `;
-
-  document.getElementById('setup-sheet-preview-body').innerHTML = reportHtml;
   document.getElementById('modal-setup-sheet').classList.add('open');
 }
 
-/* ==========================================================================
-   12. 50,000-LINE SURFACING STRESS TEST & NC TRANSFORMS
-   ========================================================================== */
 function generate50kStressTest() {
   const out = [
     '%',
@@ -2503,45 +2710,25 @@ function generate50kStressTest() {
     'G00 X-45.000 Y-35.000 Z15.000 M08',
     'G00 Z2.000'
   ];
-  const passes = 200;
-  const ptsPerPass = 249;
+  const passes = 200, ptsPerPass = 249;
   for (let p = 0; p < passes; p++) {
     const y = -35 + (p / (passes - 1)) * 70;
     const dir = (p % 2 === 0) ? 1 : -1;
     for (let s = 0; s < ptsPerPass; s++) {
       const t = (dir === 1) ? (s / (ptsPerPass - 1)) : (1 - s / (ptsPerPass - 1));
       const x = -45 + t * 90;
-      const z = -4.0 + Math.sin(x * 0.14) * Math.cos(y * 0.14) * 3.5;
+      const z = -6.0 + Math.sin(x * 0.14) * Math.cos(y * 0.14) * 4.5;
       out.push(`G01 X${x.toFixed(3)} Y${y.toFixed(3)} Z${z.toFixed(3)} F3500.0`);
     }
   }
   out.push('G00 Z25.000 M09', 'M05', 'M30', '%');
 
   const id = 'doc-50k-' + Date.now();
-  state.docs.push({ id, name: 'O5000_50K_SURFACING.nc', content: out.join('\n') });
+  state.docs.push({ id, mode: 'mill', dirty: false, name: 'O5000_50K_SURFACING.nc', content: out.join('\n') });
   switchDoc(id);
-  showToast(`Generated ${out.length.toLocaleString()} lines — Virtualized Editor Active!`);
+  showToast(`Generated ${out.length.toLocaleString()} lines — Click any line to edit inline!`);
 }
 
-function applyDecimalRepair() {
-  // Converts Fanuc integer coordinates (X100 Y-250) -> (X0.100 Y-0.250)
-  state.linesCache = state.linesCache.map(line => {
-    let comment = '', code = line;
-    const cIdx = line.indexOf('(');
-    if (cIdx !== -1) { code = line.slice(0, cIdx); comment = line.slice(cIdx); }
-    code = code.replace(/([XYZIJKR])([+-]?\d+)(?!\.)\b/gi, (m, ax, intStr) => {
-      const val = parseInt(intStr, 10) / 1000;
-      return `${ax}${val.toFixed(3)}`;
-    });
-    return code + comment;
-  });
-  syncLinesCacheToDoc(true);
-  showToast('Repaired integer coordinates to 3-place decimals (0.001mm)');
-}
-
-/* ==========================================================================
-   13. FILE COMPARE & WEB SERIAL DNC
-   ========================================================================== */
 function normalizeCNCLine(line) {
   let s = line;
   if (document.getElementById('cmp-ignore-comments').checked) s = s.replace(/\(.*?\)/g, '').split(';')[0];
@@ -2564,7 +2751,11 @@ function runCNCFileCompare() {
   const linesA = leftDoc.content.split('\n');
   const linesB = rightDoc.content.split('\n');
   const maxLen = Math.max(linesA.length, linesB.length);
-  const rows = [], diffIndices = [];
+  let diffCount = 0;
+
+  const leftBody = document.getElementById('cmp-left-body');
+  const rightBody = document.getElementById('cmp-right-body');
+  leftBody.innerHTML = ''; rightBody.innerHTML = '';
 
   for (let i = 0; i < maxLen; i++) {
     const rawA = i < linesA.length ? linesA[i] : null;
@@ -2573,30 +2764,19 @@ function runCNCFileCompare() {
     if (rawA === null) status = 'added';
     else if (rawB === null) status = 'removed';
     else if (normalizeCNCLine(rawA) !== normalizeCNCLine(rawB)) status = 'modified';
-    if (status !== 'same') diffIndices.push(i);
-    rows.push({ idx: i, rawA, rawB, status });
-  }
+    if (status !== 'same') diffCount++;
 
-  state.compare.diffs = rows;
-  state.compare.diffIndices = diffIndices;
-  state.compare.focusedDiffCursor = diffIndices.length > 0 ? 0 : -1;
-  document.getElementById('cmp-stats').textContent = `${diffIndices.length} CNC difference(s)`;
-
-  const leftBody = document.getElementById('cmp-left-body');
-  const rightBody = document.getElementById('cmp-right-body');
-  leftBody.innerHTML = ''; rightBody.innerHTML = '';
-
-  rows.forEach(row => {
     const divL = document.createElement('div');
-    divL.className = `diff-row ${row.status === 'added' ? 'same' : row.status}`;
-    divL.innerHTML = `<span class="diff-ln">${row.rawA !== null ? row.idx + 1 : ''}</span><span class="diff-text">${row.rawA !== null ? tokenizeLine(row.rawA) : ''}</span>`;
+    divL.className = `diff-row ${status === 'added' ? 'same' : status}`;
+    divL.innerHTML = `<span class="diff-ln">${rawA !== null ? i + 1 : ''}</span><span class="diff-text">${rawA !== null ? tokenizeLine(rawA) : ''}</span>`;
     leftBody.appendChild(divL);
 
     const divR = document.createElement('div');
-    divR.className = `diff-row ${row.status === 'removed' ? 'same' : row.status}`;
-    divR.innerHTML = `<span class="diff-ln">${row.rawB !== null ? row.idx + 1 : ''}</span><span class="diff-text">${row.rawB !== null ? tokenizeLine(row.rawB) : ''}</span>`;
+    divR.className = `diff-row ${status === 'removed' ? 'same' : status}`;
+    divR.innerHTML = `<span class="diff-ln">${rawB !== null ? i + 1 : ''}</span><span class="diff-text">${rawB !== null ? tokenizeLine(rawB) : ''}</span>`;
     rightBody.appendChild(divR);
-  });
+  }
+  document.getElementById('cmp-stats').textContent = `${diffCount} CNC difference(s)`;
   leftBody.onscroll = () => { rightBody.scrollTop = leftBody.scrollTop; };
   rightBody.onscroll = () => { leftBody.scrollTop = rightBody.scrollTop; };
 }
@@ -2609,7 +2789,7 @@ function logDNC(msg) {
 
 async function connectSerialPort() {
   if (!('serial' in navigator)) {
-    logDNC('WARN: Web Serial API not available. Virtual Loopback DNC Ready.');
+    logDNC('WARN: Web Serial API unavailable in this browser. Virtual Loopback DNC Ready.');
     document.getElementById('dnc-status-text').textContent = 'Port: Virtual Loopback Ready';
     return;
   }
@@ -2658,14 +2838,14 @@ async function sendProgramDNC() {
 }
 
 /* ==========================================================================
-   14. DOCUMENT TABS, PROFILES & EVENT WIRING
+   10. DOCUMENT TABS, PROFILES & EVENT WIRING
    ========================================================================== */
 function renderDocTabs() {
   el.docTabsBar.innerHTML = '';
   state.docs.forEach(doc => {
     const tab = document.createElement('div');
     tab.className = 'doc-tab' + (doc.id === state.activeDocId ? ' active' : '');
-    tab.innerHTML = `<span>${escapeHtml(doc.name)}</span>`;
+    tab.innerHTML = `<span>${escapeHtml(doc.name)}${doc.dirty ? ' <span class="dirty-dot">*</span>' : ''}</span>`;
     if (state.docs.length > 1) {
       const x = document.createElement('span');
       x.className = 'close-tab'; x.textContent = '×';
@@ -2677,16 +2857,16 @@ function renderDocTabs() {
   });
   const add = document.createElement('button');
   add.className = 'doc-tab-add'; add.textContent = '+';
+  add.title = 'New Editable NC File';
   add.onclick = () => {
     const id = 'doc-' + Date.now();
-    state.docs.push({ id, mode: state.kinematicsMode, name: `O${1000 + state.docs.length}_NEW.nc`, content: '%\nO1005\nG90 G17 G21\nG00 X0 Y0 Z20\nM30\n%' });
+    state.docs.push({ id, mode: state.kinematicsMode, dirty: false, name: `O${1000 + state.docs.length}_NEW.nc`, content: '%\nO1005 (NEW EDITABLE PROGRAM)\nG90 G17 G21\nT01 M06\nS10000 M03\nG00 X0.000 Y0.000 Z20.000\nG01 Z-4.000 F400.0\nG01 X30.000 F1200.0\nG01 Y25.000\nG01 X0.000\nG01 Y0.000\nG00 Z25.000\nM30\n%' });
     switchDoc(id);
   };
   el.docTabsBar.appendChild(add);
 }
 
 function switchDoc(docId) {
-  commitInlineLineEditor();
   state.activeDocId = docId;
   const doc = getActiveDoc();
   if (doc.mode) {
@@ -2695,9 +2875,11 @@ function switchDoc(docId) {
   }
   state.linesCache = doc.content.split('\n');
   state.activeLine = 0;
-  el.veditorViewport.scrollTop = 0;
+  el.textarea.value = doc.content;
+  el.textarea.scrollTop = 0;
+  el.virtualContainer.scrollTop = 0;
   renderDocTabs();
-  renderVirtualEditor();
+  renderEditorView();
   parseAndBuildSimulation(doc.content, true);
   updateNCAssistant();
 }
@@ -2712,7 +2894,7 @@ function closeDoc(docId) {
 
 function loadProfiles() {
   try {
-    const saved = localStorage.getItem('cnc_edit_v2_profiles');
+    const saved = localStorage.getItem('cnc_edit_v3_profiles');
     state.profiles = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PROFILES));
   } catch { state.profiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES)); }
   el.profileSelect.innerHTML = '';
@@ -2742,28 +2924,116 @@ function wireEvents() {
     };
   });
 
-  // Virtualized Editor Scroll, Click & Inline Edit
-  el.veditorViewport.addEventListener('scroll', renderVirtualEditor);
+  // DIRECT TEXTAREA EDITING EVENTS (100% Editable)
+  el.textarea.addEventListener('input', () => {
+    applyTextChange(el.textarea.value, true, false, false);
+  });
+  el.textarea.addEventListener('scroll', syncDirectEditorScroll);
+
+  function handleCaretMove() {
+    const pos = el.textarea.selectionStart;
+    const before = el.textarea.value.slice(0, pos);
+    const lines = before.split('\n');
+    const lineIdx = lines.length - 1;
+    const colIdx = lines[lineIdx].length + 1;
+    document.getElementById('st-cursor').textContent = `Ln ${lineIdx + 1}, Col ${colIdx}`;
+    if (state.activeLine !== lineIdx) {
+      state.activeLine = lineIdx;
+      renderEditorView();
+      updateNCAssistant();
+      drawBackplot();
+    }
+  }
+  el.textarea.addEventListener('click', handleCaretMove);
+  el.textarea.addEventListener('keyup', handleCaretMove);
+  el.textarea.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      document.getElementById('btn-save-file').click();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      document.getElementById('find-bar').classList.add('open');
+      document.getElementById('find-input').focus();
+    }
+  });
+
+  // VIRTUALIZED LARGE-FILE INLINE EDITING EVENTS (>15,000 lines)
+  el.virtualContainer.addEventListener('scroll', renderVirtualLines);
   el.veditorLinesLayer.addEventListener('click', (e) => {
     const row = e.target.closest('.vline-row');
     if (!row) return;
-    commitInlineLineEditor();
-    state.activeLine = parseInt(row.dataset.line, 10);
-    document.getElementById('st-cursor').textContent = `Ln ${state.activeLine + 1}`;
-    renderVirtualEditor();
+    const lineIdx = parseInt(row.dataset.line, 10);
+    state.activeLine = lineIdx;
+    document.getElementById('st-cursor').textContent = `Ln ${lineIdx + 1}`;
+    renderVirtualLines();
     updateNCAssistant();
     drawBackplot();
+
+    // Open instant inline input on clicked line
+    el.virtualInlineInput.style.display = 'block';
+    el.virtualInlineInput.style.top = `${lineIdx * ROW_HEIGHT + 24}px`;
+    el.virtualInlineInput.value = state.linesCache[lineIdx] || '';
+    el.virtualInlineInput.focus();
   });
-  el.veditorLinesLayer.addEventListener('dblclick', (e) => {
-    const row = e.target.closest('.vline-row');
-    if (!row) return;
-    openInlineLineEditor(parseInt(row.dataset.line, 10));
+
+  function commitVirtualLine() {
+    if (el.virtualInlineInput.style.display === 'none') return;
+    state.linesCache[state.activeLine] = el.virtualInlineInput.value;
+    el.virtualInlineInput.style.display = 'none';
+    applyTextChange(state.linesCache.join('\n'), true, false, false);
+  }
+  el.virtualInlineInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commitVirtualLine(); }
+    else if (e.key === 'Escape') { el.virtualInlineInput.style.display = 'none'; }
   });
-  el.inlineEditor.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); commitInlineLineEditor(); }
-    else if (e.key === 'Escape') { el.inlineEditor.style.display = 'none'; }
-  });
-  el.inlineEditor.addEventListener('blur', commitInlineLineEditor);
+  el.virtualInlineInput.addEventListener('blur', commitVirtualLine);
+
+  document.getElementById('btn-force-full-edit').onclick = () => {
+    el.textarea.value = state.linesCache.join('\n');
+    renderEditorView(true);
+    showToast('Switched to Full Textarea mode');
+  };
+
+  // Find & Replace
+  document.getElementById('btn-toggle-find').onclick = () => {
+    const fb = document.getElementById('find-bar');
+    fb.classList.toggle('open');
+    if (fb.classList.contains('open')) document.getElementById('find-input').focus();
+  };
+  document.getElementById('btn-close-find').onclick = () => document.getElementById('find-bar').classList.remove('open');
+  document.getElementById('btn-find-next').onclick = () => {
+    const q = document.getElementById('find-input').value;
+    if (!q) return;
+    const txt = getActiveDoc().content;
+    const start = (el.textarea.selectionEnd || 0);
+    let idx = txt.indexOf(q, start);
+    if (idx === -1) idx = txt.indexOf(q, 0);
+    if (idx !== -1) {
+      el.textarea.focus();
+      el.textarea.setSelectionRange(idx, idx + q.length);
+      handleCaretMove();
+    } else showToast('Text not found');
+  };
+  document.getElementById('btn-replace-one').onclick = () => {
+    const q = document.getElementById('find-input').value;
+    const rep = document.getElementById('replace-input').value;
+    if (!q) return;
+    const sel = el.textarea.value.slice(el.textarea.selectionStart, el.textarea.selectionEnd);
+    if (sel === q) {
+      const before = el.textarea.value.slice(0, el.textarea.selectionStart);
+      const after = el.textarea.value.slice(el.textarea.selectionEnd);
+      applyTextChange(before + rep + after, true, true, false);
+    }
+    document.getElementById('btn-find-next').click();
+  };
+  document.getElementById('btn-replace-all').onclick = () => {
+    const q = document.getElementById('find-input').value;
+    const rep = document.getElementById('replace-input').value;
+    if (!q) return;
+    const updated = getActiveDoc().content.split(q).join(rep);
+    applyTextChange(updated, true, true, false);
+    showToast(`Replaced all occurrences of "${q}"`);
+  };
 
   // Kinematics Mode Switch (Mill vs Lathe)
   el.kinematicsSelect.onchange = () => {
@@ -2771,7 +3041,7 @@ function wireEvents() {
     getActiveDoc().mode = state.kinematicsMode;
     setCameraView(state.kinematicsMode === 'lathe' ? 'front' : 'iso');
     parseAndBuildSimulation(getActiveDoc().content, true);
-    showToast(`Kinematics set to ${state.kinematicsMode === 'lathe' ? '2-Axis CNC Lathe (XZ Dia)' : '3-Axis CNC Mill (XYZ)'}`);
+    showToast(`3D Kinematics: ${state.kinematicsMode === 'lathe' ? '2-Axis CNC Lathe' : '3-Axis CNC Mill'}`);
   };
 
   // Theme & Profile
@@ -2786,28 +3056,28 @@ function wireEvents() {
   };
 
   // File I/O & Setup Sheet
-  document.getElementById('btn-new-file').onclick = () => {
-    const id = 'doc-' + Date.now();
-    state.docs.push({ id, mode: 'mill', name: `O${1000 + state.docs.length}_NEW.nc`, content: '%\nO1010\nG90 G17 G21\nG00 X0 Y0 Z20\nM30\n%' });
-    switchDoc(id);
-  };
+  document.getElementById('btn-new-file').onclick = () => document.querySelector('.doc-tab-add').click();
   document.getElementById('btn-open-file').onclick = () => document.getElementById('hidden-file-input').click();
   document.getElementById('hidden-file-input').onchange = (e) => {
     const f = e.target.files[0]; if (!f) return;
     const r = new FileReader();
     r.onload = (ev) => {
       const id = 'doc-' + Date.now();
-      state.docs.push({ id, mode: state.kinematicsMode, name: f.name, content: ev.target.result });
+      state.docs.push({ id, mode: state.kinematicsMode, dirty: false, name: f.name, content: ev.target.result });
       switchDoc(id);
+      showToast(`Opened ${f.name}`);
     };
     r.readAsText(f);
     e.target.value = '';
   };
   document.getElementById('btn-save-file').onclick = () => {
     const doc = getActiveDoc();
+    doc.dirty = false;
+    renderDocTabs();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([doc.content], { type: 'text/plain' }));
     a.download = doc.name; a.click();
+    showToast(`Saved ${doc.name}`);
   };
   document.getElementById('btn-export-setup').onclick = openSetupSheetModal;
   document.getElementById('btn-print-setup-sheet').onclick = () => {
@@ -2824,40 +3094,57 @@ function wireEvents() {
 
   // NC Functions & Stress Test
   document.getElementById('btn-stress-test-50k').onclick = generate50kStressTest;
-  document.getElementById('btn-decimal-repair').onclick = applyDecimalRepair;
+  document.getElementById('btn-decimal-repair').onclick = () => {
+    const fixed = state.linesCache.map(line => {
+      let comment = '', code = line;
+      const cIdx = line.indexOf('(');
+      if (cIdx !== -1) { code = line.slice(0, cIdx); comment = line.slice(cIdx); }
+      code = code.replace(/([XYZIJKR])([+-]?\d+)(?!\.)\b/gi, (m, ax, intStr) => `${ax}${(parseInt(intStr, 10) / 1000).toFixed(3)}`);
+      return code + comment;
+    }).join('\n');
+    applyTextChange(fixed, true, true, true);
+    showToast('Converted integer coordinates to 3-place decimals');
+  };
   document.getElementById('btn-insert-spaces').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/\s+/g, '').replace(/([A-Za-z])([+-]?\d*\.?\d+)/g, '$1$2 ').trim());
-    syncLinesCacheToDoc(false);
+    const formatted = state.linesCache.map(l => {
+      let comment = '', code = l;
+      const cIdx = l.indexOf('(');
+      if (cIdx !== -1) { code = l.slice(0, cIdx); comment = l.slice(cIdx); }
+      code = code.replace(/\s+/g, '').replace(/([A-Za-z])([+-]?\d*\.?\d+)/g, '$1$2 ').trim();
+      return (comment && code ? code + ' ' : code) + comment;
+    }).join('\n');
+    applyTextChange(formatted, true, false, false);
   };
   document.getElementById('btn-remove-spaces').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/\s+/g, ''));
-    syncLinesCacheToDoc(false);
+    const formatted = state.linesCache.map(l => {
+      let comment = '', code = l;
+      const cIdx = l.indexOf('(');
+      if (cIdx !== -1) { code = l.slice(0, cIdx); comment = l.slice(cIdx); }
+      return code.replace(/\s+/g, '') + comment;
+    }).join('\n');
+    applyTextChange(formatted, true, false, false);
   };
-  document.getElementById('btn-uppercase').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.toUpperCase());
-    syncLinesCacheToDoc(false);
-  };
+  document.getElementById('btn-uppercase').onclick = () => applyTextChange(getActiveDoc().content.toUpperCase(), true, false, false);
   document.getElementById('btn-strip-comments').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/\(.*?\)/g, '').split(';')[0].trimEnd());
-    syncLinesCacheToDoc(false);
+    const cleaned = state.linesCache.map(l => l.replace(/\(.*?\)/g, '').split(';')[0].trimEnd()).join('\n');
+    applyTextChange(cleaned, true, true, false);
   };
   document.getElementById('btn-open-renumber').onclick = () => document.getElementById('modal-renumber').classList.add('open');
   document.getElementById('btn-apply-renumber').onclick = () => {
     const start = parseInt(document.getElementById('renum-start').value, 10) || 10;
     const inc = parseInt(document.getElementById('renum-inc').value, 10) || 10;
     let n = start;
-    state.linesCache = state.linesCache.map(l => {
+    const updated = state.linesCache.map(l => {
       const t = l.trim();
       if (!t || t === '%' || /^O\d+/i.test(t) || t.startsWith('(')) return l;
       const out = `N${n} ` + l.replace(/^\s*N\d+\s*/i, '');
       n += inc; return out;
-    });
+    }).join('\n');
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
-    syncLinesCacheToDoc(false);
+    applyTextChange(updated, true, false, false);
   };
   document.getElementById('btn-remove-n').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/^\s*N\d+\s*/i, ''));
-    syncLinesCacheToDoc(false);
+    applyTextChange(state.linesCache.map(l => l.replace(/^\s*N\d+\s*/i, '')).join('\n'), true, false, false);
   };
   document.getElementById('btn-open-transform').onclick = () => document.getElementById('modal-transform').classList.add('open');
   document.getElementById('btn-apply-transform').onclick = () => {
@@ -2865,42 +3152,40 @@ function wireEvents() {
     const dy = parseFloat(document.getElementById('tr-dy').value) || 0;
     const dz = parseFloat(document.getElementById('tr-dz').value) || 0;
     const sc = parseFloat(document.getElementById('tr-scale').value) || 1;
-    state.linesCache = state.linesCache.map(l => l.replace(/([XYZIJKR])([+-]?\d*\.?\d+)/gi, (m, ax, v) => {
+    const updated = state.linesCache.map(l => l.replace(/([XYZIJKR])([+-]?\d*\.?\d+)/gi, (m, ax, v) => {
       let val = parseFloat(v) * sc;
       if (ax.toUpperCase() === 'X') val += dx;
       if (ax.toUpperCase() === 'Y') val += dy;
       if (ax.toUpperCase() === 'Z') val += dz;
       return `${ax}${val.toFixed(3)}`;
-    }));
+    })).join('\n');
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
-    syncLinesCacheToDoc(true);
+    applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-mirror-x').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/([XI])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`));
-    syncLinesCacheToDoc(true);
+    const updated = state.linesCache.map(l => l.replace(/([XI])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`)).join('\n');
+    applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-mirror-y').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/([YJ])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`));
-    syncLinesCacheToDoc(true);
+    const updated = state.linesCache.map(l => l.replace(/([YJ])([+-]?\d*\.?\d+)/gi, (m, ax, v) => `${ax}${(-parseFloat(v)).toFixed(3)}`)).join('\n');
+    applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-to-metric').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/\bG20\b/g, 'G21').replace(/([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) * 25.4).toFixed(3)}`));
-    syncLinesCacheToDoc(true);
+    const updated = state.linesCache.map(l => l.replace(/\bG20\b/g, 'G21').replace(/([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) * 25.4).toFixed(3)}`)).join('\n');
+    applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-to-inch').onclick = () => {
-    state.linesCache = state.linesCache.map(l => l.replace(/\bG21\b/g, 'G20').replace(/([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) / 25.4).toFixed(4)}`));
-    syncLinesCacheToDoc(true);
+    const updated = state.linesCache.map(l => l.replace(/\bG21\b/g, 'G20').replace(/([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, a, v) => `${a}${(parseFloat(v) / 25.4).toFixed(4)}`)).join('\n');
+    applyTextChange(updated, true, true, true);
   };
   document.getElementById('btn-insert-header').onclick = () => {
-    state.linesCache.unshift('G90 G17 G21 G40 G80');
-    syncLinesCacheToDoc(false);
+    applyTextChange('G90 G17 G21 G40 G80\n' + getActiveDoc().content, true, true, false);
   };
   document.getElementById('btn-insert-drill-cycle').onclick = () => {
-    state.linesCache.push('G98 G83 X0.000 Y0.000 Z-15.000 R2.000 Q3.000 F250.0', 'G80');
-    syncLinesCacheToDoc(true);
+    applyTextChange(getActiveDoc().content + '\nG98 G83 X0.000 Y0.000 Z-15.000 R2.000 Q3.000 F250.0\nG80', true, true, true);
   };
 
-  // Workspace & Simulation Toggles
+  // 3D Solid Simulation Toggles
   document.getElementById('btn-toggle-assistant').onclick = (e) => {
     const d = document.getElementById('left-dock');
     d.classList.toggle('collapsed');
@@ -2929,21 +3214,30 @@ function wireEvents() {
     parseAndBuildSimulation(getActiveDoc().content, true);
   };
 
-  const toggleStock = () => {
-    state.cam.showStockRemoval = !state.cam.showStockRemoval;
-    document.getElementById('btn-toggle-stock-removal').classList.toggle('active', state.cam.showStockRemoval);
-    document.getElementById('vp-btn-stock-toggle').classList.toggle('active', state.cam.showStockRemoval);
+  function cycleStockRenderMode() {
+    const modes = ['solid', 'translucent', 'wireframe'];
+    const labels = { solid: 'Solid', translucent: 'Glass', wireframe: 'Wire' };
+    const next = modes[(modes.indexOf(state.cam.stockRenderMode) + 1) % modes.length];
+    state.cam.stockRenderMode = next;
+    document.getElementById('vp-btn-stock-mode').textContent = labels[next];
+    document.getElementById('btn-cycle-stock-render').innerHTML = `<span>🧊 ${labels[next]} Stock</span>`;
     drawBackplot();
-  };
-  document.getElementById('btn-toggle-stock-removal').onclick = toggleStock;
-  document.getElementById('vp-btn-stock-toggle').onclick = toggleStock;
+  }
+  document.getElementById('btn-cycle-stock-render').onclick = cycleStockRenderMode;
+  document.getElementById('vp-btn-stock-mode').onclick = cycleStockRenderMode;
 
   document.getElementById('btn-reset-stock').onclick = () => {
     state.sim.currentTimeSec = 0;
     el.scrubber.value = 0;
     rebuildStockUpToTime(0);
     drawBackplot();
-    showToast('Workpiece stock restored to raw billet');
+    showToast('3D Solid Workpiece restored to raw billet');
+  };
+
+  document.getElementById('btn-toggle-3d-tool').onclick = (e) => {
+    state.cam.show3DTool = !state.cam.show3DTool;
+    e.currentTarget.classList.toggle('active', state.cam.show3DTool);
+    drawBackplot();
   };
 
   const toggleComp = () => {
@@ -3047,7 +3341,7 @@ function wireEvents() {
   document.getElementById('btn-dnc-receive').onclick = () => {
     const sample = '%\nO8850 (CNC UPLOAD)\nG90 G17 G21\nG00 X0 Y0 Z20\nG01 Z-2 F400\nG01 X35 F1200\nM30\n%';
     const id = 'doc-rx-' + Date.now();
-    state.docs.push({ id, mode: 'mill', name: 'O8850_CNC_RX.nc', content: sample });
+    state.docs.push({ id, mode: 'mill', dirty: false, name: 'O8850_CNC_RX.nc', content: sample });
     switchDoc(id);
     logDNC('RX COMPLETE: Created tab O8850_CNC_RX.nc');
   };
@@ -3072,7 +3366,7 @@ function wireEvents() {
     p.limX = parseFloat(document.getElementById('prof-limx').value) || 350;
     p.limY = parseFloat(document.getElementById('prof-limy').value) || 250;
     p.limZ = parseFloat(document.getElementById('prof-limz').value) || -250;
-    localStorage.setItem('cnc_edit_v2_profiles', JSON.stringify(state.profiles));
+    localStorage.setItem('cnc_edit_v3_profiles', JSON.stringify(state.profiles));
     loadProfiles();
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     parseAndBuildSimulation(getActiveDoc().content, false);
@@ -3080,14 +3374,14 @@ function wireEvents() {
   };
 
   document.querySelectorAll('.modal-close').forEach(b => b.onclick = () => document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open')));
-  window.addEventListener('resize', () => { renderVirtualEditor(); drawBackplot(); });
+  window.addEventListener('resize', () => { renderEditorView(); drawBackplot(); });
 }
 
 window.onload = function () {
   loadProfiles();
   wireEvents();
   switchDoc('doc-mill-1');
-  logDNC('CNC Edit Pro v2 Kinematic & DNC Engine ready.');
+  logDNC('CNC Edit Pro v3 Solid 3D & Editable NC Engine ready.');
   requestAnimationFrame(animationLoop);
 };
 </script>
