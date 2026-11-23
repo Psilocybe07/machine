@@ -6,22 +6,22 @@
 <title>NC Preview — 5-Axis Table-Table (B/C) &amp; Solid Material Simulator</title>
 <style>
 /* ==========================================================================
-   1. DESIGN TOKENS & INDUSTRIAL CAM THEME (100% OFFLINE / ZERO CDN)
+   1. DESIGN TOKENS & INDUSTRIAL CAM THEME (100% OFFLINE / ZERO EXTERNAL CALLS)
    ========================================================================== */
 :root {
-  --bg-app: #101318;
-  --bg-ribbon: #171b22;
-  --bg-panel: #151920;
-  --bg-editor: #0e1116;
-  --bg-gutter: #13171f;
-  --bg-input: #1d222c;
-  --bg-hover: #262d3a;
-  --bg-active-tab: #1f2530;
-  --border-color: #2b3240;
-  --border-strong: #3b4456;
+  --bg-app: #0d1015;
+  --bg-ribbon: #151921;
+  --bg-panel: #13171f;
+  --bg-editor: #0b0e13;
+  --bg-gutter: #10141c;
+  --bg-input: #1b202b;
+  --bg-hover: #242b38;
+  --bg-active-tab: #1d2330;
+  --border-color: #272f3d;
+  --border-strong: #384357;
   --text-primary: #e6edf3;
   --text-secondary: #8b949e;
-  --text-muted: #5c6573;
+  --text-muted: #596373;
   --accent-blue: #2f81f7;
   --accent-cyan: #39c5cf;
   --accent-green: #3fb950;
@@ -63,30 +63,30 @@ html, body {
   display: flex; align-items: center; justify-content: space-between;
   height: 36px; padding: 0 12px;
   background: var(--bg-ribbon); border-bottom: 1px solid var(--border-color);
-  flex-shrink: 0;
+  flex-shrink: 0; gap: 8px; overflow-x: auto;
 }
 .brand-badge {
   display: flex; align-items: center; gap: 8px;
-  font-weight: 700; font-size: 13px; letter-spacing: 0.3px;
+  font-weight: 700; font-size: 13px; letter-spacing: 0.3px; white-space: nowrap;
 }
 .brand-pill {
   background: linear-gradient(135deg, #2f81f7, #39c5cf);
   color: #fff; padding: 2px 7px; border-radius: 5px;
   font-size: 11px; font-weight: 800;
 }
-.ribbon-tabs { display: flex; gap: 2px; margin-left: 16px; height: 100%; align-items: flex-end; }
+.ribbon-tabs { display: flex; gap: 2px; margin-left: 12px; height: 100%; align-items: flex-end; }
 .ribbon-tab {
-  padding: 6px 12px; border: 1px solid transparent; border-bottom: none;
+  padding: 6px 11px; border: 1px solid transparent; border-bottom: none;
   border-radius: 6px 6px 0 0; background: transparent;
   color: var(--text-secondary); font-weight: 600; font-size: 11.5px;
-  cursor: pointer; transition: 0.12s;
+  cursor: pointer; transition: 0.12s; white-space: nowrap;
 }
 .ribbon-tab:hover { color: var(--text-primary); background: var(--bg-hover); }
 .ribbon-tab.active {
   background: var(--bg-panel); color: var(--accent-cyan);
   border-color: var(--border-color);
 }
-.header-controls { display: flex; align-items: center; gap: 6px; }
+.header-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 #ribbon-body {
   background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
@@ -100,7 +100,7 @@ html, body {
   padding-right: 10px; border-right: 1px solid var(--border-color);
 }
 .ribbon-group:last-child { border-right: none; }
-.ribbon-group-items { display: flex; align-items: center; gap: 4px; }
+.ribbon-group-items { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
 .ribbon-group-title {
   font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px;
   color: var(--text-muted); text-align: center; margin-top: 4px; font-weight: 700;
@@ -126,9 +126,9 @@ html, body {
 /* MAIN WORKSPACE SPLIT */
 #workspace { display: flex; flex: 1; min-height: 0; width: 100%; overflow: hidden; }
 
-/* LEFT INSPECTOR / TOOL LIBRARY / ALARMS DOCK */
+/* LEFT INSPECTOR / TOOL LIBRARY / ALARMS / COMPARE DOCK */
 #left-dock {
-  width: 285px; min-width: 230px; max-width: 380px;
+  width: 295px; min-width: 240px; max-width: 400px;
   background: var(--bg-panel); border-right: 1px solid var(--border-color);
   display: flex; flex-direction: column; flex-shrink: 0;
 }
@@ -138,9 +138,9 @@ html, body {
   background: var(--bg-ribbon);
 }
 .dock-tab {
-  flex: 1; padding: 7px 4px; border: none; background: transparent;
-  color: var(--text-secondary); font-size: 10.5px; font-weight: 700;
-  cursor: pointer; border-bottom: 2px solid transparent;
+  flex: 1; padding: 7px 3px; border: none; background: transparent;
+  color: var(--text-secondary); font-size: 10px; font-weight: 700;
+  cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap;
 }
 .dock-tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); background: var(--bg-panel); }
 .dock-pane { display: none; flex: 1; flex-direction: column; gap: 8px; padding: 10px; overflow-y: auto; }
@@ -154,12 +154,6 @@ html, body {
 .word-chip {
   background: var(--bg-editor); border: 1px solid var(--border-color);
   border-radius: 5px; padding: 4px 6px; font-family: var(--font-mono); font-size: 11px;
-  display: flex; align-items: center; justify-content: space-between; gap: 4px;
-}
-.word-chip input {
-  width: 66px; background: var(--bg-input); color: var(--accent-cyan);
-  border: 1px solid var(--border-strong); border-radius: 3px;
-  padding: 1px 4px; font-family: var(--font-mono); font-size: 11px;
 }
 
 /* CENTER MULTI-TAB CODE EDITOR */
@@ -198,7 +192,7 @@ html, body {
 
 #find-bar {
   display: none; align-items: center; gap: 6px; padding: 5px 8px;
-  background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+  background: var(--bg-panel); border-bottom: 1px solid var(--border-color); flex-wrap: wrap;
 }
 #find-bar.open { display: flex; }
 
@@ -207,7 +201,7 @@ html, body {
   font-family: var(--font-mono); font-size: 12.5px; line-height: 20px;
 }
 #line-gutter {
-  width: 50px; background: var(--bg-gutter); border-right: 1px solid var(--border-color);
+  width: 52px; background: var(--bg-gutter); border-right: 1px solid var(--border-color);
   color: var(--text-muted); text-align: right; padding: 8px 6px 8px 0;
   overflow: hidden; flex-shrink: 0; user-select: none;
 }
@@ -277,7 +271,7 @@ html, body {
 .vp-btn {
   padding: 3px 8px; border-radius: 5px; border: 1px solid var(--border-color);
   background: var(--bg-input); color: var(--text-primary);
-  font-size: 11px; font-weight: 600; cursor: pointer;
+  font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
 }
 .vp-btn:hover { background: var(--bg-hover); }
 .vp-btn.active { background: rgba(57, 197, 207, 0.22); border-color: var(--accent-cyan); color: #56d4dd; }
@@ -310,20 +304,20 @@ html, body {
 
 /* PLAYBACK SCRUBBER BAR */
 #playback-bar {
-  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  display: flex; align-items: center; gap: 6px; padding: 6px 10px;
   background: var(--bg-panel); border-top: 1px solid var(--border-color);
-  flex-shrink: 0;
+  flex-shrink: 0; flex-wrap: wrap;
 }
-#sim-scrubber { flex: 1; accent-color: var(--accent-cyan); cursor: pointer; }
+#sim-scrubber { flex: 1; min-width: 90px; accent-color: var(--accent-cyan); cursor: pointer; }
 
 /* STATUS BAR */
 #status-bar {
   height: 24px; padding: 0 10px; background: var(--bg-ribbon);
   border-top: 1px solid var(--border-color); display: flex;
   align-items: center; justify-content: space-between;
-  font-size: 11px; color: var(--text-secondary); flex-shrink: 0;
+  font-size: 11px; color: var(--text-secondary); flex-shrink: 0; gap: 10px; overflow-x: auto;
 }
-.status-group { display: flex; align-items: center; gap: 14px; }
+.status-group { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
 
 /* MODALS & TOAST */
 .modal-backdrop {
@@ -333,7 +327,7 @@ html, body {
 .modal-backdrop.open { display: flex; }
 .modal-card {
   background: var(--bg-panel); border: 1px solid var(--border-strong);
-  border-radius: 10px; width: 430px; max-width: 94vw;
+  border-radius: 10px; width: 440px; max-width: 94vw;
   box-shadow: 0 18px 45px rgba(0,0,0,0.55); overflow: hidden;
 }
 .modal-head {
@@ -375,11 +369,12 @@ html, body {
         <span>NC Preview</span>
       </div>
       <nav class="ribbon-tabs" id="ribbon-tabs">
-        <button class="ribbon-tab active" data-tab="tab-editor">Editor</button>
-        <button class="ribbon-tab" data-tab="tab-nc">NC Functions</button>
-        <button class="ribbon-tab" data-tab="tab-backplot">Backplot</button>
-        <button class="ribbon-tab" data-tab="tab-compare">File Compare</button>
-        <button class="ribbon-tab" data-tab="tab-dnc">Transmission (DNC)</button>
+        <button class="ribbon-tab active" data-tab="tab-home">Home</button>
+        <button class="ribbon-tab" data-tab="tab-editor">Editor</button>
+        <button class="ribbon-tab" data-tab="tab-simulation">Simulation</button>
+        <button class="ribbon-tab" data-tab="tab-compare">Compare</button>
+        <button class="ribbon-tab" data-tab="tab-dnc">DNC</button>
+        <button class="ribbon-tab" data-tab="tab-setup">Setup Sheet</button>
       </nav>
     </div>
     <div class="header-controls">
@@ -390,92 +385,89 @@ html, body {
         <option value="vmc-3ax">3-Axis VMC Mill (X/Y/Z)</option>
         <option value="lathe-2ax">2-Axis CNC Lathe (X/Z)</option>
       </select>
-      <select id="machine-profile-select" class="compact-select" title="Active Machine Configuration Profile"></select>
-      <button class="vp-btn" id="btn-open-profile-modal" title="Configure Machine & Soft Limits">⚙</button>
+      <select id="machine-profile-select" class="compact-select" title="NC Preview Machine Configuration Profile"></select>
+      <button class="vp-btn" id="btn-open-profile-modal" title="Configure NC Preview Machine &amp; Soft Limits">⚙</button>
       <button class="vp-btn" id="btn-toggle-theme" title="Toggle Dark/Light Theme">◐</button>
     </div>
   </header>
 
   <!-- RIBBON COMMAND BAR -->
   <section id="ribbon-body">
-    <!-- TAB 1: EDITOR -->
-    <div class="ribbon-pane active" id="tab-editor">
+    <!-- TAB 1: HOME -->
+    <div class="ribbon-pane active" id="tab-home">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-new-file" title="Create Blank NC File"><span>📄 New</span></button>
+          <button class="r-btn" id="btn-new-file" title="Create Blank Untitled File"><span>📄 New</span></button>
           <button class="r-btn" id="btn-open-file" title="Open Local .nc / .h / .tap File"><span>📂 Open</span></button>
-          <button class="r-btn" id="btn-save-file" title="Download Active NC File"><span>💾 Save</span></button>
-          <button class="r-btn" id="btn-setup-sheet" title="Generate Printable HTML Setup Sheet"><span>📋 Setup Sheet</span></button>
+          <button class="r-btn" id="btn-save-file" title="Save / Download Active File (Ctrl+S)"><span>💾 Save</span></button>
+          <button class="r-btn" id="btn-setup-sheet" title="Generate Printable NC Preview Setup Sheet"><span>📋 Setup Sheet</span></button>
         </div>
-        <div class="ribbon-group-title">File &amp; Documentation</div>
+        <div class="ribbon-group-title">NC Preview Project</div>
       </div>
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
+          <button class="r-btn" id="btn-open-renum"><span>N10 Renumber</span></button>
+          <button class="r-btn" id="btn-strip-n"><span>Strip N-Blocks</span></button>
+          <button class="r-btn" id="btn-format-spaces"><span>Format Spaces</span></button>
+          <button class="r-btn" id="btn-open-transform"><span>Shift / Scale XYZ</span></button>
+          <button class="r-btn" id="btn-mirror-x"><span>Mirror X (G02↔G03)</span></button>
+          <button class="r-btn" id="btn-mirror-y"><span>Mirror Y (G02↔G03)</span></button>
+          <button class="r-btn" id="btn-to-metric"><span>Inch → Metric</span></button>
+          <button class="r-btn" id="btn-to-inch"><span>Metric → Inch</span></button>
+        </div>
+        <div class="ribbon-group-title">NC Program Transforms</div>
+      </div>
+
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn active" id="btn-toggle-assistant"><span>Left Dock</span></button>
+          <button class="r-btn" id="btn-ribbon-tools" title="Manage Cutting Tools (Add / Edit / Delete)"><span>🛠 Tool Library</span></button>
+          <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D Sim View</span></button>
+        </div>
+        <div class="ribbon-group-title">Workspace</div>
+      </div>
+    </div>
+
+    <!-- TAB 2: EDITOR -->
+    <div class="ribbon-pane" id="tab-editor">
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
           <button class="r-btn" id="btn-undo" title="Undo (Ctrl+Z)"><span>↶ Undo</span></button>
           <button class="r-btn" id="btn-redo" title="Redo (Ctrl+Y)"><span>↷ Redo</span></button>
-          <button class="r-btn" id="btn-toggle-find" title="Find & Replace (Ctrl+F)"><span>🔍 Find / Replace</span></button>
+          <button class="r-btn" id="btn-toggle-find" title="Find &amp; Replace (Ctrl+F)"><span>🔍 Find / Replace</span></button>
         </div>
         <div class="ribbon-group-title">Edit &amp; Search</div>
       </div>
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn active" id="btn-toggle-assistant"><span>Inspector Dock</span></button>
-          <button class="r-btn" id="btn-ribbon-tools" title="Manage Cutting Tools (Add / Edit / Delete)"><span>🛠 Tool Library</span></button>
-          <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D Sim View</span></button>
-          <button class="r-btn" id="btn-stress-test-50k" title="Generate 50,000-line 3D surfacing file"><span>⚡ 50k Stress Test</span></button>
+          <button class="r-btn" id="btn-stress-test-50k" title="Generate 50,000-line virtualized NC file"><span>⚡ 50k Stress Test</span></button>
+          <button class="r-btn" id="btn-ribbon-tools-ed" title="Open Cutting Tool Library"><span>🛠 Tool Library</span></button>
         </div>
-        <div class="ribbon-group-title">Workspace &amp; Tooling</div>
+        <div class="ribbon-group-title">Large-File &amp; Tooling</div>
       </div>
     </div>
 
-    <!-- TAB 2: NC FUNCTIONS -->
-    <div class="ribbon-pane" id="tab-nc">
-      <div class="ribbon-group">
-        <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-open-renum"><span>N10 Renumber</span></button>
-          <button class="r-btn" id="btn-strip-n"><span>Strip N-Blocks</span></button>
-          <button class="r-btn" id="btn-format-spaces"><span>Format Spaces</span></button>
-        </div>
-        <div class="ribbon-group-title">Block Formatting</div>
-      </div>
-      <div class="ribbon-group">
-        <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-open-transform"><span>Shift / Scale XYZ</span></button>
-          <button class="r-btn" id="btn-mirror-x"><span>Mirror X (G02↔G03)</span></button>
-          <button class="r-btn" id="btn-mirror-y"><span>Mirror Y (G02↔G03)</span></button>
-        </div>
-        <div class="ribbon-group-title">Geometry Transforms</div>
-      </div>
-      <div class="ribbon-group">
-        <div class="ribbon-group-items">
-          <button class="r-btn" id="btn-to-metric"><span>Inch → Metric (G21)</span></button>
-          <button class="r-btn" id="btn-to-inch"><span>Metric → Inch (G20)</span></button>
-        </div>
-        <div class="ribbon-group-title">Unit Conversion</div>
-      </div>
-    </div>
-
-    <!-- TAB 3: BACKPLOT & 3D SOLID SIMULATION -->
-    <div class="ribbon-pane" id="tab-backplot">
+    <!-- TAB 3: SIMULATION -->
+    <div class="ribbon-pane" id="tab-simulation">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
           <button class="r-btn" id="btn-open-stock-modal"><span>📦 Stock / BLK</span></button>
           <button class="r-btn" id="btn-ribbon-tools-sim" title="Open Cutting Tool Library"><span>🛠 Tool Library</span></button>
           <div style="display:flex; flex-direction:column; gap:2px; padding:0 4px;">
-            <span style="font-size:9px; color:var(--text-secondary); font-weight:700;">ALLOY / MATERIAL</span>
-            <select id="material-shader-select" class="compact-select" title="Select Engineering Material Shader">
+            <span style="font-size:9px; color:var(--text-secondary); font-weight:700;">MATERIAL</span>
+            <select id="material-shader-select" class="compact-select" title="Select Engineering Material">
               <option value="aluminum" selected>6061-T6 Aluminum</option>
-              <option value="steel">1018 / 4140 Steel</option>
+              <option value="steel">1018/4140 Steel</option>
               <option value="stainless">304 Stainless Steel</option>
-              <option value="brass">360 Free-Cut Brass</option>
-              <option value="delrin">Delrin (Acetal)</option>
+              <option value="brass">360 Brass</option>
+              <option value="delrin">Delrin</option>
               <option value="wax">Machinable Wax</option>
             </select>
           </div>
-          <button class="r-btn active" id="btn-cycle-stock-render" title="Cycle Solid Shaded / Translucent / Wireframe Stock"><span>🧊 Solid Stock</span></button>
-          <button class="r-btn" id="btn-toggle-raw-ghost" title="Toggle Optional Raw Uncut Stock Ghost Overlay"><span>👻 Raw Ghost: OFF</span></button>
+          <button class="r-btn active" id="btn-cycle-stock-render" title="Cycle Solid / Glass / Wire Stock Mode"><span>🧊 Stock Mode</span></button>
+          <button class="r-btn" id="btn-toggle-raw-ghost" title="Toggle Raw Uncut Stock Ghost"><span>👻 Ghost: OFF</span></button>
           <button class="r-btn" id="btn-reset-stock"><span>Reset Stock</span></button>
         </div>
         <div class="ribbon-group-title">3D Solid Workpiece &amp; Material</div>
@@ -483,15 +475,15 @@ html, body {
 
       <div class="ribbon-group">
         <div class="ribbon-group-items">
-          <button class="r-btn active" id="btn-toggle-3d-tool"><span>HSK Spindle</span></button>
+          <button class="r-btn active" id="btn-toggle-3d-tool"><span>Spindle</span></button>
           <button class="r-btn active" id="btn-toggle-trunnion"><span>B/C Table</span></button>
-          <button class="r-btn" id="btn-toggle-swivel-b" title="Toggle Orthogonal B-Axis Trunnion vs 45° Swivel B-Axis Geometry"><span>B-Axis: 90° Ortho</span></button>
-          <button class="r-btn active" id="btn-toggle-paths"><span>Toolpaths</span></button>
-          <button class="r-btn active" id="btn-toggle-cutter-comp"><span>RL/RR/G41</span></button>
+          <button class="r-btn" id="btn-toggle-swivel-b" title="Toggle Orthogonal B-Axis vs 45° Swivel B-Axis"><span>B-Axis: 90° Ortho</span></button>
+          <button class="r-btn active" id="btn-toggle-paths"><span>Paths</span></button>
+          <button class="r-btn active" id="btn-toggle-cutter-comp"><span>G41/G42/RL/RR</span></button>
           <button class="r-btn active" id="btn-toggle-rapids"><span>Rapids</span></button>
-          <button class="r-btn active" id="btn-toggle-coolant"><span>Coolant FX</span></button>
+          <button class="r-btn active" id="btn-toggle-coolant"><span>Coolant</span></button>
         </div>
-        <div class="ribbon-group-title">5-Axis Machine &amp; Tooling</div>
+        <div class="ribbon-group-title">5-Axis Kinematics &amp; Overlays</div>
       </div>
 
       <div class="ribbon-group">
@@ -506,7 +498,7 @@ html, body {
       </div>
     </div>
 
-    <!-- TAB 4: FILE COMPARE -->
+    <!-- TAB 4: COMPARE -->
     <div class="ribbon-pane" id="tab-compare">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
@@ -516,7 +508,7 @@ html, body {
           <select id="cmp-right-select" class="compact-select"></select>
           <button class="r-btn active" id="btn-run-compare"><span>Compare Now</span></button>
         </div>
-        <div class="ribbon-group-title">Documents to Diff</div>
+        <div class="ribbon-group-title">Programs to Compare</div>
       </div>
       <div class="ribbon-group">
         <div class="ribbon-group-items">
@@ -525,11 +517,11 @@ html, body {
           <label class="r-btn"><input type="checkbox" id="cmp-ign-zero" checked> Ignore Trailing Zeros</label>
           <label class="r-btn"><input type="checkbox" id="cmp-ign-comm"> Ignore Comments</label>
         </div>
-        <div class="ribbon-group-title">CNC-Aware Comparison Rules</div>
+        <div class="ribbon-group-title">CNC-Aware Diff Rules</div>
       </div>
     </div>
 
-    <!-- TAB 5: TRANSMISSION DNC -->
+    <!-- TAB 5: DNC -->
     <div class="ribbon-pane" id="tab-dnc">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
@@ -537,7 +529,7 @@ html, body {
           <button class="r-btn" id="btn-dnc-send"><span>📤 Drip-Feed Active File</span></button>
           <button class="r-btn" id="btn-dnc-loopback"><span>🔁 Virtual Loopback Test</span></button>
         </div>
-        <div class="ribbon-group-title">RS-232 / Web Serial DNC</div>
+        <div class="ribbon-group-title">Web Serial DNC</div>
       </div>
       <div class="ribbon-group">
         <div class="ribbon-group-items">
@@ -549,7 +541,7 @@ html, body {
           </select>
           <select id="dnc-parity" class="compact-select">
             <option value="none" selected>None Parity</option>
-            <option value="even">Even (7E2)</option>
+            <option value="even">Even</option>
             <option value="odd">Odd</option>
           </select>
           <select id="dnc-flow" class="compact-select">
@@ -557,40 +549,52 @@ html, body {
             <option value="none">XON/XOFF Software</option>
           </select>
         </div>
-        <div class="ribbon-group-title">Serial Port Framing</div>
+        <div class="ribbon-group-title">Serial Framing</div>
+      </div>
+    </div>
+
+    <!-- TAB 6: SETUP SHEET -->
+    <div class="ribbon-pane" id="tab-setup">
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn active" id="btn-open-setup-tab"><span>📋 Preview NC Preview Setup Sheet</span></button>
+          <button class="r-btn" id="btn-export-setup-tab"><span>⬇ Export Setup Sheet HTML</span></button>
+        </div>
+        <div class="ribbon-group-title">Shop Documentation</div>
       </div>
     </div>
   </section>
 
   <!-- MAIN 3-COLUMN WORKSPACE -->
   <main id="workspace">
-    <!-- LEFT DOCK: NC ASSISTANT, TOOL LIBRARY, ALARMS -->
+    <!-- LEFT DOCK: NC-ASSISTANT, TOOLS, ALARMS, COMPARE -->
     <aside id="left-dock">
       <div class="dock-tabs">
-        <button class="dock-tab active" data-dock="dock-assist">INSPECTOR</button>
+        <button class="dock-tab active" data-dock="dock-assist">NC-ASSISTANT</button>
         <button class="dock-tab" data-dock="dock-tools">TOOLS</button>
         <button class="dock-tab" data-dock="dock-alarms">ALARMS <span id="alarm-count-badge">(0)</span></button>
+        <button class="dock-tab" data-dock="dock-compare">COMPARE</button>
       </div>
 
-      <!-- Dock 1: NC-Assistant Live Block Parameter Inspector -->
+      <!-- Dock 1: NC-Assistant Live Block Inspector -->
       <div class="dock-pane active" id="dock-assist">
         <div class="assist-badge">
-          <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">CURRENT BLOCK (<span id="assist-line-num">Ln 1</span>)</div>
+          <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">ACTIVE BLOCK (<span id="assist-line-num">Ln 1</span>)</div>
           <div id="assist-raw-line" style="font-family:var(--font-mono); font-size:11px; color:var(--accent-cyan); margin-top:4px; word-break:break-all;">—</div>
         </div>
         <div id="assist-explanation" style="font-size:11.5px; color:var(--text-primary); line-height:1.45;">
-          Click any NC line in the editor to inspect and edit G-codes, Heidenhain Klartext cycles, TCPM vectors, and rotary table angles in real time.
+          Select any line in the editor to inspect G-codes, Heidenhain Klartext cycles, PLANE SPATIAL / TCPM vectors, and B/C rotary table angles.
         </div>
         <div class="assist-word-grid" id="assist-words"></div>
         <div style="margin-top:auto; border-top:1px solid var(--border-color); padding-top:8px;">
-          <div style="font-size:10px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">ACTIVE KINEMATIC STATE</div>
+          <div style="font-size:10px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">MODAL &amp; KINEMATIC STATE</div>
           <div id="assist-modal-summary" style="font-family:var(--font-mono); font-size:11px; color:var(--text-primary); line-height:1.5;">
             5AX B/C TABLE | TCPM ACTIVE | INCH
           </div>
         </div>
       </div>
 
-      <!-- Dock 2: 3D Cutting Tool Library (Add, Edit, Delete) -->
+      <!-- Dock 2: Full Cutting Tool Library (Add, Edit, Delete) -->
       <div class="dock-pane" id="dock-tools">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:10px; color:var(--text-secondary); font-weight:700;">CUTTING TOOL LIBRARY</span>
@@ -599,10 +603,22 @@ html, body {
         <div id="tool-list-container" style="display:flex; flex-direction:column; gap:6px;"></div>
       </div>
 
-      <!-- Dock 3: Collision & Gouge Alarm Log -->
+      <!-- Dock 3: Collision & Soft-Limit Alarm Log -->
       <div class="dock-pane" id="dock-alarms">
-        <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">COLLISION &amp; SOFT-LIMIT VERIFICATION</div>
+        <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">RAPID GOUGE &amp; COLLISION LOG</div>
         <div id="alarm-list-container" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+
+      <!-- Dock 4: Quick CNC-Aware Diff Summary -->
+      <div class="dock-pane" id="dock-compare">
+        <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">QUICK PROGRAM COMPARE</div>
+        <div class="assist-badge">
+          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:6px;">Open the <strong>Compare</strong> ribbon tab for full side-by-side CNC-aware diffing ignoring N-blocks, whitespace, or trailing zeros.</div>
+          <button class="btn-primary" id="btn-dock-open-compare" style="width:100%;">Open Full Compare View</button>
+        </div>
+        <div id="dock-compare-status" class="assist-badge" style="font-family:var(--font-mono); font-size:11px; color:var(--accent-cyan);">
+          Ready to compare active programs.
+        </div>
       </div>
     </aside>
 
@@ -612,7 +628,7 @@ html, body {
 
       <!-- Find & Replace Bar -->
       <div id="find-bar">
-        <input type="text" id="find-input" class="compact-input" placeholder="Find NC text / regex..." style="width:155px;">
+        <input type="text" id="find-input" class="compact-input" placeholder="Find in NC program..." style="width:155px;">
         <input type="text" id="replace-input" class="compact-input" placeholder="Replace with..." style="width:140px;">
         <button class="vp-btn" id="btn-find-next">Find Next</button>
         <button class="vp-btn" id="btn-replace-one">Replace</button>
@@ -635,7 +651,7 @@ html, body {
       <!-- CNC-Aware File Compare View -->
       <div id="compare-view">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="color:var(--accent-cyan);">CNC-Aware Side-by-Side Diff</strong>
+          <strong style="color:var(--accent-cyan);">NC Preview — CNC-Aware Side-by-Side Diff</strong>
           <span id="compare-summary" style="font-size:11px; color:var(--text-secondary);"></span>
         </div>
         <div class="diff-grid">
@@ -647,7 +663,7 @@ html, body {
       <!-- Web Serial DNC View -->
       <div id="dnc-view">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="color:var(--accent-cyan);">Web Serial DNC Transmission Console</strong>
+          <strong style="color:var(--accent-cyan);">NC Preview — Web Serial DNC Console</strong>
           <span id="dnc-port-status" style="font-size:11px; color:var(--accent-orange);">Port: Disconnected</span>
         </div>
         <pre id="dnc-console-log" style="flex:1; background:#090c10; border:1px solid var(--border-color); border-radius:6px; padding:8px; font-family:var(--font-mono); font-size:11px; color:#7ee787; overflow-y:auto;"></pre>
@@ -657,11 +673,11 @@ html, body {
     <!-- RIGHT PANE: 3D SOLID & 5-AXIS B/C ROTARY TABLE VIEWPORT -->
     <section id="right-viewport">
       <div id="canvas-toolbar">
-        <div style="display:flex; gap:4px; align-items:center;">
+        <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
           <button class="vp-btn active" id="vp-btn-solid">Solid</button>
           <button class="vp-btn" id="vp-btn-glass">Glass</button>
           <button class="vp-btn" id="vp-btn-wire">Wire</button>
-          <button class="vp-btn" id="vp-btn-ghost" title="Show/Hide Uncut Raw Stock Ghost">Ghost</button>
+          <button class="vp-btn" id="vp-btn-ghost" title="Toggle Raw Uncut Stock Ghost">Ghost</button>
           <button class="vp-btn active" id="vp-btn-paths">Paths</button>
           <button class="vp-btn active" id="vp-btn-table">B/C Table</button>
         </div>
@@ -683,16 +699,20 @@ html, body {
         <div id="hud-telemetry">
           <div class="hud-row">
             <span class="hud-label">KINEMATICS:</span>
-            <span style="display:flex; align-items:center; gap:6px;">
-              <span id="hud-modal" style="color:#39c5cf; font-weight:700;">5AX B/C TABLE | TCPM ON</span>
-              <span id="hud-fps" style="background:rgba(63,185,80,0.18); border:1px solid rgba(63,185,80,0.45); color:#7ee787; padding:0 5px; border-radius:4px; font-size:10px; font-weight:700;">60 FPS</span>
-            </span>
+            <span id="hud-modal" style="color:#39c5cf; font-weight:700;">5AX B/C TABLE | TCPM ON</span>
           </div>
-          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T02 Ø0.375 (ball)</span></div>
+          <div class="hud-row">
+            <span class="hud-label">TOOL:</span>
+            <span id="hud-tool">T02 Ø0.375 (ball)</span>
+          </div>
+          <div class="hud-row">
+            <span class="hud-label">FPS:</span>
+            <span id="hud-fps" style="color:#7ee787; font-weight:700;">60 FPS</span>
+          </div>
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label">SPINDLE X/Y/Z:</span><span id="hud-xyz">0.000, 0.000, 0.000</span></div>
           <div class="hud-row"><span class="hud-label">TABLE B / C:</span><span id="hud-rot" style="color:#ffa657;">B+0.00°  C+0.00°</span></div>
-          <div class="hud-row"><span class="hud-label">TOOL I/J/K:</span><span id="hud-ijk" style="color:#7ee787;">0.000, 0.000, 1.000</span></div>
+          <div class="hud-row"><span class="hud-label">TOOL I / J / K:</span><span id="hud-ijk" style="color:#79c0ff;">0.000, 0.000, 1.000</span></div>
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label">FEED:</span><span id="hud-feed">0.0</span></div>
           <div class="hud-bar-wrap"><div class="hud-bar-fill" id="hud-feed-bar"></div></div>
@@ -705,9 +725,9 @@ html, body {
       <!-- Simulation Playback & Speed Controls -->
       <div id="playback-bar">
         <button class="vp-btn" id="btn-sim-play" title="Play / Pause Simulation">▶ Play</button>
+        <button class="vp-btn" id="btn-sim-stop" title="Stop &amp; Rewind to Start">⏹ Stop</button>
         <button class="vp-btn" id="btn-sim-step" title="Single Block Step">⏭ Step</button>
-        <button class="vp-btn" id="btn-sim-reset" title="Rewind to Start">⏮</button>
-        <input type="range" id="sim-scrubber" min="0" max="1000" value="1000">
+        <input type="range" id="sim-scrubber" min="0" max="1000" value="0">
         <select id="sim-speed" class="compact-select" title="Simulation Speed Multiplier">
           <option value="0.5">0.5x</option>
           <option value="1" selected>1x</option>
@@ -729,7 +749,7 @@ html, body {
     </div>
     <div class="status-group">
       <span id="st-collisions">Collisions: 0</span>
-      <span id="st-machine">Profile: 5-Axis Table-Table (B/C Cradle + X/Y/Z Spindle)</span>
+      <span id="st-machine">NC Preview — 5-Axis Table-Table (B/C Cradle + X/Y/Z Spindle)</span>
       <span id="st-units">Units: Inch (INCH)</span>
     </div>
   </footer>
@@ -746,7 +766,7 @@ html, body {
       <div class="form-row"><label>Tool Number (T):</label><input type="number" id="tool-edit-num" class="compact-input" style="width:120px;" value="4" min="1" max="999"></div>
       <div class="form-row"><label>Description / Name:</label><input type="text" id="tool-edit-name" class="compact-input" style="width:220px;" value="0.250in Ball Nose Endmill"></div>
       <div class="form-row"><label>Cutter Geometry:</label>
-        <select id="tool-edit-shape" class="compact-select" style="width:160px;">
+        <select id="tool-edit-shape" class="compact-select" style="width:165px;">
           <option value="ball">Ball Nose Endmill</option>
           <option value="flat">Flat Endmill</option>
           <option value="bull">Bull Nose (Corner Rad)</option>
@@ -757,7 +777,7 @@ html, body {
       <div class="form-row"><label>Cutting Diameter:</label><input type="number" id="tool-edit-dia" class="compact-input" style="width:120px;" value="0.250" step="0.005" min="0.01"></div>
       <div class="form-row"><label>Corner Radius:</label><input type="number" id="tool-edit-crad" class="compact-input" style="width:120px;" value="0.125" step="0.005" min="0"></div>
       <div class="form-row"><label>Flute Length:</label><input type="number" id="tool-edit-flen" class="compact-input" style="width:120px;" value="1.00" step="0.05" min="0.05"></div>
-      <div class="form-row"><label>Overall Stickout Length:</label><input type="number" id="tool-edit-olen" class="compact-input" style="width:120px;" value="2.25" step="0.05" min="0.1"></div>
+      <div class="form-row"><label>Stickout Length:</label><input type="number" id="tool-edit-olen" class="compact-input" style="width:120px;" value="2.25" step="0.05" min="0.1"></div>
       <div class="form-row"><label>Number of Flutes:</label><input type="number" id="tool-edit-flutes" class="compact-input" style="width:120px;" value="4" min="1" max="16"></div>
     </div>
     <div class="modal-foot">
@@ -774,7 +794,7 @@ html, body {
     <div class="modal-body">
       <div class="form-row"><label>Auto-Fit Stock (from BLK FORM or Bounds):</label><input type="checkbox" id="stk-autofit" checked></div>
       <div class="form-row"><label>Stock Shape:</label>
-        <select id="stk-shape" class="compact-select" style="width:160px;">
+        <select id="stk-shape" class="compact-select" style="width:165px;">
           <option value="cylinder">Cylindrical Round Bar</option>
           <option value="box">Rectangular Billet</option>
         </select>
@@ -789,7 +809,7 @@ html, body {
         <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-5.0"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0.0"></div>
       </div>
       <div class="form-row"><label>Lathe Bar Stock Dia / Length (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="66"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="80"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="66"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="85"></div>
       </div>
     </div>
     <div class="modal-foot">
@@ -838,9 +858,9 @@ html, body {
 <!-- MODAL: MACHINE PROFILE & SOFT LIMITS -->
 <div class="modal-backdrop" id="modal-profile">
   <div class="modal-card">
-    <div class="modal-head"><span>Machine Configuration &amp; Soft Limits</span><button class="vp-btn modal-close">✕</button></div>
+    <div class="modal-head"><span>NC Preview Machine Configuration &amp; Soft Limits</span><button class="vp-btn modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="form-row"><label>Profile Name:</label><input type="text" id="prof-name" class="compact-input" value="5-Axis Table-Table (B/C Cradle + X/Y/Z Spindle)"></div>
+      <div class="form-row"><label>Profile Name:</label><input type="text" id="prof-name" class="compact-input" value="NC Preview — 5-Axis Table-Table (B/C Cradle + X/Y/Z Spindle)"></div>
       <div class="form-row"><label>Rapid Traverse Rate:</label><input type="number" id="prof-rapid" class="compact-input" value="40000"></div>
       <div class="form-row"><label>Max Spindle RPM:</label><input type="number" id="prof-maxrpm" class="compact-input" value="20000"></div>
       <div class="form-row"><label>Soft Limit X Envelope (+/-):</label><input type="number" id="prof-limx" class="compact-input" value="365"></div>
@@ -870,81 +890,81 @@ html, body {
 
 <script>
 /* ==========================================================================
-   1. SAMPLE NC & 5-AXIS KLARTEXT PROGRAMS (SPHERE ON 5-INCH BAR DEFAULT)
+   1. DEFAULT & SAMPLE NC / 5-AXIS KLARTEXT PROGRAMS
    ========================================================================== */
 function buildSphereOn5InchBarProgram() {
   const lines = [
     '0 BEGIN PGM 5AX_SPHERE_5IN_BAR INCH',
-    '1 ; 5-AXIS TABLE-TABLE (B/C ROTARY TABLE + VERTICAL X/Y/Z SPINDLE)',
-    '2 ; WORKPIECE: 2.000 IN DIA x 5.000 IN TALL 6061-T6 ROUND BAR STOCK',
-    '3 ; FEATURE: 1.750 IN PRECISION SPHERE (CENTER Z=-0.950) + 0.900 IN UNDERCUT NECK',
+    '1 ; NC PREVIEW: 5-AXIS TABLE-TABLE (B/C ROTARY TABLE + VERTICAL X/Y/Z SPINDLE)',
+    '2 ; WORKPIECE: 2.000 IN DIA x 5.000 IN ROUND BAR IN 3-JAW CHUCK',
+    '3 ; FEATURE: 1.750 IN SPHERE + 0.900 IN UNDERCUT NECK (B+6 TO B+115 DEG)',
     '4 BLK FORM 0.1 Z X-1.000 Y-1.000 Z-5.000',
     '5 BLK FORM 0.2 X+1.000 Y+1.000 Z+0.000',
     '6 TOOL DEF 1 L+0.000 R+0.250 ; 0.500IN FLAT ROUGHING ENDMILL',
     '7 TOOL DEF 2 L+0.000 R+0.1875 ; 0.375IN BALL NOSE FINISHING ENDMILL',
-    '8 ; --- STAGE 1: FACE FRONT STOCK ABOVE Z=-0.075 & ROUGH SPHERE ENVELOPE ---',
-    '9 TOOL CALL 1 Z S12000 F150.0 ; 0.500IN FLAT ROUGHING ENDMILL',
-    '10 L X+0.000 Y+0.000 Z+1.200 B+0.0 C+0.0 R0 FMAX M03 M08',
-    '11 L X+1.150 Y+0.000 Z+0.250 FMAX',
-    '12 L Z-0.075 F90.0',
-    '13 L X-0.050 Y+0.000 Z-0.075 F140.0 ; FACE FRONT END OF BAR DOWN TO POLE Z=-0.075',
-    '14 L Z+0.300 FMAX'
+    '8 ; --- STAGE 1: ROUGH BAR TOP FACE & STEPPED SPHERE / NECK CONTOUR ---',
+    '9 TOOL CALL 1 Z S12000 F160.0 ; 0.500IN FLAT ROUGHING ENDMILL',
+    '10 L X+0.000 Y+0.000 Z+1.250 B+0.0 C+0.0 R0 FMAX M03 M08',
+    '11 L X+1.180 Y+0.000 Z+0.200 FMAX',
+    '12 L Z+0.000 F100.0',
+    '13 L X-1.050 Y+0.000 Z+0.000 F150.0 ; FACE ACROSS BAR TOP TO Z=0',
+    '14 L Z+0.250 FMAX'
   ];
 
   let blk = 15;
-  const sphereR = 0.875; // 1.750 in diameter sphere
-  const centerZ = -0.950; // Top pole at Z = -0.075, bottom equator blend at Z = -1.825
+  const sphereR = 0.875;   // 1.750 in diameter sphere
+  const neckR = 0.450;     // 0.900 in diameter undercut neck
+  const centerZ = -0.875;  // Top pole sits cleanly at Z = 0.000
 
   const roughLevels = [
-    { z: -0.15, r: 0.48 },
-    { z: -0.35, r: 0.78 },
-    { z: -0.65, r: 0.95 },
-    { z: -0.95, r: 1.00 },
-    { z: -1.35, r: 0.86 },
-    { z: -1.68, r: 0.64 },
-    { z: -1.85, r: 0.50 }
+    { z: -0.06, r: 0.46 },
+    { z: -0.28, r: 0.79 },
+    { z: -0.58, r: 0.96 },
+    { z: -0.88, r: 1.02 },
+    { z: -1.32, r: 0.85 },
+    { z: -1.68, r: 0.62 },
+    { z: -1.86, r: 0.52 }
   ];
   roughLevels.forEach(lv => {
-    lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 Z+${(lv.z + 0.25).toFixed(4)} FMAX`);
-    lines.push(`${blk++} L X+${lv.r.toFixed(4)} Y+0.000 Z${lv.z.toFixed(4)} F85.0`);
-    const segs = 20;
+    lines.push(`${blk++} L X+${(lv.r + 0.32).toFixed(4)} Y+0.000 Z+${(lv.z + 0.22).toFixed(4)} FMAX`);
+    lines.push(`${blk++} L X+${lv.r.toFixed(4)} Y+0.000 Z${lv.z.toFixed(4)} F80.0`);
+    const segs = 24;
     for (let i = 1; i <= segs; i++) {
       const ang = (i / segs) * Math.PI * 2;
       const x = Math.cos(ang) * lv.r;
       const y = Math.sin(ang) * lv.r;
-      lines.push(`${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} F155.0`);
+      lines.push(`${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} F150.0`);
     }
-    lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 FMAX`);
+    lines.push(`${blk++} L X+${(lv.r + 0.32).toFixed(4)} Y+0.000 FMAX`);
   });
-  lines.push(`${blk++} L Z+1.400 FMAX`);
+  lines.push(`${blk++} L Z+1.350 FMAX`);
 
-  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & 0.900 IN UNDERCUT NECK ---`);
-  lines.push(`${blk++} TOOL CALL 2 Z S16500 F175.0 ; 0.375IN BALL NOSE FINISHING ENDMILL`);
+  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & UNDERCUT NECK (B+6 TO B+115 DEG) ---`);
+  lines.push(`${blk++} TOOL CALL 2 Z S16500 F180.0 ; 0.375IN BALL NOSE FINISHING ENDMILL`);
   lines.push(`${blk++} FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS`);
 
-  const phiAngles = [4, 14, 24, 36, 48, 60, 72, 84, 96, 108, 120, 128];
+  // B tilt angles from B+6 deg near top pole through B+115 deg undercut neck
+  const bAngles = [6, 18, 30, 42, 54, 66, 78, 90, 102, 115];
   const stepsPerRev = 24;
 
-  phiAngles.forEach((phiDeg, ringIdx) => {
-    const phi = phiDeg * (Math.PI / 180);
-    let rRing, zRing, bTilt;
-    if (phiDeg <= 120) {
+  bAngles.forEach((bDeg, ringIdx) => {
+    const phi = bDeg * (Math.PI / 180);
+    let rRing, zRing;
+    if (bDeg <= 102) {
       rRing = sphereR * Math.sin(phi);
       zRing = centerZ + sphereR * Math.cos(phi);
-      bTilt = Math.min(115, phiDeg);
     } else {
-      const tNeck = (phiDeg - 120) / 8;
-      const r120 = sphereR * Math.sin(120 * Math.PI / 180);
-      const z120 = centerZ + sphereR * Math.cos(120 * Math.PI / 180);
-      rRing = r120 * (1 - tNeck) + 0.450 * tNeck;
-      zRing = z120 * (1 - tNeck) + (-1.850) * tNeck;
-      bTilt = 115 + tNeck * 3;
+      const tUndercut = (bDeg - 102) / 13;
+      const rAt102 = sphereR * Math.sin(102 * Math.PI / 180);
+      const zAt102 = centerZ + sphereR * Math.cos(102 * Math.PI / 180);
+      rRing = rAt102 * (1 - tUndercut) + neckR * tUndercut;
+      zRing = zAt102 * (1 - tUndercut) + (-1.850) * tUndercut;
     }
 
     const cStart = ringIdx * 360;
     if (ringIdx === 0) {
-      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.3500 B+4.00 C+0.0 R0 FMAX M03 M08`);
-      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z-0.0750 F95.0 ; FINISH TOP POLE AT Z=-0.075`);
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.3500 B+0.00 C+0.0 R0 FMAX M03 M08`);
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.0000 B+6.00 C+0.0 F100.0 ; ENGAGE TOP POLE`);
     }
 
     for (let s = 1; s <= stepsPerRev; s++) {
@@ -954,15 +974,14 @@ function buildSphereOn5InchBarProgram() {
       const x = rRing * Math.cos(theta);
       const y = rRing * Math.sin(theta);
       lines.push(
-        `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} B+${bTilt.toFixed(2)} C+${cDeg.toFixed(1)} F180.0`
+        `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} B+${bDeg.toFixed(2)} C+${cDeg.toFixed(1)} F180.0`
       );
     }
   });
 
-  lines.push(`${blk++} ; --- STAGE 3: 5-AXIS 0.900 IN UNDERCUT NECK SHOULDER AT Z=-1.850 ---`);
+  lines.push(`${blk++} ; --- STAGE 3: 0.900 IN UNDERCUT NECK SHOULDER BLEND TO 2.000 IN BAR ---`);
   const neckZ = -1.850;
-  const neckR = 0.450; // 0.900 in diameter undercut neck
-  const cBase = phiAngles.length * 360;
+  const cBase = bAngles.length * 360;
   for (let s = 0; s <= 24; s++) {
     const frac = s / 24;
     const theta = frac * Math.PI * 2;
@@ -970,11 +989,11 @@ function buildSphereOn5InchBarProgram() {
     const x = neckR * Math.cos(theta);
     const y = neckR * Math.sin(theta);
     lines.push(
-      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${neckZ.toFixed(4)} B+118.00 C+${cDeg.toFixed(1)} F150.0`
+      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${neckZ.toFixed(4)} B+115.00 C+${cDeg.toFixed(1)} F150.0`
     );
   }
 
-  lines.push(`${blk++} M140 MB MAX ; RETRACT ALONG TILTED TOOL AXIS`);
+  lines.push(`${blk++} M140 MB MAX ; RETRACT ALONG SPINDLE AXIS`);
   lines.push(`${blk++} M129 ; CANCEL TCPM`);
   lines.push(`${blk++} L B+0.0 C+0.0 Z+1.800 FMAX M09 M05`);
   lines.push(`${blk++} END PGM 5AX_SPHERE_5IN_BAR INCH`);
@@ -988,32 +1007,6 @@ const SAMPLE_PROGRAMS = [
     dirty: false,
     name: '5AX_SPHERE_ON_5IN_BAR.h',
     content: buildSphereOn5InchBarProgram()
-  },
-  {
-    id: 'doc-5ax-blisk',
-    mode: 'table-bc',
-    dirty: false,
-    name: '5AX_TURBINE_BLISK_DEMO.h',
-    content: `0 BEGIN PGM 5AX_TURBINE_BLISK_DEMO MM
-1 ; 5-AXIS IMPELLER / TURBINE BLADE SWARF & PLANE SPATIAL DEMO
-2 BLK FORM 0.1 Z X-50.0 Y-50.0 Z-35.0
-3 BLK FORM 0.2 X+50.0 Y+50.0 Z+0.0
-4 TOOL DEF 2 L+0.000 R+4.000 ; 8.0MM TAPERED BALL ENDMILL
-5 TOOL CALL 2 Z S18000 F2400
-6 L X+0.0 Y+0.0 Z+30.0 B+0.0 C+0.0 R0 FMAX M03 M08
-7 PLANE SPATIAL SPA+0.0 SPB+32.0 SPC+0.0 TURN FMAX SEQ-
-8 FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS
-9 L X+38.0 Y-12.0 Z+5.0 B+32.0 C+0.0 FMAX
-10 L Z-14.0 F800
-11 L X+22.0 Y+14.0 Z-18.0 B+38.0 C+45.0 F2200
-12 L X+12.0 Y+26.0 Z-22.0 B+42.0 C+90.0 F2200
-13 L X-14.0 Y+24.0 Z-22.0 B+42.0 C+135.0 F2200
-14 L X-26.0 Y-12.0 Z-18.0 B+36.0 C+180.0 F2200
-15 M140 MB MAX
-16 M129
-17 PLANE RESET TURN FMAX
-18 L B+0.0 C+0.0 Z+40.0 FMAX M09 M05
-19 END PGM 5AX_TURBINE_BLISK_DEMO MM`
   },
   {
     id: 'doc-mill-1',
@@ -1035,30 +1028,22 @@ N80 G41 D01 G01 X-45.000 Y-30.000 F1600.0
 N90 G01 X35.000 F2200.0
 N100 G03 X45.000 Y-20.000 I0.000 J10.000
 N110 G01 Y20.000
-N120 G03 X35.000 Y30.000 I-10.000 J0.000
-N130 G01 X-35.000
-N140 G03 X-45.000 Y20.000 I0.000 J-10.000
-N150 G01 Y-20.000
-N160 G03 X-35.000 Y-30.000 I10.000 J0.000
-N170 G40 G01 X-55.000 Y-40.000
-(DEEP INNER POCKET CLEARING)
-N180 G00 Z5.000
-N190 G00 X-22.000 Y-14.000
-N200 G01 Z-10.000 F500.0
-N210 G01 X22.000 F1800.0
-N220 G01 Y14.000
-N230 G01 X-22.000
-N240 G01 Y-14.000
-N250 G00 Z20.000 M09
-N300 M05
-N310 M30
+N115 G03 X35.000 Y30.000 I-10.000 J0.000
+N120 G01 X-35.000
+N130 G03 X-45.000 Y20.000 I0.000 J-10.000
+N140 G01 Y-20.000
+N150 G03 X-35.000 Y-30.000 I10.000 J0.000
+N160 G40 G01 X-55.000 Y-40.000
+N170 G00 Z20.000 M09
+N180 M05
+N190 M30
 %`
   },
   {
     id: 'doc-mill-revb',
     mode: 'vmc-3ax',
     dirty: false,
-    name: 'O1001_POCKET_G41_MILL_REV_B.nc',
+    name: 'O1001_POCKET_REV_B.nc',
     content: `%
 O1001 (AEROSPACE BRACKET - REV B UPDATED FEEDS & DEPTH)
 N10 G90 G17 G21 G40 G80
@@ -1072,15 +1057,35 @@ N80 G41 D01 G01 X-45.000 Y-30.000 F1950.0
 N90 G01 X35.000 F2600.0
 N100 G03 X45.000 Y-20.000 I0.000 J10.000
 N110 G01 Y20.000
-N120 G03 X35.000 Y30.000 I-10.000 J0.000
-N130 G01 X-35.000
-N140 G03 X-45.000 Y20.000 I0.000 J-10.000
-N150 G01 Y-20.000
-N160 G03 X-35.000 Y-30.000 I10.000 J0.000
-N170 G40 G01 X-55.000 Y-40.000
-N250 G00 Z20.000 M09
-N300 M05
-N310 M30
+N115 G03 X35.000 Y30.000 I-10.000 J0.000
+N120 G01 X-35.000
+N130 G03 X-45.000 Y20.000 I0.000 J-10.000
+N140 G01 Y-20.000
+N150 G03 X-35.000 Y-30.000 I10.000 J0.000
+N160 G40 G01 X-55.000 Y-40.000
+N170 G00 Z20.000 M09
+N180 M05
+N190 M30
+%`
+  },
+  {
+    id: 'doc-crash-demo',
+    mode: 'vmc-3ax',
+    dirty: false,
+    name: 'O9911_COLLISION_CHECK_DEMO.nc',
+    content: `%
+O9911 (RAPID GOUGE & COLLISION VERIFICATION DEMO)
+N10 G90 G17 G21 G40
+N20 T01 M06 (12.0MM CARBIDE ENDMILL)
+N30 S10000 M03
+N40 G00 X-30.000 Y-20.000 Z15.000 M08
+N50 G01 Z-4.000 F500.0
+N60 G01 X30.000 F1500.0
+(DELIBERATE G00 RAPID CRASH THROUGH WORKPIECE!)
+N70 G00 X-20.000 Y15.000 Z-8.000
+N80 G01 X25.000 F1500.0
+N90 G00 Z20.000 M09
+N100 M30
 %`
   },
   {
@@ -1104,48 +1109,27 @@ N100 G01 Z-28.000
 N110 G01 X44.000 Z-36.000
 N120 G01 Z-62.000
 N130 G01 X64.000 Z-72.000
-N135 G70 P70 Q130
 N140 G00 X80.000 Z50.000 M09
 N200 M05
 N210 M30
-%`
-  },
-  {
-    id: 'doc-crash-demo',
-    mode: 'vmc-3ax',
-    dirty: false,
-    name: 'O9911_COLLISION_CHECK_DEMO.nc',
-    content: `%
-O9911 (RAPID GOUGE & COLLISION VERIFICATION DEMO)
-N10 G90 G17 G21 G40
-N20 T01 M06 (12.0MM CARBIDE ENDMILL)
-N30 S10000 M03
-N40 G00 X-30.000 Y-20.000 Z15.000 M08
-N50 G01 Z-4.000 F500.0
-N60 G01 X30.000 F1500.0
-(DELIBERATE G00 RAPID CRASH THROUGH WORKPIECE!)
-N70 G00 X-20.000 Y15.000 Z-8.000
-N80 G01 X25.000 F1500.0
-N90 G00 Z20.000 M09
-N100 M30
 %`
   }
 ];
 
 const DEFAULT_PROFILES = [
-  { id: '5ax-table-bc', name: '5-Axis Table-Table (B/C Cradle + X/Y/Z Spindle)', rapidRate: 40000, maxRpm: 20000, limX: 365, limY: 280, limZ: -280 },
-  { id: '5ax-swivel-bc', name: '5-Axis Swivel B/C Table (45° B-Axis)', rapidRate: 42000, maxRpm: 20000, limX: 325, limY: 260, limZ: -240 },
-  { id: 'vmc-3ax', name: '3-Axis Vertical Machining Center (VMC)', rapidRate: 18000, maxRpm: 15000, limX: 350, limY: 250, limZ: -250 },
-  { id: 'lathe-2ax', name: '2-Axis CNC Turning Center (Lathe)', rapidRate: 15000, maxRpm: 4000, limX: 250, limY: 250, limZ: -400 }
+  { id: 'ncp-5ax-table-bc', name: 'NC Preview — 5-Axis Table-Table (B/C Cradle + X/Y/Z Spindle)', rapidRate: 40000, maxRpm: 20000, limX: 365, limY: 280, limZ: -280 },
+  { id: 'ncp-5ax-swivel-bc', name: 'NC Preview — 5-Axis Swivel B/C Table (45° B-Axis)', rapidRate: 42000, maxRpm: 20000, limX: 325, limY: 260, limZ: -240 },
+  { id: 'ncp-vmc-3ax', name: 'NC Preview — 3-Axis Vertical Machining Center', rapidRate: 18000, maxRpm: 15000, limX: 350, limY: 250, limZ: -250 },
+  { id: 'ncp-lathe-2ax', name: 'NC Preview — 2-Axis CNC Turning Center', rapidRate: 15000, maxRpm: 4000, limX: 250, limY: 250, limZ: -400 }
 ];
 
 const MATERIAL_SHADERS = {
-  aluminum:  { name: '6061-T6 Aluminum',     rawRgb: [162, 174, 189], cutRgb: [216, 226, 238], wallRgb: [132, 144, 160], specPower: 28, specIntensity: 0.55 },
-  steel:     { name: '1018 / 4140 Steel',    rawRgb: [118, 126, 138], cutRgb: [176, 186, 198], wallRgb: [96, 104, 116],  specPower: 36, specIntensity: 0.65 },
-  stainless: { name: '304 Stainless Steel',  rawRgb: [148, 156, 164], cutRgb: [204, 212, 220], wallRgb: [120, 128, 136], specPower: 44, specIntensity: 0.72 },
-  brass:     { name: '360 Free-Cut Brass',   rawRgb: [184, 148, 66],  cutRgb: [232, 194, 96],  wallRgb: [152, 118, 48],  specPower: 34, specIntensity: 0.68 },
-  delrin:    { name: 'Delrin (Acetal)',      rawRgb: [226, 230, 236], cutRgb: [246, 248, 252], wallRgb: [195, 200, 208], specPower: 14, specIntensity: 0.25 },
-  wax:       { name: 'Machinable Wax',       rawRgb: [46, 124, 172],  cutRgb: [78, 168, 222],  wallRgb: [36, 98, 140],   specPower: 18, specIntensity: 0.35 }
+  aluminum:  { name: '6061-T6 Aluminum',    rawRgb: [162, 174, 189], cutRgb: [216, 226, 238], wallRgb: [132, 144, 160], specPower: 28, specIntensity: 0.55 },
+  steel:     { name: '1018/4140 Steel',   rawRgb: [118, 126, 138], cutRgb: [176, 186, 198], wallRgb: [96, 104, 116],  specPower: 36, specIntensity: 0.65 },
+  stainless: { name: '304 Stainless Steel', rawRgb: [148, 156, 164], cutRgb: [204, 212, 220], wallRgb: [120, 128, 136], specPower: 44, specIntensity: 0.72 },
+  brass:     { name: '360 Brass',           rawRgb: [184, 148, 66],  cutRgb: [232, 194, 96],  wallRgb: [152, 118, 48],  specPower: 34, specIntensity: 0.68 },
+  delrin:    { name: 'Delrin',              rawRgb: [226, 230, 236], cutRgb: [246, 248, 252], wallRgb: [195, 200, 208], specPower: 14, specIntensity: 0.25 },
+  wax:       { name: 'Machinable Wax',      rawRgb: [46, 124, 172],  cutRgb: [78, 168, 222],  wallRgb: [36, 98, 140],   specPower: 18, specIntensity: 0.35 }
 };
 
 /* ==========================================================================
@@ -1159,7 +1143,7 @@ const state = {
   linesCache: [],
   activeLine: 0,
   profiles: [],
-  activeProfileId: '5ax-table-bc',
+  activeProfileId: 'ncp-5ax-table-bc',
   kinematicsMode: 'table-bc',
 
   tools: {
@@ -1180,20 +1164,20 @@ const state = {
     shape: 'cylinder',
     material: 'aluminum',
     minX: -1.0, maxX: 1.0, minY: -1.0, maxY: 1.0, minZ: -5.0, maxZ: 0.0,
-    latheDia: 66, latheLen: 80,
+    latheDia: 66, latheLen: 85,
     cols: 120, rows: 120,
     initialZ: null,
     currentZ: null,
     gougeFlags: null,
-    // High-resolution Cylindrical Radial Heightfield r[thetaIdx][zIdx] (144 angular x 180 axial)
+    // Cylindrical radial heightfield r[thetaIdx][zIdx] (144 angular x 180 axial)
     cylThetaSegs: 144,
     cylZSegs: 180,
     cylMaxR: 1.0,
     cylInitialR: null,
     cylCurrentR: null,
     cylGougeFlags: null,
-    // Lathe revolved 1D Z-profile r(z)
-    latheZSegs: 180,
+    // Lathe profile heightfield along Z axis
+    latheZSegs: 140,
     latheCurrentR: null,
     latheGougeFlags: null
   },
@@ -1205,7 +1189,7 @@ const state = {
     lastFrameTs: 0,
     lastBuiltTimeSec: -1,
     lastCarvedSegmentIdx: 0,
-    lastCarvedSubT: 0,
+    lastCarvedSubT: 0.0,
     spindleAngle: 0,
     coolantParticles: [],
     fpsSamples: [],
@@ -1234,8 +1218,7 @@ const state = {
   },
 
   dnc: {
-    port: null,
-    writer: null
+    port: null
   }
 };
 
@@ -1371,24 +1354,33 @@ function getToolAxisMachineVector(rot, plane) {
   return rotateVectorByEuler({ x: 0, y: 0, z: 1 }, aTot, bTot, cTot);
 }
 
-// Tool axis vector in Workpiece Coordinates (for 3D swept flute volume carving in cylindrical & box stock)
+// Tool vector I/J/K in workpiece frame for 5-axis B/C table & head kinematics
 function getToolAxisWorkpieceVector(rot, plane) {
-  const aTot = (rot.a || 0) + (plane && plane.spa ? plane.spa : 0);
-  const bTot = (rot.b || 0) + (plane && plane.spb ? plane.spb : 0);
-  const cTot = (rot.c || 0) + (plane && plane.spc ? plane.spc : 0);
-  return rotateVectorByEuler({ x: 0, y: 0, z: 1 }, aTot, bTot, cTot);
+  if (state.kinematicsMode === 'table-bc') {
+    const aTot = (rot.a || 0) + (plane && plane.spa ? plane.spa : 0);
+    const bTot = (rot.b || 0) + (plane && plane.spb ? plane.spb : 0);
+    const cTot = (rot.c || 0) + (plane && plane.spc ? plane.spc : 0);
+    const v = rotateVectorByEuler({ x: 0, y: 0, z: 1 }, aTot, bTot, cTot);
+    const len = Math.hypot(v.x, v.y, v.z) || 1;
+    return { x: v.x / len, y: v.y / len, z: v.z / len };
+  }
+  return getToolAxisMachineVector(rot, plane);
 }
 
 /* ==========================================================================
-   5. SYNTAX HIGHLIGHTER & HYBRID VIRTUALIZED CODE EDITOR ENGINE
+   5. SYNTAX HIGHLIGHTER & EDITOR RENDERING (WITH VIRTUALIZATION >15K LINES)
    ========================================================================== */
 function highlightLineHtml(line) {
-  const semiIdx = line.indexOf(';');
-  const codePart = semiIdx >= 0 ? line.slice(0, semiIdx) : line;
-  const commentPart = semiIdx >= 0 ? `<span class="tok-comm">${escapeHtml(line.slice(semiIdx))}</span>` : '';
-  let s = escapeHtml(codePart);
+  let raw = String(line || '');
+  let commentPart = '';
+  const semiIdx = raw.indexOf(';');
+  if (semiIdx !== -1) {
+    commentPart = `<span class="tok-comm">${escapeHtml(raw.slice(semiIdx))}</span>`;
+    raw = raw.slice(0, semiIdx);
+  }
+  let s = escapeHtml(raw);
   s = s.replace(/\([^)]*\)/g, m => `<span class="tok-comm">${m}</span>`);
-  s = s.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|TOOL\s+DEF|CYCL\s+DEF|CYCL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|L|CC|C|CR|FMAX|RL|RR|R0)\b/g, '<span class="tok-kw">$1</span>');
+  s = s.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|TOOL\s+DEF|CYCL\s+DEF|CYCL\s+CALL|PLANE\s+SPATIAL|FUNCTION\s+TCPM|L|CC|C|CR|FMAX|RL|RR|R0)\b/g, '<span class="tok-kw">$1</span>');
   s = s.replace(/^(\s*N\d+)/i, '<span class="tok-n">$1</span>');
   s = s.replace(/\b(G\d+(?:\.\d+)?)\b/gi, '<span class="tok-g">$1</span>');
   s = s.replace(/\b(M\d+)\b/gi, '<span class="tok-m">$1</span>');
@@ -1475,70 +1467,40 @@ function updateCursorLineFromTextarea() {
     if (seg) {
       state.sim.currentTimeSec = seg.endTimeSec;
       el.scrubber.value = state.stats.totalTimeSec > 0 ? Math.round((seg.endTimeSec / state.stats.totalTimeSec) * 1000) : 0;
-      rebuildStockUpToTime(state.sim.currentTimeSec);
+      rebuildStockUpToTime(state.sim.currentTimeSec, false);
       drawBackplot();
     }
   }
 }
 
 /* ==========================================================================
-   6. TOOL LIBRARY & LIVE NC-ASSISTANT INSPECTOR DOCK
+   6. CUTTING TOOL LIBRARY & INSPECTOR DOCK RENDERERS
    ========================================================================== */
 function updateInspectorDock() {
   const ln = state.activeLine;
-  const doc = getActiveDoc();
   const raw = state.linesCache[ln] || '';
   document.getElementById('assist-line-num').textContent = `Ln ${ln + 1}`;
   document.getElementById('assist-raw-line').textContent = raw.trim() || '(Blank Block)';
 
   const wordsDiv = document.getElementById('assist-words');
   wordsDiv.innerHTML = '';
-
-  // Editable parameter chips for numeric NC words (X, Y, Z, A, B, C, F, S, I, J, K, R)
-  const wordRegex = /\b([XYZABCIJKFSR])([+-]?\d*\.?\d+)\b/gi;
-  let match;
-  let count = 0;
-  const codeOnly = raw.split(';')[0].replace(/\([^)]*\)/g, '');
-  while ((match = wordRegex.exec(codeOnly)) !== null && count < 8) {
-    const letter = match[1].toUpperCase();
-    const numStr = match[2];
-    const matchIndex = match.index;
+  const tokens = raw.split(';')[0].replace(/\([^)]*\)/g, '').trim().split(/\s+/).filter(Boolean);
+  tokens.slice(0, 10).forEach(tok => {
     const chip = document.createElement('div');
     chip.className = 'word-chip';
-    chip.innerHTML = `<span style="font-weight:700; color:var(--accent-orange);">${letter}</span>`;
-    const inp = document.createElement('input');
-    inp.type = 'text';
-    inp.value = numStr;
-    inp.title = `Edit ${letter} coordinate/parameter on Line ${ln + 1}`;
-    inp.onchange = () => {
-      if (!doc) return;
-      const lines = doc.content.split('\n');
-      const curLine = lines[ln] || '';
-      const before = curLine.slice(0, matchIndex);
-      const after = curLine.slice(matchIndex + letter.length + numStr.length);
-      lines[ln] = before + letter + inp.value.trim() + after;
-      doc.content = lines.join('\n');
-      doc.dirty = true;
-      renderDocTabs();
-      parseAndBuildSimulation(doc.content, false);
-    };
-    chip.appendChild(inp);
+    chip.textContent = tok;
     wordsDiv.appendChild(chip);
-    count++;
-  }
+  });
 
   let desc = 'Standard motion / control block.';
   if (/FUNCTION\s+TCPM/i.test(raw)) desc = 'Tool Center Point Management (TCPM) enabled: controller compensates X/Y/Z linear spindle axes for B/C rotary table tilt.';
   else if (/PLANE\s+SPATIAL/i.test(raw)) desc = 'Tilted working plane definition (SPA/SPB/SPC) rotating local coordinate frame on the 5-axis table.';
   else if (/BLK\s+FORM/i.test(raw)) desc = '3D Workpiece Blank Form bounding envelope definition for solid stock simulation.';
   else if (/TOOL\s+CALL/i.test(raw)) desc = 'Spindle tool change and cutting speed / feedrate activation.';
-  else if (/G71\b/i.test(raw)) desc = 'CNC Lathe longitudinal stock removal roughing cycle (G71).';
-  else if (/G70\b/i.test(raw)) desc = 'CNC Lathe contour finishing pass cycle (G70).';
   else if (/G41|RL\b/i.test(raw)) desc = 'Left cutter radius compensation active.';
   else if (/G42|RR\b/i.test(raw)) desc = 'Right cutter radius compensation active.';
-  else if (/G00|FMAX/i.test(raw)) desc = 'Rapid positioning traverse (non-cutting). Verified against solid stock for gouges.';
+  else if (/G00|FMAX/i.test(raw)) desc = 'Rapid positioning traverse (non-cutting). Verified against solid stock for rapid gouges.';
   document.getElementById('assist-explanation').textContent = desc;
-  document.getElementById('assist-modal-summary').textContent = `${state.kinematicsMode.toUpperCase()} | ${document.getElementById('st-units').textContent.replace('Units: ', '')}`;
 }
 
 function renderToolTableDock() {
@@ -1557,14 +1519,14 @@ function renderToolTableDock() {
       <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:var(--accent-cyan);">
         <span>T${String(t.num).padStart(2, '0')} — ${escapeHtml(t.name)}</span>
         <div style="display:flex; gap:3px;">
-          <button class="vp-btn btn-edit-tool" data-tnum="${t.num}" title="Full Tool Geometry Editor" style="padding:1px 5px; font-size:10px;">Edit</button>
+          <button class="vp-btn btn-edit-tool" data-tnum="${t.num}" title="Edit Tool Geometry" style="padding:1px 5px; font-size:10px;">Edit</button>
           <button class="vp-btn btn-del-tool" data-tnum="${t.num}" title="Delete Tool" style="padding:1px 5px; font-size:10px; color:var(--accent-red);">×</button>
         </div>
       </div>
       <div style="display:flex; gap:4px; margin-top:5px; align-items:center; flex-wrap:wrap;">
         <label style="font-size:10px; color:var(--text-secondary);">Dia:</label>
         <input type="number" step="0.005" value="${t.dia}" class="compact-input quick-tool-inp" style="width:62px;" data-tnum="${t.num}" data-field="dia">
-        <label style="font-size:10px; color:var(--text-secondary);">Tip:</label>
+        <label style="font-size:10px; color:var(--text-secondary);">Geom:</label>
         <select class="compact-select quick-tool-inp" data-tnum="${t.num}" data-field="shape">
           <option value="ball" ${t.shape === 'ball' ? 'selected' : ''}>Ball Nose</option>
           <option value="flat" ${t.shape === 'flat' ? 'selected' : ''}>Flat Endmill</option>
@@ -1574,7 +1536,7 @@ function renderToolTableDock() {
         </select>
       </div>
       <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">
-        Flutes: ${t.flutes || 4} | Flute L: ${t.fluteLen} | Stickout: ${t.overallLen || (t.fluteLen * 2)}
+        R:${t.cornerRad || 0} | Flute:${t.fluteLen || 1.0} | Stickout:${t.overallLen || 2.25} | Flutes:${t.flutes || 4}
       </div>
     `;
     card.querySelectorAll('.quick-tool-inp').forEach(inp => {
@@ -1587,6 +1549,7 @@ function renderToolTableDock() {
           if (state.tools[tn].shape === 'ball') state.tools[tn].cornerRad = val / 2;
         } else {
           state.tools[tn][fld] = inp.value;
+          if (inp.value === 'ball') state.tools[tn].cornerRad = state.tools[tn].dia / 2;
         }
         renderToolTableDock();
         parseAndBuildSimulation(getActiveDoc().content, false);
@@ -1645,7 +1608,7 @@ function renderAlarmLogDock() {
 
   container.innerHTML = '';
   if (state.alarms.length === 0) {
-    container.innerHTML = `<div style="color:var(--accent-green); font-size:11.5px; padding:6px;">✓ Zero collisions or rapid gouges detected.</div>`;
+    container.innerHTML = `<div style="color:var(--accent-green); font-size:11.5px; padding:6px;">✓ Zero rapid-into-stock collisions detected.</div>`;
     return;
   }
   state.alarms.forEach(al => {
@@ -1660,7 +1623,7 @@ function renderAlarmLogDock() {
     card.onclick = () => {
       state.activeLine = al.line;
       state.sim.currentTimeSec = al.timeSec || 0;
-      rebuildStockUpToTime(state.sim.currentTimeSec);
+      rebuildStockUpToTime(state.sim.currentTimeSec, true);
       renderEditorView();
       drawBackplot();
     };
@@ -1669,7 +1632,7 @@ function renderAlarmLogDock() {
 }
 
 /* ==========================================================================
-   7. G-CODE & HEIDENHAIN KLARTEXT PARSER + SOLID STOCK SIMULATION
+   7. G-CODE & HEIDENHAIN KLARTEXT PARSER + SOLID MATERIAL REMOVAL
    ========================================================================== */
 function registerToolFromComment(tNum, desc, explicitDia = null) {
   const diaMatch = desc.match(/(\d+\.?\d*)\s*(?:MM|IN)/i);
@@ -1930,154 +1893,143 @@ function parseIsoGCode(lines, prof, rapidRate, fitView) {
     if (dMatch) compReg = parseInt(dMatch[1], 10) || tool;
 
     const sMatch = clean.match(/\bS(\d*\.?\d+)/i);
-    if (sMatch) spindle = parseFloat(sMatch[1]);
     const fMatch = clean.match(/\bF(\d*\.?\d+)/i);
+    if (sMatch) spindle = parseFloat(sMatch[1]);
     if (fMatch) feed = parseFloat(fMatch[1]);
 
-    if (/\bG0?0\b/i.test(clean)) motionMode = 'G00';
-    else if (/\bG0?1\b/i.test(clean)) motionMode = 'G01';
-    else if (/\bG0?2\b/i.test(clean)) motionMode = 'G02';
-    else if (/\bG0?3\b/i.test(clean)) motionMode = 'G03';
-
-    // Lathe Canned Cycles G71 / G70 summary
-    if (isLathe && /\bG71\b/i.test(clean) && /\bP\d+/i.test(clean)) continue;
-    if (isLathe && /\bG70\b/i.test(clean) && /\bP\d+/i.test(clean)) continue;
+    const gMatch = clean.match(/\bG0*([0123])\b/i);
+    if (gMatch) motionMode = 'G0' + gMatch[1];
 
     const xm = clean.match(/\bX([+-]?\d*\.?\d+)/i);
     const ym = clean.match(/\bY([+-]?\d*\.?\d+)/i);
     const zm = clean.match(/\bZ([+-]?\d*\.?\d+)/i);
-    const im = clean.match(/\bI([+-]?\d*\.?\d+)/i);
-    const jm = clean.match(/\bJ([+-]?\d*\.?\d+)/i);
     const bm = clean.match(/\bB([+-]?\d*\.?\d+)/i);
     const cm = clean.match(/\bC([+-]?\d*\.?\d+)/i);
+    const im = clean.match(/\bI([+-]?\d*\.?\d+)/i);
+    const jm = clean.match(/\bJ([+-]?\d*\.?\d+)/i);
 
     if (xm || ym || zm || bm || cm) {
-      const target = { ...pos };
-      const targetRot = { ...rot };
-      if (xm) {
-        const v = parseFloat(xm[1]);
-        const effV = isLathe ? v * 0.5 : v;
-        target.x = absMode ? effV : pos.x + effV;
-      }
-      if (ym) {
-        const v = parseFloat(ym[1]);
-        target.y = absMode ? v : pos.y + v;
-      }
-      if (zm) {
-        const v = parseFloat(zm[1]);
-        target.z = absMode ? v : pos.z + v;
-      }
-      if (bm) targetRot.b = parseFloat(bm[1]);
-      if (cm) targetRot.c = parseFloat(cm[1]);
+      const nextPos = { ...pos };
+      const nextRot = { ...rot };
+      const valX = xm ? parseFloat(xm[1]) : (absMode ? pos.x : 0);
+      const valY = ym ? parseFloat(ym[1]) : (absMode ? pos.y : 0);
+      const valZ = zm ? parseFloat(zm[1]) : (absMode ? pos.z : 0);
+      nextPos.x = absMode ? valX : pos.x + valX;
+      nextPos.y = absMode ? valY : pos.y + valY;
+      nextPos.z = absMode ? valZ : pos.z + valZ;
+      if (bm) nextRot.b = absMode ? parseFloat(bm[1]) : rot.b + parseFloat(bm[1]);
+      if (cm) nextRot.c = absMode ? parseFloat(cm[1]) : rot.c + parseFloat(cm[1]);
 
-      const pts = [{ ...pos }];
-      if ((motionMode === 'G02' || motionMode === 'G03') && (im || jm) && !isLathe) {
+      const isRapid = motionMode === 'G00';
+      const isArc = !isRapid && (motionMode === 'G02' || motionMode === 'G03') && (im || jm);
+      const pts = [];
+
+      if (isArc) {
         const iVal = im ? parseFloat(im[1]) : 0;
         const jVal = jm ? parseFloat(jm[1]) : 0;
-        const cx = pos.x + iVal;
-        const cy = pos.y + jVal;
-        const rad = Math.hypot(pos.x - cx, pos.y - cy);
-        const a0 = Math.atan2(pos.y - cy, pos.x - cx);
-        let a1 = Math.atan2(target.y - cy, target.x - cx);
-        const cw = motionMode === 'G02';
-        if (cw && a1 >= a0) a1 -= Math.PI * 2;
-        if (!cw && a1 <= a0) a1 += Math.PI * 2;
-        const steps = 16;
-        for (let s = 1; s <= steps; s++) {
-          const t = s / steps;
+        const cxA = pos.x + iVal;
+        const cyA = pos.y + jVal;
+        const rA = Math.hypot(pos.x - cxA, pos.y - cyA) || 1;
+        const a0 = Math.atan2(pos.y - cyA, pos.x - cxA);
+        let a1 = Math.atan2(nextPos.y - cyA, nextPos.x - cxA);
+        const ccw = motionMode === 'G03';
+        if (ccw && a1 <= a0) a1 += Math.PI * 2;
+        if (!ccw && a1 >= a0) a1 -= Math.PI * 2;
+        const arcSteps = 16;
+        for (let s = 0; s <= arcSteps; s++) {
+          const t = s / arcSteps;
           const ang = a0 + (a1 - a0) * t;
-          pts.push({ x: cx + Math.cos(ang) * rad, y: cy + Math.sin(ang) * rad, z: pos.z + (target.z - pos.z) * t });
+          pts.push({
+            x: cxA + Math.cos(ang) * rA,
+            y: cyA + Math.sin(ang) * rA,
+            z: pos.z + (nextPos.z - pos.z) * t
+          });
         }
       } else {
-        pts.push({ ...target });
+        pts.push({ ...pos }, { ...nextPos });
       }
       pts.forEach(recordBounds);
 
-      const isRapid = motionMode === 'G00';
-      const segLen = Math.max(0.05, Math.hypot(target.x - pos.x, target.y - pos.y, target.z - pos.z));
+      const segLen = Math.max(0.05, Math.hypot(nextPos.x - pos.x, nextPos.y - pos.y, nextPos.z - pos.z));
       const rate = isRapid ? rapidRate : Math.max(1, feed);
-      const dur = Math.max(0.03, (segLen / rate) * 60);
+      const dur = Math.max(0.025, (segLen / rate) * 60);
       if (isRapid) rapidDist += segLen;
       else cutDist += segLen;
 
       segments.push({
         line: lineIdx,
-        type: motionMode,
-        is5Ax: false,
+        type: isRapid ? 'G00' : 'G01',
+        is5Ax: Math.abs(nextRot.b - rot.b) > 1e-4 || Math.abs(nextRot.c - rot.c) > 1e-4,
         pts,
         rotStart: { ...rot },
-        rotEnd: { ...targetRot },
+        rotEnd: { ...nextRot },
         planeStart: { spa: 0, spb: 0, spc: 0 },
         plane: { spa: 0, spb: 0, spc: 0 },
-        modalStr: `${isLathe ? 'LATHE XZ' : '3AX VMC'} | ${motionMode} | ${compMode}`,
+        modalStr: `${isLathe ? '2AX LATHE' : '3AX VMC'} | ${compMode} | ${absMode ? 'G90' : 'G91'}`,
         tool, spindle, spindleDir, feed: rate, coolant, compMode, compReg,
         startTimeSec: elapsedTimeSec, endTimeSec: elapsedTimeSec + dur, isCollision: false
       });
 
       elapsedTimeSec += dur;
-      pos = target;
-      rot = targetRot;
+      pos = nextPos;
+      rot = nextRot;
     }
   }
 
   finalizeParsedSimulation(segments, alarms, collisionLineSet, minX, maxX, minY, maxY, minZ, maxZ, cutDist, rapidDist, elapsedTimeSec, metric, false, isLathe, fitView);
 }
 
+function buildCutterCompPolylines() {
+  const polys = [];
+  for (const seg of state.segments) {
+    if (seg.type === 'G00') continue;
+    if (seg.compMode === 'G40' || seg.compMode === 'R0') continue;
+    const tObj = state.tools[seg.compReg || seg.tool] || { dia: 0.375 };
+    const offR = (tObj.dia || 0.375) * 0.5;
+    const sign = (seg.compMode === 'G41' || seg.compMode === 'RL') ? 1 : -1;
+    const offPts = [];
+    for (let i = 0; i < seg.pts.length; i++) {
+      const pCurr = seg.pts[i];
+      const pRef = seg.pts[Math.min(seg.pts.length - 1, i + 1)];
+      const pPrev = seg.pts[Math.max(0, i - 1)];
+      const dx = pRef.x - pPrev.x;
+      const dy = pRef.y - pPrev.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = (-dy / len) * offR * sign;
+      const ny = (dx / len) * offR * sign;
+      offPts.push({ x: pCurr.x + nx, y: pCurr.y + ny, z: pCurr.z });
+    }
+    polys.push({ pts: offPts, endTimeSec: seg.endTimeSec });
+  }
+  state.compPolylines = polys;
+}
+
 function finalizeParsedSimulation(segments, alarms, collisionLineSet, minX, maxX, minY, maxY, minZ, maxZ, cutDist, rapidDist, elapsedTimeSec, metric, blkFormFound, isLathe, fitView) {
-  if (!isFinite(minX)) { minX = -25; maxX = 25; minY = -25; maxY = 25; minZ = -20; maxZ = 20; }
-
   state.segments = segments;
-  state.extents = segments.length > 0 ? {
-    minX: blkFormFound ? Math.min(minX, state.stock.minX) : minX,
-    maxX: blkFormFound ? Math.max(maxX, state.stock.maxX) : maxX,
-    minY: blkFormFound ? Math.min(minY, state.stock.minY) : minY,
-    maxY: blkFormFound ? Math.max(maxY, state.stock.maxY) : maxY,
-    minZ: blkFormFound ? Math.min(minZ, state.stock.minZ) : minZ,
-    maxZ: blkFormFound ? Math.max(maxZ, state.stock.maxZ) : maxZ
-  } : { minX: -25, maxX: 25, minY: -25, maxY: 25, minZ: -20, maxZ: 20 };
-
-  state.stats = { cutDist, rapidDist, totalTimeSec: elapsedTimeSec };
   state.alarms = alarms;
   state.collisionLineSet = collisionLineSet;
-  state.compPolylines = !isLathe ? computeCutterCompPolylines(segments) : [];
+  state.stats = { cutDist, rapidDist, totalTimeSec: elapsedTimeSec };
 
+  if (!Number.isFinite(minX)) {
+    state.extents = { minX: -1, maxX: 1, minY: -1, maxY: 1, minZ: -5, maxZ: 1.5 };
+  } else {
+    state.extents = { minX, maxX, minY, maxY, minZ, maxZ };
+  }
+
+  document.getElementById('st-units').textContent = `Units: ${metric ? 'Metric (MM)' : 'Inch (INCH)'}`;
+  document.getElementById('st-extents').textContent =
+    `Extents: X[${state.extents.minX.toFixed(2)}..${state.extents.maxX.toFixed(2)}] Y[${state.extents.minY.toFixed(2)}..${state.extents.maxY.toFixed(2)}] Z[${state.extents.minZ.toFixed(2)}..${state.extents.maxZ.toFixed(2)}]`;
+
+  buildCutterCompPolylines();
   initStockHeightmapAndVerifyCollisions(blkFormFound, isLathe);
-
-  document.getElementById('st-units').textContent = metric ? 'Units: Metric (MM)' : 'Units: Inch (INCH)';
-  document.getElementById('st-extents').textContent = segments.length > 0
-    ? `Extents: X[${minX.toFixed(2)}..${maxX.toFixed(2)}] Y[${minY.toFixed(2)}..${maxY.toFixed(2)}] Z[${minZ.toFixed(2)}..${maxZ.toFixed(2)}]`
-    : 'Extents: Blank / Empty';
-
-  state.sim.currentTimeSec = elapsedTimeSec;
-  el.scrubber.value = segments.length > 0 ? 1000 : 0;
-  rebuildStockUpToTime(state.sim.currentTimeSec, true);
-
   renderAlarmLogDock();
+
+  state.sim.currentTimeSec = 0;
+  el.scrubber.value = 0;
+  rebuildStockUpToTime(0, true);
   renderEditorView();
   if (fitView) fitCameraToExtents();
   else drawBackplot();
-}
-
-function computeCutterCompPolylines(segments) {
-  const polys = [];
-  for (const seg of segments) {
-    if (seg.type === 'G00' || seg.compMode === 'G40' || seg.compMode === 'R0' || seg.pts.length < 2) continue;
-    const tObj = state.tools[seg.compReg] || state.tools[seg.tool] || { dia: 10 };
-    const rad = (tObj.dia || 10) / 2;
-    const side = (seg.compMode === 'G41' || seg.compMode === 'RL') ? 1 : -1;
-    const offPts = [];
-    for (let i = 0; i < seg.pts.length; i++) {
-      const p0 = seg.pts[Math.max(0, i - 1)];
-      const p1 = seg.pts[Math.min(seg.pts.length - 1, i + 1)];
-      const dx = p1.x - p0.x, dy = p1.y - p0.y;
-      const len = Math.hypot(dx, dy) || 1;
-      const nx = (-dy / len) * side * rad;
-      const ny = (dx / len) * side * rad;
-      offPts.push({ x: seg.pts[i].x + nx, y: seg.pts[i].y + ny, z: seg.pts[i].z });
-    }
-    polys.push({ pts: offPts, endTimeSec: seg.endTimeSec, rotEnd: seg.rotEnd, plane: seg.plane });
-  }
-  return polys;
 }
 
 function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe = false) {
@@ -2186,7 +2138,69 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
   }
 }
 
-// Exact 3D Swept Ball-Nose & Flute Envelope Removal on Cylindrical Radial Heightfield r[thetaIdx][zIdx]
+function carveOrCheckGrid(zGrid, gougeArr, pts, toolR, isRapid) {
+  const stk = state.stock;
+  const cols = stk.cols;
+  const rows = stk.rows;
+  const spanX = Math.max(0.01, stk.maxX - stk.minX);
+  const spanY = Math.max(0.01, stk.maxY - stk.minY);
+  const dxCell = spanX / cols;
+  const dyCell = spanY / rows;
+  const effR = Math.max(toolR, Math.min(dxCell, dyCell) * 0.75);
+  const rSq = effR * effR;
+
+  if (!pts || pts.length < 2) return null;
+  let firstHit = null;
+
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 1], p1 = pts[i];
+    const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
+    const steps = Math.max(1, Math.ceil(dist / (Math.min(dxCell, dyCell) * 0.65)));
+
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const tx = p0.x + (p1.x - p0.x) * t;
+      const ty = p0.y + (p1.y - p0.y) * t;
+      const tz = p0.z + (p1.z - p0.z) * t;
+
+      if (tx + effR < stk.minX || tx - effR > stk.maxX || ty + effR < stk.minY || ty - effR > stk.maxY) continue;
+
+      const cMin = Math.max(0, Math.floor((tx - effR - stk.minX) / dxCell));
+      const cMax = Math.min(cols - 1, Math.ceil((tx + effR - stk.minX) / dxCell));
+      const rMin = Math.max(0, Math.floor((ty - effR - stk.minY) / dyCell));
+      const rMax = Math.min(rows - 1, Math.ceil((ty + effR - stk.minY) / dyCell));
+
+      for (let r = rMin; r <= rMax; r++) {
+        const cy = stk.minY + (r + 0.5) * dyCell;
+        const dy = cy - ty;
+        const dySq = dy * dy;
+        if (dySq > rSq) continue;
+
+        for (let c = cMin; c <= cMax; c++) {
+          const cx = stk.minX + (c + 0.5) * dxCell;
+          const dx = cx - tx;
+          if (dx * dx + dySq > rSq) continue;
+
+          const idx = r * cols + c;
+          if (tz < zGrid[idx] - 1e-4) {
+            if (isRapid) {
+              if (!firstHit) firstHit = { x: tx, y: ty, z: tz };
+              if (gougeArr) {
+                zGrid[idx] = Math.max(stk.minZ, tz);
+                gougeArr[idx] = 1;
+              }
+            } else {
+              zGrid[idx] = Math.max(stk.minZ, tz);
+            }
+          }
+        }
+      }
+    }
+  }
+  return firstHit;
+}
+
+// 3D Swept Flute & Ball-Nose Carving on Cylindrical Radial Heightfield r[thetaIdx][zIdx]
 function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFrac = 0.0, maxFrac = 1.0) {
   const stk = state.stock;
   const nTheta = stk.cylThetaSegs;
@@ -2202,9 +2216,8 @@ function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFra
   const toolR = Math.max(0.02, (toolObj.dia || 0.375) * 0.5);
   const isBall = (toolObj.shape === 'ball');
   const tipOffset = isBall ? toolR : 0.0;
-  // Active cutting flute length above the ball center (bounded so non-cutting shank doesn't wipe out lower bar)
-  const activeCutLen = isBall ? Math.max(toolR * 1.6, 0.42) : Math.max(toolR * 2.0, toolObj.fluteLen || 1.2);
-  const fluteSteps = Math.max(4, Math.ceil(activeCutLen / (dz * 1.35)));
+  const activeCutLen = isBall ? Math.max(toolR * 1.4, 0.32) : Math.max(toolR * 2.0, toolObj.fluteLen || 1.2);
+  const fluteSteps = Math.max(3, Math.ceil(activeCutLen / (dz * 1.4)));
 
   const pts = seg.pts;
   if (!pts || pts.length < 2 || maxFrac <= minFrac + 1e-6) return null;
@@ -2252,12 +2265,10 @@ function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFra
       };
       const vTool = getToolAxisWorkpieceVector(curRot, seg.plane);
 
-      // Ball-nose sphere center is offset by +toolR along the tool axis from the programmed contact tip
       const ballCx = tipX + vTool.x * tipOffset;
       const ballCy = tipY + vTool.y * tipOffset;
       const ballCz = tipZ + vTool.z * tipOffset;
 
-      // Sample spherical tip + bounded cutting flute zone from h = 0 (ball center) to activeCutLen
       for (let fs = 0; fs <= fluteSteps; fs++) {
         const h = (fs / fluteSteps) * activeCutLen;
         const cx = ballCx + vTool.x * h;
@@ -2281,7 +2292,6 @@ function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFra
           const sliceR = Math.sqrt(sliceRemSq);
 
           if (distCenter <= sliceR + 1e-4) {
-            // Cutter fully envelops the central bar axis at this Z slice (faces off front stock cleanly to r=0)
             for (let it = 0; it < nTheta; it++) {
               const idx = it * nZ + iz;
               if (rGrid[idx] > 0.0005) {
@@ -2308,7 +2318,6 @@ function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFra
               const perpSq = distCenter * distCenter - proj * proj;
               if (perpSq >= sliceR * sliceR) continue;
               const chordHalf = Math.sqrt(sliceR * sliceR - perpSq);
-              // Exact radial intersection where cutter surface touches the bar ray
               const rEntry = Math.max(0, proj - chordHalf);
 
               let it = Math.round((theta / (Math.PI * 2)) * nTheta) % nTheta;
@@ -2342,7 +2351,7 @@ function rebuildStockUpToTime(targetTimeSec, forceFullReset = false) {
   if (state.kinematicsMode === 'lathe-2ax' && stk.latheCurrentR) {
     const nZ = stk.latheZSegs;
     const rMax = Math.max(5, (stk.latheDia || 66) * 0.5);
-    const len = Math.max(10, stk.latheLen || 80);
+    const len = Math.max(10, stk.latheLen || 85);
     stk.latheCurrentR.fill(rMax);
     for (const seg of state.segments) {
       if (seg.startTimeSec > targetTimeSec) break;
@@ -2376,7 +2385,6 @@ function rebuildStockUpToTime(targetTimeSec, forceFullReset = false) {
       sim.lastCarvedSubT = 0;
     }
 
-    // Incremental forward delta carving: only process newly advanced toolpath segments
     for (let idx = sim.lastCarvedSegmentIdx; idx < state.segments.length; idx++) {
       const seg = state.segments[idx];
       if (seg.startTimeSec > targetTimeSec) break;
@@ -2447,276 +2455,8 @@ function rebuildStockUpToTime(targetTimeSec, forceFullReset = false) {
   sim.lastBuiltTimeSec = targetTimeSec;
 }
 
-// Z-Buffer Heightfield Material Removal & Collision Verification for Rectangular Billet Stock
-function carveOrCheckGrid(zGrid, gougeArr, pts, toolR, isRapid) {
-  const stk = state.stock;
-  const cols = stk.cols;
-  const rows = stk.rows;
-  const spanX = Math.max(0.01, stk.maxX - stk.minX);
-  const spanY = Math.max(0.01, stk.maxY - stk.minY);
-  const dxCell = spanX / cols;
-  const dyCell = spanY / rows;
-  const effR = Math.max(toolR, Math.min(dxCell, dyCell) * 0.75);
-  const rSq = effR * effR;
-
-  if (!pts || pts.length < 2) return null;
-  let firstHit = null;
-
-  for (let i = 1; i < pts.length; i++) {
-    const p0 = pts[i - 1], p1 = pts[i];
-    const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
-    const steps = Math.max(1, Math.ceil(dist / (Math.min(dxCell, dyCell) * 0.65)));
-
-    for (let s = 0; s <= steps; s++) {
-      const t = s / steps;
-      const tx = p0.x + (p1.x - p0.x) * t;
-      const ty = p0.y + (p1.y - p0.y) * t;
-      const tz = p0.z + (p1.z - p0.z) * t;
-
-      if (tx + effR < stk.minX || tx - effR > stk.maxX || ty + effR < stk.minY || ty - effR > stk.maxY) continue;
-
-      const cMin = Math.max(0, Math.floor((tx - effR - stk.minX) / dxCell));
-      const cMax = Math.min(cols - 1, Math.ceil((tx + effR - stk.minX) / dxCell));
-      const rMin = Math.max(0, Math.floor((ty - effR - stk.minY) / dyCell));
-      const rMax = Math.min(rows - 1, Math.ceil((ty + effR - stk.minY) / dyCell));
-
-      for (let r = rMin; r <= rMax; r++) {
-        const cy = stk.minY + (r + 0.5) * dyCell;
-        const dy = cy - ty;
-        const dySq = dy * dy;
-        if (dySq > rSq) continue;
-
-        for (let c = cMin; c <= cMax; c++) {
-          const cx = stk.minX + (c + 0.5) * dxCell;
-          const dx = cx - tx;
-          if (dx * dx + dySq > rSq) continue;
-
-          const idx = r * cols + c;
-          if (tz < zGrid[idx] - 1e-4) {
-            if (isRapid) {
-              if (!firstHit) firstHit = { x: tx, y: ty, z: tz };
-              if (gougeArr) {
-                zGrid[idx] = Math.max(stk.minZ, tz);
-                gougeArr[idx] = 1;
-              }
-            } else {
-              zGrid[idx] = Math.max(stk.minZ, tz);
-            }
-          }
-        }
-      }
-    }
-  }
-  return firstHit;
-}
-
-// True 3D Swept Cutter Volume Removal on Cylindrical Radial Heightfield r[thetaIdx][zIdx]
-function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, maxFrac = 1.0) {
-  const stk = state.stock;
-  const nTheta = stk.cylThetaSegs;
-  const nZ = stk.cylZSegs;
-  const zMin = stk.minZ;
-  const zMax = stk.maxZ;
-  const zSpan = Math.max(0.01, zMax - zMin);
-  const dz = zSpan / nZ;
-  const dTheta = (Math.PI * 2) / nTheta;
-  const barCx = (stk.minX + stk.maxX) * 0.5;
-  const barCy = (stk.minY + stk.maxY) * 0.5;
-
-  const toolR = Math.max(0.02, (toolObj.dia || 0.375) * 0.5);
-  const isBall = (toolObj.shape === 'ball');
-  const fluteLen = Math.max(toolR * 2.5, toolObj.fluteLen || 1.25);
-  const fluteSteps = Math.max(5, Math.ceil(fluteLen / (dz * 1.4)));
-
-  const pts = seg.pts;
-  if (!pts || pts.length < 2) return null;
-  let firstHit = null;
-
-  const totalPathSegs = pts.length - 1;
-  for (let i = 1; i < pts.length; i++) {
-    const segStartFrac = (i - 1) / totalPathSegs;
-    if (segStartFrac > maxFrac) break;
-    const segEndFrac = Math.min(maxFrac, i / totalPathSegs);
-    const localMaxT = Math.max(0, Math.min(1, (segEndFrac - segStartFrac) / Math.max(1e-6, (1 / totalPathSegs))));
-
-    const p0 = pts[i - 1], p1 = pts[i];
-    const moveDist = Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
-    const rot0 = {
-      a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * segStartFrac,
-      b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * segStartFrac,
-      c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * segStartFrac
-    };
-    const rot1 = {
-      a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * segEndFrac,
-      b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * segEndFrac,
-      c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * segEndFrac
-    };
-    const dRot = Math.abs(rot1.b - rot0.b) + Math.abs(rot1.c - rot0.c);
-    const pathSteps = Math.max(2, Math.ceil(moveDist / (dz * 0.85)), Math.ceil(dRot / 2.5));
-
-    for (let s = 0; s <= pathSteps; s++) {
-      const u = (s / pathSteps) * localMaxT;
-      const tipX = (p0.x + (p1.x - p0.x) * u) - barCx;
-      const tipY = (p0.y + (p1.y - p0.y) * u) - barCy;
-      const tipZ = p0.z + (p1.z - p0.z) * u;
-
-      const curRot = {
-        a: rot0.a + (rot1.a - rot0.a) * u,
-        b: rot0.b + (rot1.b - rot0.b) * u,
-        c: rot0.c + (rot1.c - rot0.c) * u
-      };
-      const vTool = getToolAxisWorkpieceVector(curRot, seg.plane);
-
-      // Sample along cutter flute length from tip (h = 0) up to fluteLen along vTool
-      for (let fs = 0; fs <= fluteSteps; fs++) {
-        const h = (fs / fluteSteps) * fluteLen;
-        let effR = toolR;
-        const centerH = h;
-        if (isBall && h < toolR) {
-          const dh = toolR - h;
-          effR = Math.sqrt(Math.max(0, toolR * toolR - dh * dh));
-          if (effR < 0.015) effR = 0.015;
-        }
-
-        const cx = tipX + vTool.x * centerH;
-        const cy = tipY + vTool.y * centerH;
-        const cz = tipZ + vTool.z * centerH;
-
-        const zLow = cz - effR;
-        const zHigh = cz + effR;
-        if (zHigh < zMin || zLow > zMax) continue;
-
-        const iz0 = Math.max(0, Math.floor((zLow - zMin) / dz));
-        const iz1 = Math.min(nZ - 1, Math.floor((zHigh - zMin) / dz));
-
-        const distCenter = Math.hypot(cx, cy);
-        const centerTheta = Math.atan2(cy, cx);
-
-        for (let iz = iz0; iz <= iz1; iz++) {
-          const zCell = zMin + (iz + 0.5) * dz;
-          const dzSlice = zCell - cz;
-          const sliceRemSq = effR * effR - dzSlice * dzSlice;
-          if (sliceRemSq <= 0) continue;
-          const sliceR = Math.sqrt(sliceRemSq);
-
-          if (distCenter <= sliceR + 1e-4) {
-            for (let it = 0; it < nTheta; it++) {
-              const idx = it * nZ + iz;
-              if (rGrid[idx] > 0.001) {
-                if (isRapid) {
-                  if (!firstHit) firstHit = { z: zCell, r: 0 };
-                  if (gougeArr) { rGrid[idx] = 0; gougeArr[idx] = 1; }
-                } else {
-                  rGrid[idx] = 0;
-                }
-              }
-            }
-          } else {
-            const sinHalf = Math.min(1.0, sliceR / distCenter);
-            const halfSpan = Math.asin(sinHalf) + dTheta * 0.6;
-            const stepsAng = Math.max(1, Math.ceil(halfSpan / dTheta));
-
-            for (let ia = -stepsAng; ia <= stepsAng; ia++) {
-              const theta = centerTheta + ia * dTheta;
-              const ux = Math.cos(theta);
-              const uy = Math.sin(theta);
-
-              const proj = cx * ux + cy * uy;
-              if (proj <= 0) continue;
-              const perpSq = distCenter * distCenter - proj * proj;
-              if (perpSq >= sliceR * sliceR) continue;
-              const chordHalf = Math.sqrt(sliceR * sliceR - perpSq);
-              const rEntry = Math.max(0, proj - chordHalf);
-
-              let it = Math.round((theta / (Math.PI * 2)) * nTheta) % nTheta;
-              if (it < 0) it += nTheta;
-              const idx = it * nZ + iz;
-
-              if (rEntry < rGrid[idx] - 1e-4) {
-                if (isRapid) {
-                  if (!firstHit) firstHit = { z: zCell, r: rEntry };
-                  if (gougeArr) {
-                    rGrid[idx] = rEntry;
-                    gougeArr[idx] = 1;
-                  }
-                } else {
-                  rGrid[idx] = rEntry;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return firstHit;
-}
-
-function rebuildStockUpToTime(targetTimeSec) {
-  const stk = state.stock;
-  if (state.kinematicsMode === 'lathe-2ax' && stk.latheCurrentR) {
-    const nZ = stk.latheZSegs;
-    const rMax = Math.max(5, (stk.latheDia || 66) * 0.5);
-    const len = Math.max(10, stk.latheLen || 80);
-    stk.latheCurrentR.fill(rMax);
-    for (const seg of state.segments) {
-      if (seg.startTimeSec > targetTimeSec) break;
-      if (seg.type === 'G00') continue;
-      for (let i = 1; i < seg.pts.length; i++) {
-        const p0 = seg.pts[i - 1], p1 = seg.pts[i];
-        const steps = 20;
-        for (let s = 0; s <= steps; s++) {
-          const t = s / steps;
-          const rx = Math.abs(p0.x + (p1.x - p0.x) * t);
-          const zz = p0.z + (p1.z - p0.z) * t;
-          if (zz <= 0 && zz >= -len) {
-            const iz = Math.min(nZ - 1, Math.max(0, Math.floor(((-zz) / len) * nZ)));
-            if (rx < stk.latheCurrentR[iz]) stk.latheCurrentR[iz] = Math.max(2, rx);
-          }
-        }
-      }
-    }
-    state.sim.lastBuiltTimeSec = targetTimeSec;
-    return;
-  }
-
-  if (stk.shape === 'cylinder') {
-    if (!stk.cylInitialR || !stk.cylCurrentR) return;
-    stk.cylCurrentR.set(stk.cylInitialR);
-    stk.cylGougeFlags.fill(0);
-
-    for (const seg of state.segments) {
-      if (seg.startTimeSec > targetTimeSec) break;
-      const toolObj = state.tools[seg.tool] || { dia: 0.375, shape: 'ball', fluteLen: 1.25 };
-      const dur = Math.max(0.001, seg.endTimeSec - seg.startTimeSec);
-      const frac = targetTimeSec < seg.endTimeSec ? Math.max(0, Math.min(1, (targetTimeSec - seg.startTimeSec) / dur)) : 1.0;
-      carveOrCheckCylinderGrid(stk.cylCurrentR, stk.cylGougeFlags, seg, toolObj, seg.type === 'G00', frac);
-    }
-    state.sim.lastBuiltTimeSec = targetTimeSec;
-    return;
-  }
-
-  if (!stk.initialZ || !stk.currentZ) return;
-  stk.currentZ.set(stk.initialZ);
-  stk.gougeFlags.fill(0);
-
-  for (const seg of state.segments) {
-    if (seg.startTimeSec > targetTimeSec) break;
-    const toolObj = state.tools[seg.tool] || { dia: 0.375 };
-    const r = (toolObj.dia || 0.375) / 2;
-    let ptsToCarve = seg.pts;
-    if (targetTimeSec < seg.endTimeSec && seg.pts.length >= 2) {
-      const frac = Math.max(0, Math.min(1, (targetTimeSec - seg.startTimeSec) / Math.max(0.001, seg.endTimeSec - seg.startTimeSec)));
-      const maxIdx = Math.max(1, Math.floor(frac * (seg.pts.length - 1)));
-      ptsToCarve = seg.pts.slice(0, maxIdx + 1);
-    }
-    carveOrCheckGrid(stk.currentZ, stk.gougeFlags, ptsToCarve, r, seg.type === 'G00');
-  }
-  state.sim.lastBuiltTimeSec = targetTimeSec;
-}
-
 /* ==========================================================================
-   8. 3D PERSPECTIVE RENDERER (B/C ROTARY TABLE + SOLID WORKPIECE + SPINDLE)
+   8. 3D RENDERER (B/C TABLE + SOLID CYLINDER/BILLET/LATHE + SPINDLE + HUD)
    ========================================================================== */
 function project3D(pt, cx, cy) {
   const { yaw, pitch, zoom, panX, panY } = state.cam;
@@ -2739,7 +2479,20 @@ function project3D(pt, cx, cy) {
   };
 }
 
+function isQuadDegenerateOrBackfacing(pts) {
+  if (!pts || pts.length < 3) return true;
+  // Screen-space signed area / winding check + zero-area guard
+  let twiceArea = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const pA = pts[i];
+    const pB = pts[(i + 1) % pts.length];
+    twiceArea += (pA.sx * pB.sy - pB.sx * pA.sy);
+  }
+  return Math.abs(twiceArea) < 0.08;
+}
+
 function fillProjectedQuad(ctx, pts, fillStyle, strokeStyle = null, lineWidth = 0.6) {
+  if (isQuadDegenerateOrBackfacing(pts)) return;
   ctx.beginPath();
   ctx.moveTo(pts[0].sx, pts[0].sy);
   for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);
@@ -2937,43 +2690,39 @@ function drawRotaryTableAssembly(ctx, cx, cy, activeRot, activePlane) {
 
 function drawLatheStock3D(ctx, cx, cy) {
   const stk = state.stock;
-  if (!stk.latheCurrentR) return;
-  const mat = MATERIAL_SHADERS[stk.material] || MATERIAL_SHADERS.aluminum;
-  const mode = state.cam.stockRenderMode;
-  const alphaMul = mode === 'translucent' ? 0.42 : 1.0;
-  const nZ = stk.latheZSegs;
-  const len = Math.max(10, stk.latheLen || 80);
-  const rMax = Math.max(5, (stk.latheDia || 66) * 0.5);
+  const rArr = stk.latheCurrentR;
+  if (!rArr) return;
+  const len = Math.max(10, stk.latheLen || 85);
+  const nZ = rArr.length;
+  const nAng = 24;
   const quads = [];
-  const tSegs = 28;
-  const zStep = 3;
 
-  for (let iz = 0; iz < nZ - zStep; iz += zStep) {
+  for (let iz = 0; iz < nZ - 1; iz++) {
     const z0 = -(iz / nZ) * len;
-    const z1 = -((iz + zStep) / nZ) * len;
-    const r0 = stk.latheCurrentR[iz];
-    const r1 = stk.latheCurrentR[Math.min(nZ - 1, iz + zStep)];
-    const isCut = r0 < rMax - 0.1;
-    const base = isCut ? mat.cutRgb : mat.rawRgb;
+    const z1 = -((iz + 1) / nZ) * len;
+    const r0 = rArr[iz];
+    const r1 = rArr[iz + 1];
+    if (r0 <= 0.1 && r1 <= 0.1) continue;
 
-    for (let it = 0; it < tSegs; it++) {
-      const a0 = (it / tSegs) * Math.PI * 2;
-      const a1 = ((it + 1) / tSegs) * Math.PI * 2;
+    for (let ia = 0; ia < nAng; ia++) {
+      const a0 = (ia / nAng) * Math.PI * 2;
+      const a1 = ((ia + 1) / nAng) * Math.PI * 2;
       const p00 = project3D({ x: Math.cos(a0) * r0, y: Math.sin(a0) * r0, z: z0 }, cx, cy);
       const p10 = project3D({ x: Math.cos(a1) * r0, y: Math.sin(a1) * r0, z: z0 }, cx, cy);
       const p11 = project3D({ x: Math.cos(a1) * r1, y: Math.sin(a1) * r1, z: z1 }, cx, cy);
       const p01 = project3D({ x: Math.cos(a0) * r1, y: Math.sin(a0) * r1, z: z1 }, cx, cy);
-      const shade = 0.45 + 0.55 * Math.max(0, Math.cos(a0 - 0.7));
+      const shade = 0.55 + 0.45 * Math.cos(a0 - 0.6);
+      const lum = Math.round(145 * shade);
       quads.push({
         pts: [p00, p10, p11, p01],
-        depth: (p00.depth + p11.depth) * 0.5,
-        fill: mode === 'wireframe' ? null : `rgba(${Math.round(base[0] * shade)}, ${Math.round(base[1] * shade)}, ${Math.round(base[2] * shade)}, ${0.96 * alphaMul})`,
-        stroke: mode === 'wireframe' ? 'rgba(86, 212, 221, 0.45)' : null
+        depth: (p00.depth + p10.depth + p11.depth + p01.depth) * 0.25,
+        fill: `rgba(${lum}, ${lum + 12}, ${lum + 26}, 0.96)`,
+        stroke: state.cam.stockRenderMode === 'wireframe' ? 'rgba(86,212,221,0.5)' : null
       });
     }
   }
   quads.sort((a, b) => a.depth - b.depth);
-  quads.forEach(q => fillProjectedQuad(ctx, q.pts, q.fill, q.stroke, 0.5));
+  quads.forEach(q => fillProjectedQuad(ctx, q.pts, q.fill, q.stroke));
 }
 
 function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
@@ -2994,9 +2743,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
   const barCx = (stk.minX + stk.maxX) * 0.5;
   const barCy = (stk.minY + stk.maxY) * 0.5;
 
-  // =========================================================================
-  // CYLINDRICAL DEFORMED RADIAL SOLID MESH r[thetaIdx][zIdx] (60 FPS ADAPTIVE)
-  // =========================================================================
+  // Cylindrical radial heightfield r[thetaIdx][zIdx]
   if (stk.shape === 'cylinder' && stk.cylCurrentR) {
     const nTheta = stk.cylThetaSegs;
     const nZ = stk.cylZSegs;
@@ -3007,9 +2754,8 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
     const zMax = stk.maxZ;
     const dz = (zMax - zMin) / nZ;
 
-    // Adaptive mesh resolution: 72x90 during active playback, 144x180 high-detail when paused
-    const tStep = state.sim.playing ? 2 : 1;
-    const zStep = state.sim.playing ? 2 : 1;
+    const tStep = 2;
+    const zStep = 2;
     const quads = [];
     const lx = -0.45, ly = -0.55, lz = 0.70;
     const hx = -0.25, hy = -0.30, hz = 0.92;
@@ -3030,8 +2776,8 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       let firstSolidIz = -1;
       let lastSolidIz = -1;
       for (let iz = 0; iz < nZ; iz += zStep) {
-        const rHere = Math.max(rGrid[it * nZ + iz], rGrid[itNext * nZ + iz]);
-        if (rHere > 0.0005) {
+        const rHere = Math.min(rGrid[it * nZ + iz], rGrid[itNext * nZ + iz]);
+        if (rHere > 0.002) {
           if (firstSolidIz === -1) firstSolidIz = iz;
           lastSolidIz = iz;
         }
@@ -3049,19 +2795,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         const r11 = rGrid[itNext * nZ + izNext];
         const r01 = rGrid[it * nZ + izNext];
 
-        // Skip collapsed zero-radius rings
-        if (r00 <= 0.0005 && r10 <= 0.0005 && r11 <= 0.0005 && r01 <= 0.0005) continue;
-
-        const p00 = ptCyl(a0, r00, z0);
-        const p10 = ptCyl(a1, r10, z0);
-        const p11 = ptCyl(a1, r11, z1);
-        const p01 = ptCyl(a0, r01, z1);
-
-        // Screen-space backface culling (cuts rendered polygons by >55%)
-        if (mode === 'solid') {
-          const cross = (p10.sx - p00.sx) * (p11.sy - p00.sy) - (p10.sy - p00.sy) * (p11.sx - p00.sx);
-          if (cross > 2.0) continue;
-        }
+        if (r00 <= 0.002 && r10 <= 0.002 && r11 <= 0.002 && r01 <= 0.002) continue;
 
         const isGouge = (gFlags[it * nZ + iz] === 1) || (gFlags[itNext * nZ + iz] === 1);
         const rAvg = (r00 + r10 + r11 + r01) * 0.25;
@@ -3074,9 +2808,14 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         const nLen = Math.hypot(nx, ny, nz) || 1;
         nx /= nLen; ny /= nLen; nz /= nLen;
 
-        const diff = Math.max(0.28, nx * lx + ny * ly + nz * lz);
+        const diff = Math.max(0.26, nx * lx + ny * ly + nz * lz);
         const specDot = Math.max(0, nx * hx + ny * hy + nz * hz);
         const spec = Math.pow(specDot, mat.specPower) * mat.specIntensity * 255;
+
+        const p00 = ptCyl(a0, r00, z0);
+        const p10 = ptCyl(a1, r10, z0);
+        const p11 = ptCyl(a1, r11, z1);
+        const p01 = ptCyl(a0, r01, z1);
         const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) * 0.25;
 
         let fillCol;
@@ -3116,11 +2855,11 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         }
       }
 
-      // Dynamic Front Cap at lastSolidIz
+      // Dynamic front cap at lastSolidIz
       const zFront = zMin + Math.min(nZ, lastSolidIz + zStep) * dz;
       const rF0 = rGrid[it * nZ + lastSolidIz];
       const rF1 = rGrid[itNext * nZ + lastSolidIz];
-      if (rF0 > 0.0005 || rF1 > 0.0005) {
+      if (rF0 > 0.002 || rF1 > 0.002) {
         const pCenter = ptCyl(aMid, 0, zFront);
         const pEdge0 = ptCyl(a0, rF0, zFront);
         const pEdge1 = ptCyl(a1, rF1, zFront);
@@ -3135,11 +2874,11 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         });
       }
 
-      // Dynamic Back Cap at firstSolidIz
+      // Dynamic back cap at firstSolidIz
       const zBack = zMin + firstSolidIz * dz;
       const rB0 = rGrid[it * nZ + firstSolidIz];
       const rB1 = rGrid[itNext * nZ + firstSolidIz];
-      if (rB0 > 0.0005 || rB1 > 0.0005) {
+      if (rB0 > 0.002 || rB1 > 0.002) {
         const pCenterB = ptCyl(aMid, 0, zBack);
         const pEdgeB0 = ptCyl(a0, rB0, zBack);
         const pEdgeB1 = ptCyl(a1, rB1, zBack);
@@ -3158,31 +2897,32 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       fillProjectedQuad(ctx, quads[i].pts, quads[i].fill, quads[i].stroke, 0.5);
     }
 
-    if (mode === 'wireframe' || state.cam.showRawGhost) {
-      const ghostRings = [zMin, zMax];
-      const gPts = ghostRings.map(zg => {
-        const arr = [];
-        for (let i = 0; i < 36; i++) {
-          const a = (i / 36) * Math.PI * 2;
-          arr.push(ptCyl(a, barRadius, zg));
-        }
-        return arr;
-      });
-      ctx.strokeStyle = 'rgba(185, 205, 230, 0.35)';
+    if (state.cam.showRawGhost) {
+      ctx.strokeStyle = 'rgba(130, 195, 255, 0.28)';
+      ctx.setLineDash([4, 4]);
       ctx.lineWidth = 1.0;
-      gPts.forEach(ring => {
+      [stk.minZ, stk.maxZ].forEach(zRing => {
         ctx.beginPath();
-        ring.forEach((p, i) => i === 0 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy));
-        ctx.closePath();
+        for (let i = 0; i <= 36; i++) {
+          const a = (i / 36) * Math.PI * 2;
+          const p = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: zRing }), cx, cy);
+          if (i === 0) ctx.moveTo(p.sx, p.sy);
+          else ctx.lineTo(p.sx, p.sy);
+        }
         ctx.stroke();
       });
+      for (let g = 0; g < 8; g++) {
+        const a = (g / 8) * Math.PI * 2;
+        const p0 = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: stk.minZ }), cx, cy);
+        const p1 = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: stk.maxZ }), cx, cy);
+        ctx.beginPath(); ctx.moveTo(p0.sx, p0.sy); ctx.lineTo(p1.sx, p1.sy); ctx.stroke();
+      }
+      ctx.setLineDash([]);
     }
     return;
   }
 
-  // =========================================================================
-  // RECTANGULAR BILLET HEIGHTFIELD (FOR 3-AXIS / 5-AXIS PRISMATIC PARTS)
-  // =========================================================================
+  // Rectangular billet heightfield
   if (!stk.currentZ) return;
   if (mode !== 'wireframe') {
     const [wr, wg, wb] = mat.wallRgb;
@@ -3439,17 +3179,64 @@ function updateAndDrawCoolant(ctx, cx, cy, machineTip, isActive) {
 function drawBackplot() {
   try {
     const rect = el.canvasContainer.getBoundingClientRect();
-    const w = Math.floor(rect.width);
-    const h = Math.floor(rect.height);
+    const w = Math.max(0, Math.floor(rect.width));
+    const h = Math.max(0, Math.floor(rect.height));
     if (w <= 2 || h <= 2) return;
 
     const dpr = window.devicePixelRatio || 1;
-    if (el.canvas.width !== Math.floor(w * dpr) || el.canvas.height !== Math.floor(h * dpr)) {
-      el.canvas.width = Math.floor(w * dpr);
-      el.canvas.height = Math.floor(h * dpr);
+    const targetW = Math.max(1, Math.floor(w * dpr));
+    const targetH = Math.max(1, Math.floor(h * dpr));
+    if (el.canvas.width !== targetW || el.canvas.height !== targetH) {
+      el.canvas.width = targetW;
+      el.canvas.height = targetH;
     }
 
-    // 5. Batched Path2D Toolpaths (Single Pass for Locked 60 FPS)
+    const ctx = el.canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+    bgGrad.addColorStop(0, '#0d1117');
+    bgGrad.addColorStop(1, '#080a0e');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    const cx = w * 0.5;
+    const cy = h * 0.52;
+
+    const gridSpan = Math.max(4, Math.max(state.extents.maxX - state.extents.minX, state.extents.maxY - state.extents.minY) * 1.1);
+    const gridStep = gridSpan / 6;
+    const zGridPlane = state.stock.minZ - Math.max(0.5, (state.stock.maxZ - state.stock.minZ) * 0.44);
+    ctx.strokeStyle = 'rgba(86, 212, 221, 0.09)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let g = -3; g <= 3; g++) {
+      const coord = g * gridStep;
+      const pA = project3D({ x: coord, y: -3 * gridStep, z: zGridPlane }, cx, cy);
+      const pB = project3D({ x: coord, y: 3 * gridStep, z: zGridPlane }, cx, cy);
+      ctx.moveTo(pA.sx, pA.sy); ctx.lineTo(pB.sx, pB.sy);
+      const pC = project3D({ x: -3 * gridStep, y: coord, z: zGridPlane }, cx, cy);
+      const pD = project3D({ x: 3 * gridStep, y: coord, z: zGridPlane }, cx, cy);
+      ctx.moveTo(pC.sx, pC.sy); ctx.lineTo(pD.sx, pD.sy);
+    }
+    ctx.stroke();
+
+    const playState = getActivePlaybackState();
+    const activeRot = playState.rot;
+    const activePlane = playState.plane;
+    const isTableMode = (state.kinematicsMode === 'table-bc');
+    const xformPathPt = (pt) => isTableMode ? workpieceToMachinePoint(pt, activeRot, activePlane) : pt;
+
+    if (state.kinematicsMode !== 'lathe-2ax') {
+      drawRotaryTableAssembly(ctx, cx, cy, activeRot, activePlane);
+    }
+
+    if (state.kinematicsMode === 'lathe-2ax') {
+      drawLatheStock3D(ctx, cx, cy);
+    } else {
+      drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane);
+    }
+
     const tNow = state.sim.currentTimeSec;
     if (state.cam.showPaths) {
       const pathRapidDone = new Path2D();
@@ -3515,7 +3302,6 @@ function drawBackplot() {
       }
     }
 
-    // 6. Batched Cutter Compensation Offset Trace
     if (state.cam.showCutterComp && state.compPolylines.length > 0) {
       const compPath = new Path2D();
       for (const poly of state.compPolylines) {
@@ -3534,40 +3320,20 @@ function drawBackplot() {
       ctx.setLineDash([]);
     }
 
-    // 6. Cutter Compensation Offset Trace
-    if (state.cam.showCutterComp && state.compPolylines.length > 0) {
-      ctx.strokeStyle = 'rgba(210, 153, 34, 0.85)';
-      ctx.lineWidth = 1.4;
-      ctx.setLineDash([3, 3]);
-      for (const poly of state.compPolylines) {
-        if (poly.endTimeSec > tNow) continue;
-        ctx.beginPath();
-        for (let i = 0; i < poly.pts.length; i++) {
-          const p2 = project3D(xformPathPt(poly.pts[i]), cx, cy);
-          if (i === 0) ctx.moveTo(p2.sx, p2.sy);
-          else ctx.lineTo(p2.sx, p2.sy);
-        }
-        ctx.stroke();
-      }
-      ctx.setLineDash([]);
-    }
-
-    // 7. Vertical Spindle & Rotating Multi-Flute Cutter at Machine Tip
     const seg = playState.seg;
     if (seg) {
       const machineTip = isTableMode ? workpieceToMachinePoint(playState.wpTip, activeRot, activePlane) : playState.wpTip;
       draw3DSpindleAssembly(ctx, cx, cy, seg, machineTip, activeRot, activePlane);
       updateAndDrawCoolant(ctx, cx, cy, machineTip, seg.coolant && seg.spindleDir !== 'M05');
 
-      // Update Telemetry HUD
       const prof = getActiveProfile();
       const toolObj = state.tools[seg.tool] || { dia: 0.375, flutes: 4, shape: 'ball' };
-      const wpAxis = getToolAxisWorkpieceVector(activeRot, activePlane);
+      const ijk = getToolAxisWorkpieceVector(activeRot, activePlane);
       document.getElementById('hud-modal').textContent = seg.modalStr;
       document.getElementById('hud-tool').textContent = `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia} (${toolObj.shape})`;
       document.getElementById('hud-xyz').textContent = `${machineTip.x.toFixed(3)}, ${machineTip.y.toFixed(3)}, ${machineTip.z.toFixed(3)}`;
       document.getElementById('hud-rot').textContent = `B${activeRot.b >= 0 ? '+' : ''}${activeRot.b.toFixed(2)}°  C${activeRot.c >= 0 ? '+' : ''}${activeRot.c.toFixed(2)}°`;
-      document.getElementById('hud-ijk').textContent = `${wpAxis.x.toFixed(3)}, ${wpAxis.y.toFixed(3)}, ${wpAxis.z.toFixed(3)}`;
+      document.getElementById('hud-ijk').textContent = `${ijk.x.toFixed(3)}, ${ijk.y.toFixed(3)}, ${ijk.z.toFixed(3)}`;
       document.getElementById('hud-feed').textContent = `${seg.feed.toFixed(1)}`;
       document.getElementById('hud-feed-bar').style.width = `${Math.min(100, (seg.feed / Math.max(200, prof.rapidRate || 40000)) * 100)}%`;
       document.getElementById('hud-rpm').textContent = `${seg.spindle} RPM (${seg.spindleDir})`;
@@ -3591,40 +3357,43 @@ function drawBackplot() {
 }
 
 function animationLoop(ts) {
-  if (!state.sim.lastFrameTs) state.sim.lastFrameTs = ts;
-  const rawDt = Math.max(0.001, (ts - state.sim.lastFrameTs) / 1000);
-  const dt = Math.min(0.1, rawDt);
-  state.sim.lastFrameTs = ts;
+  try {
+    if (!state.sim.lastFrameTs) state.sim.lastFrameTs = ts;
+    const rawDt = Math.max(0.001, (ts - state.sim.lastFrameTs) / 1000);
+    const dt = Math.min(0.1, rawDt);
+    state.sim.lastFrameTs = ts;
 
-  // Track rolling FPS & update HUD badge every 250ms
-  const instFps = Math.min(60, 1 / rawDt);
-  state.sim.fpsSamples.push(instFps);
-  if (state.sim.fpsSamples.length > 20) state.sim.fpsSamples.shift();
-  if (!state.sim.lastFpsUiTs || ts - state.sim.lastFpsUiTs > 250) {
-    state.sim.lastFpsUiTs = ts;
-    const avgFps = Math.round(state.sim.fpsSamples.reduce((a, b) => a + b, 0) / state.sim.fpsSamples.length);
-    const fpsEl = document.getElementById('hud-fps');
-    if (fpsEl) fpsEl.textContent = `${avgFps} FPS`;
-  }
-
-  const playState = getActivePlaybackState();
-  if (playState.seg && playState.seg.spindleDir !== 'M05') {
-    const dir = playState.seg.spindleDir === 'M04' ? -1 : 1;
-    state.sim.spindleAngle += dir * dt * 18;
-  }
-
-  if (state.sim.playing && state.stats.totalTimeSec > 0) {
-    state.sim.currentTimeSec += dt * state.sim.speedMultiplier;
-    if (state.sim.currentTimeSec >= state.stats.totalTimeSec) {
-      state.sim.currentTimeSec = state.stats.totalTimeSec;
-      state.sim.playing = false;
-      document.getElementById('btn-sim-play').textContent = '▶ Play';
+    const instFps = Math.min(60, 1 / rawDt);
+    state.sim.fpsSamples.push(instFps);
+    if (state.sim.fpsSamples.length > 20) state.sim.fpsSamples.shift();
+    if (!state.sim.lastFpsUiTs || ts - state.sim.lastFpsUiTs > 250) {
+      state.sim.lastFpsUiTs = ts;
+      const avgFps = Math.round(state.sim.fpsSamples.reduce((a, b) => a + b, 0) / state.sim.fpsSamples.length);
+      const fpsEl = document.getElementById('hud-fps');
+      if (fpsEl) fpsEl.textContent = `${avgFps} FPS`;
     }
-    el.scrubber.value = Math.round((state.sim.currentTimeSec / state.stats.totalTimeSec) * 1000);
-    rebuildStockUpToTime(state.sim.currentTimeSec, false);
-    drawBackplot();
-  } else if (playState.seg && playState.seg.spindleDir !== 'M05') {
-    drawBackplot();
+
+    const playState = getActivePlaybackState();
+    if (playState.seg && playState.seg.spindleDir !== 'M05') {
+      const dir = playState.seg.spindleDir === 'M04' ? -1 : 1;
+      state.sim.spindleAngle += dir * dt * 18;
+    }
+
+    if (state.sim.playing && state.stats.totalTimeSec > 0) {
+      state.sim.currentTimeSec += dt * state.sim.speedMultiplier;
+      if (state.sim.currentTimeSec >= state.stats.totalTimeSec) {
+        state.sim.currentTimeSec = state.stats.totalTimeSec;
+        state.sim.playing = false;
+        document.getElementById('btn-sim-play').textContent = '▶ Play';
+      }
+      el.scrubber.value = Math.round((state.sim.currentTimeSec / state.stats.totalTimeSec) * 1000);
+      rebuildStockUpToTime(state.sim.currentTimeSec, false);
+      drawBackplot();
+    } else if (playState.seg && playState.seg.spindleDir !== 'M05') {
+      drawBackplot();
+    }
+  } catch (err) {
+    showSimError(err);
   }
 
   requestAnimationFrame(animationLoop);
@@ -3677,10 +3446,13 @@ function runCncFileCompare() {
   }
   document.getElementById('diff-left-col').innerHTML = htmlL;
   document.getElementById('diff-right-col').innerHTML = htmlR;
-  document.getElementById('compare-summary').textContent = `${diffs} differing block(s) found`;
+  const sumTxt = `${diffs} differing block(s) between ${dL.name} and ${dR.name}`;
+  document.getElementById('compare-summary').textContent = sumTxt;
+  const dockCmp = document.getElementById('dock-compare-status');
+  if (dockCmp) dockCmp.textContent = sumTxt;
 }
 
-function openSetupSheetModal() {
+function buildSetupSheetHtmlDocument() {
   const doc = getActiveDoc();
   const prof = getActiveProfile();
   const mat = MATERIAL_SHADERS[state.stock.material] || MATERIAL_SHADERS.aluminum;
@@ -3690,7 +3462,7 @@ function openSetupSheetModal() {
   const usedTools = [...new Set(state.segments.map(s => s.tool))].map(tn => state.tools[tn] || { num: tn, name: `Tool ${tn}`, dia: '-', shape: '-' });
   const toolRows = usedTools.map(t => `<tr><td style="padding:5px;border:1px solid #ccc;">T${String(t.num).padStart(2, '0')}</td><td style="padding:5px;border:1px solid #ccc;">${escapeHtml(t.name)}</td><td style="padding:5px;border:1px solid #ccc;">${t.shape}</td><td style="padding:5px;border:1px solid #ccc;">Ø${t.dia}</td></tr>`).join('');
 
-  document.getElementById('setup-sheet-content').innerHTML = `
+  return `
     <div style="border-bottom:2px solid #1f6feb; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between;">
       <div>
         <h2 style="margin:0; font-size:18px;">NC PREVIEW — 5-AXIS MACHINING SETUP SHEET</h2>
@@ -3709,11 +3481,25 @@ function openSetupSheetModal() {
     </p>
     <h4 style="margin:8px 0 4px;">Tooling List</h4>
     <table style="width:100%; border-collapse:collapse; font-size:12px;">
-      <thead><tr style="background:#f0f4f8;"><th style="padding:5px;border:1px solid #ccc;text-align:left;">Tool</th><th style="padding:5px;border:1px solid #ccc;text-align:left;">Description</th><th style="padding:5px;border:1px solid #ccc;text-align:left;">Type</th><th style="padding:5px;border:1px solid #ccc;text-align:left;">Diameter</th></tr></thead>
+      <thead><tr style="background:#f0f4f8;"><th style="padding:5px;border:1px solid #ccc;text-align:left;">Tool</th><th style="padding:5px;border:1px solid #ccc;text-align:left;">Description</th><th style="padding:5px;border:1px solid #ccc;text-align:left;">Geometry</th><th style="padding:5px;border:1px solid #ccc;text-align:left;">Diameter</th></tr></thead>
       <tbody>${toolRows || '<tr><td colspan="4" style="padding:6px;border:1px solid #ccc;">No active tool calls in program.</td></tr>'}</tbody>
     </table>
   `;
+}
+
+function openSetupSheetModal() {
+  document.getElementById('setup-sheet-content').innerHTML = buildSetupSheetHtmlDocument();
   document.getElementById('modal-setup-sheet').classList.add('open');
+}
+
+function downloadSetupSheetHtml() {
+  const bodyHtml = buildSetupSheetHtmlDocument();
+  const fullHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>NC Preview Setup Sheet</title></head><body style="font-family:sans-serif;padding:24px;">${bodyHtml}</body></html>`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([fullHtml], { type: 'text/html' }));
+  a.download = `${getActiveDoc().name}_NC_Preview_SetupSheet.html`;
+  a.click();
+  showToast('Exported NC Preview Setup Sheet HTML');
 }
 
 /* ==========================================================================
@@ -3741,7 +3527,7 @@ function renderDocTabs() {
   const add = document.createElement('button');
   add.className = 'doc-tab-add';
   add.textContent = '+';
-  add.title = 'Create Blank New NC File';
+  add.title = 'Create Blank Untitled File';
   add.onclick = createBlankNewFile;
   el.docTabsBar.appendChild(add);
 
@@ -3796,36 +3582,47 @@ function closeDoc(docId) {
 
 function loadProfiles() {
   try {
-    const saved = localStorage.getItem('nc_preview_profiles_v1');
+    const saved = localStorage.getItem('nc_preview_profiles_v2');
     state.profiles = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PROFILES));
   } catch {
     state.profiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES));
   }
   el.profileSelect.innerHTML = '';
   state.profiles.forEach(p => el.profileSelect.add(new Option(p.name, p.id, p.id === state.activeProfileId, p.id === state.activeProfileId)));
-  document.getElementById('st-machine').textContent = `Profile: ${getActiveProfile().name}`;
+  document.getElementById('st-machine').textContent = getActiveProfile().name;
+}
+
+function activateRibbonTab(tabId) {
+  document.querySelectorAll('.ribbon-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.ribbon-pane').forEach(p => p.classList.toggle('active', p.id === tabId));
+
+  el.compareView.classList.toggle('active', tabId === 'tab-compare');
+  el.dncView.classList.toggle('active', tabId === 'tab-dnc');
+  const showEd = (tabId !== 'tab-compare' && tabId !== 'tab-dnc');
+  if (showEd) renderEditorView();
+  else {
+    el.editorContainer.style.display = 'none';
+    el.virtualEditor.style.display = 'none';
+  }
+  if (tabId === 'tab-compare') runCncFileCompare();
+}
+
+function saveActiveFileToDisk() {
+  const doc = getActiveDoc();
+  const blob = new Blob([doc.content], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = doc.name;
+  a.click();
+  doc.dirty = false;
+  renderDocTabs();
+  showToast(`Saved ${doc.name}`);
 }
 
 function wireEvents() {
   // Ribbon Tabs
   document.querySelectorAll('.ribbon-tab').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('.ribbon-tab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.ribbon-pane').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      const tabId = btn.dataset.tab;
-      document.getElementById(tabId).classList.add('active');
-
-      el.compareView.classList.toggle('active', tabId === 'tab-compare');
-      el.dncView.classList.toggle('active', tabId === 'tab-dnc');
-      const showEd = (tabId !== 'tab-compare' && tabId !== 'tab-dnc');
-      if (showEd) renderEditorView();
-      else {
-        el.editorContainer.style.display = 'none';
-        el.virtualEditor.style.display = 'none';
-      }
-      if (tabId === 'tab-compare') runCncFileCompare();
-    };
+    btn.onclick = () => activateRibbonTab(btn.dataset.tab);
   });
 
   // Left Dock Tabs
@@ -3837,6 +3634,7 @@ function wireEvents() {
       document.getElementById(btn.dataset.dock).classList.add('active');
     };
   });
+  document.getElementById('btn-dock-open-compare').onclick = () => activateRibbonTab('tab-compare');
 
   // Kinematics & Theme
   el.kinematicsSelect.onchange = () => {
@@ -3847,7 +3645,7 @@ function wireEvents() {
   };
   el.profileSelect.onchange = () => {
     state.activeProfileId = el.profileSelect.value;
-    document.getElementById('st-machine').textContent = `Profile: ${getActiveProfile().name}`;
+    document.getElementById('st-machine').textContent = getActiveProfile().name;
     parseAndBuildSimulation(getActiveDoc().content, false);
   };
   document.getElementById('btn-toggle-theme').onclick = () => {
@@ -3895,17 +3693,7 @@ function wireEvents() {
     e.target.value = '';
   };
 
-  document.getElementById('btn-save-file').onclick = () => {
-    const doc = getActiveDoc();
-    const blob = new Blob([doc.content], { type: 'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = doc.name;
-    a.click();
-    doc.dirty = false;
-    renderDocTabs();
-    showToast(`Saved ${doc.name}`);
-  };
+  document.getElementById('btn-save-file').onclick = saveActiveFileToDisk;
 
   // Undo / Redo / Find & Replace
   document.getElementById('btn-undo').onclick = () => { el.textarea.focus(); document.execCommand('undo'); };
@@ -3952,6 +3740,9 @@ function wireEvents() {
       e.preventDefault();
       document.getElementById('find-bar').classList.add('open');
       document.getElementById('find-input').focus();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      saveActiveFileToDisk();
     }
   });
 
@@ -3995,6 +3786,7 @@ function wireEvents() {
     document.getElementById('dock-tools').classList.add('active');
   }
   document.getElementById('btn-ribbon-tools').onclick = () => { openToolsDock(); openToolEditorModal(null); };
+  document.getElementById('btn-ribbon-tools-ed').onclick = () => { openToolsDock(); openToolEditorModal(null); };
   document.getElementById('btn-ribbon-tools-sim').onclick = () => { openToolsDock(); openToolEditorModal(null); };
   document.getElementById('btn-add-tool-dock').onclick = () => openToolEditorModal(null);
 
@@ -4094,13 +3886,9 @@ function wireEvents() {
 
   // Setup Sheet
   document.getElementById('btn-setup-sheet').onclick = openSetupSheetModal;
-  document.getElementById('btn-download-setup-sheet').onclick = () => {
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>NC Preview Setup Sheet</title></head><body style="font-family:sans-serif;padding:20px;">${document.getElementById('setup-sheet-content').innerHTML}</body></html>`;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-    a.download = `${getActiveDoc().name}_SetupSheet.html`;
-    a.click();
-  };
+  document.getElementById('btn-open-setup-tab').onclick = openSetupSheetModal;
+  document.getElementById('btn-export-setup-tab').onclick = downloadSetupSheetHtml;
+  document.getElementById('btn-download-setup-sheet').onclick = downloadSetupSheetHtml;
 
   // Stock & Simulation Controls
   document.getElementById('btn-open-stock-modal').onclick = () => {
@@ -4153,7 +3941,7 @@ function wireEvents() {
     document.getElementById('vp-btn-ghost').classList.toggle('active', state.cam.showRawGhost);
     const rBtn = document.getElementById('btn-toggle-raw-ghost');
     rBtn.classList.toggle('active', state.cam.showRawGhost);
-    rBtn.innerHTML = `<span>👻 Raw Ghost: ${state.cam.showRawGhost ? 'ON' : 'OFF'}</span>`;
+    rBtn.innerHTML = `<span>👻 Ghost: ${state.cam.showRawGhost ? 'ON' : 'OFF'}</span>`;
     drawBackplot();
   };
   document.getElementById('vp-btn-ghost').onclick = toggleRawGhost;
@@ -4246,7 +4034,7 @@ function wireEvents() {
     drawBackplot();
   }, { passive: false });
 
-  // Playback Controls
+  // Playback Controls (Play/Pause, Stop/Rewind, Step, Scrubber, Speed)
   document.getElementById('btn-sim-play').onclick = (e) => {
     state.sim.playing = !state.sim.playing;
     if (state.sim.playing && state.sim.currentTimeSec >= state.stats.totalTimeSec) {
@@ -4254,12 +4042,12 @@ function wireEvents() {
     }
     e.currentTarget.textContent = state.sim.playing ? '⏸ Pause' : '▶ Play';
   };
-  document.getElementById('btn-sim-reset').onclick = () => {
+  document.getElementById('btn-sim-stop').onclick = () => {
     state.sim.playing = false;
     document.getElementById('btn-sim-play').textContent = '▶ Play';
     state.sim.currentTimeSec = 0;
     el.scrubber.value = 0;
-    rebuildStockUpToTime(0);
+    rebuildStockUpToTime(0, true);
     drawBackplot();
   };
   document.getElementById('btn-sim-step').onclick = () => {
@@ -4269,7 +4057,7 @@ function wireEvents() {
     if (nextSeg) {
       state.sim.currentTimeSec = nextSeg.endTimeSec;
       el.scrubber.value = Math.round((state.sim.currentTimeSec / Math.max(0.01, state.stats.totalTimeSec)) * 1000);
-      rebuildStockUpToTime(state.sim.currentTimeSec);
+      rebuildStockUpToTime(state.sim.currentTimeSec, false);
       drawBackplot();
     }
   };
@@ -4277,7 +4065,7 @@ function wireEvents() {
     state.sim.playing = false;
     document.getElementById('btn-sim-play').textContent = '▶ Play';
     state.sim.currentTimeSec = (parseInt(el.scrubber.value, 10) / 1000) * state.stats.totalTimeSec;
-    rebuildStockUpToTime(state.sim.currentTimeSec);
+    rebuildStockUpToTime(state.sim.currentTimeSec, false);
     drawBackplot();
   };
   document.getElementById('sim-speed').onchange = (e) => {
@@ -4351,11 +4139,11 @@ function wireEvents() {
     p.limX = parseFloat(document.getElementById('prof-limx').value) || 365;
     p.limY = parseFloat(document.getElementById('prof-limy').value) || 280;
     p.limZ = parseFloat(document.getElementById('prof-limz').value) || -280;
-    try { localStorage.setItem('nc_preview_profiles_v1', JSON.stringify(state.profiles)); } catch {}
+    try { localStorage.setItem('nc_preview_profiles_v2', JSON.stringify(state.profiles)); } catch {}
     loadProfiles();
     document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     parseAndBuildSimulation(getActiveDoc().content, false);
-    showToast('Saved machine profile & soft limits');
+    showToast('Saved NC Preview machine profile & soft limits');
   };
 
   document.querySelectorAll('.modal-close').forEach(b => b.onclick = () => document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open')));
