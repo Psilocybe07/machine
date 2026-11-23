@@ -681,7 +681,13 @@ html, body {
 
         <!-- Kinematic 5-Axis Telemetry HUD -->
         <div id="hud-telemetry">
-          <div class="hud-row"><span class="hud-label">KINEMATICS:</span><span id="hud-modal" style="color:#39c5cf; font-weight:700;">5AX B/C TABLE | TCPM ON</span></div>
+          <div class="hud-row">
+            <span class="hud-label">KINEMATICS:</span>
+            <span style="display:flex; align-items:center; gap:6px;">
+              <span id="hud-modal" style="color:#39c5cf; font-weight:700;">5AX B/C TABLE | TCPM ON</span>
+              <span id="hud-fps" style="background:rgba(63,185,80,0.18); border:1px solid rgba(63,185,80,0.45); color:#7ee787; padding:0 5px; border-radius:4px; font-size:10px; font-weight:700;">60 FPS</span>
+            </span>
+          </div>
           <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T02 Ø0.375 (ball)</span></div>
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label">SPINDLE X/Y/Z:</span><span id="hud-xyz">0.000, 0.000, 0.000</span></div>
@@ -871,72 +877,74 @@ function buildSphereOn5InchBarProgram() {
     '0 BEGIN PGM 5AX_SPHERE_5IN_BAR INCH',
     '1 ; 5-AXIS TABLE-TABLE (B/C ROTARY TABLE + VERTICAL X/Y/Z SPINDLE)',
     '2 ; WORKPIECE: 2.000 IN DIA x 5.000 IN TALL 6061-T6 ROUND BAR STOCK',
-    '3 ; FEATURE: 1.750 IN PRECISION SPHERE + UNDERCUT NECK AT TOP END OF BAR',
+    '3 ; FEATURE: 1.750 IN PRECISION SPHERE (CENTER Z=-0.950) + 0.900 IN UNDERCUT NECK',
     '4 BLK FORM 0.1 Z X-1.000 Y-1.000 Z-5.000',
     '5 BLK FORM 0.2 X+1.000 Y+1.000 Z+0.000',
     '6 TOOL DEF 1 L+0.000 R+0.250 ; 0.500IN FLAT ROUGHING ENDMILL',
     '7 TOOL DEF 2 L+0.000 R+0.1875 ; 0.375IN BALL NOSE FINISHING ENDMILL',
-    '8 ; --- STAGE 1: FACE TOP END OF 5.000 IN BAR & ROUGH SPHERE ENVELOPE ---',
+    '8 ; --- STAGE 1: FACE FRONT STOCK ABOVE Z=-0.075 & ROUGH SPHERE ENVELOPE ---',
     '9 TOOL CALL 1 Z S12000 F150.0 ; 0.500IN FLAT ROUGHING ENDMILL',
     '10 L X+0.000 Y+0.000 Z+1.200 B+0.0 C+0.0 R0 FMAX M03 M08',
     '11 L X+1.150 Y+0.000 Z+0.250 FMAX',
-    '12 L Z+0.050 F90.0',
-    '13 L X-0.050 Y+0.000 Z+0.050 F140.0 ; FACE ACROSS FRONT POLE TO CENTER',
+    '12 L Z-0.075 F90.0',
+    '13 L X-0.050 Y+0.000 Z-0.075 F140.0 ; FACE FRONT END OF BAR DOWN TO POLE Z=-0.075',
     '14 L Z+0.300 FMAX'
   ];
 
   let blk = 15;
   const sphereR = 0.875; // 1.750 in diameter sphere
-  const centerZ = -0.875; // Top pole sits cleanly at Z = 0.000
+  const centerZ = -0.950; // Top pole at Z = -0.075, bottom equator blend at Z = -1.825
 
   const roughLevels = [
-    { z: -0.05, r: 0.45 },
-    { z: -0.25, r: 0.78 },
-    { z: -0.55, r: 0.96 },
-    { z: -0.88, r: 1.02 },
-    { z: -1.30, r: 0.84 },
-    { z: -1.65, r: 0.62 },
-    { z: -1.85, r: 0.54 }
+    { z: -0.15, r: 0.48 },
+    { z: -0.35, r: 0.78 },
+    { z: -0.65, r: 0.95 },
+    { z: -0.95, r: 1.00 },
+    { z: -1.35, r: 0.86 },
+    { z: -1.68, r: 0.64 },
+    { z: -1.85, r: 0.50 }
   ];
   roughLevels.forEach(lv => {
     lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 Z+${(lv.z + 0.25).toFixed(4)} FMAX`);
-    lines.push(`${blk++} L X+${lv.r.toFixed(4)} Y+0.000 Z${lv.z.toFixed(4)} F75.0`);
-    const segs = 24;
+    lines.push(`${blk++} L X+${lv.r.toFixed(4)} Y+0.000 Z${lv.z.toFixed(4)} F85.0`);
+    const segs = 20;
     for (let i = 1; i <= segs; i++) {
       const ang = (i / segs) * Math.PI * 2;
       const x = Math.cos(ang) * lv.r;
       const y = Math.sin(ang) * lv.r;
-      lines.push(`${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} F145.0`);
+      lines.push(`${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} F155.0`);
     }
     lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 FMAX`);
   });
   lines.push(`${blk++} L Z+1.400 FMAX`);
 
-  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & UNDERCUT NECK ---`);
-  lines.push(`${blk++} TOOL CALL 2 Z S16500 F170.0 ; 0.375IN BALL NOSE FINISHING ENDMILL`);
+  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & 0.900 IN UNDERCUT NECK ---`);
+  lines.push(`${blk++} TOOL CALL 2 Z S16500 F175.0 ; 0.375IN BALL NOSE FINISHING ENDMILL`);
   lines.push(`${blk++} FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS`);
 
-  const phiAngles = [6, 15, 24, 36, 48, 60, 72, 84, 96, 108, 115];
+  const phiAngles = [4, 14, 24, 36, 48, 60, 72, 84, 96, 108, 120, 128];
   const stepsPerRev = 24;
 
   phiAngles.forEach((phiDeg, ringIdx) => {
     const phi = phiDeg * (Math.PI / 180);
     let rRing, zRing, bTilt;
-    if (phiDeg <= 108) {
+    if (phiDeg <= 120) {
       rRing = sphereR * Math.sin(phi);
       zRing = centerZ + sphereR * Math.cos(phi);
-      bTilt = Math.min(108, phiDeg);
+      bTilt = Math.min(115, phiDeg);
     } else {
-      const tNeck = (phiDeg - 108) / 7;
-      rRing = 0.832 * (1 - tNeck) + 0.440 * tNeck;
-      zRing = -1.145 - tNeck * 0.705;
-      bTilt = 112 + tNeck * 3;
+      const tNeck = (phiDeg - 120) / 8;
+      const r120 = sphereR * Math.sin(120 * Math.PI / 180);
+      const z120 = centerZ + sphereR * Math.cos(120 * Math.PI / 180);
+      rRing = r120 * (1 - tNeck) + 0.450 * tNeck;
+      zRing = z120 * (1 - tNeck) + (-1.850) * tNeck;
+      bTilt = 115 + tNeck * 3;
     }
 
     const cStart = ringIdx * 360;
     if (ringIdx === 0) {
-      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.3500 B+6.00 C+0.0 R0 FMAX M03 M08`);
-      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.0000 F95.0 ; FINISH TOP POLE AT Z=0`);
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.3500 B+4.00 C+0.0 R0 FMAX M03 M08`);
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z-0.0750 F95.0 ; FINISH TOP POLE AT Z=-0.075`);
     }
 
     for (let s = 1; s <= stepsPerRev; s++) {
@@ -946,14 +954,14 @@ function buildSphereOn5InchBarProgram() {
       const x = rRing * Math.cos(theta);
       const y = rRing * Math.sin(theta);
       lines.push(
-        `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} B+${bTilt.toFixed(2)} C+${cDeg.toFixed(1)} F175.0`
+        `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} B+${bTilt.toFixed(2)} C+${cDeg.toFixed(1)} F180.0`
       );
     }
   });
 
-  lines.push(`${blk++} ; --- STAGE 3: 5-AXIS NECK SHOULDER FILLET BLEND TO 2.000 IN BAR (Z=-1.85) ---`);
+  lines.push(`${blk++} ; --- STAGE 3: 5-AXIS 0.900 IN UNDERCUT NECK SHOULDER AT Z=-1.850 ---`);
   const neckZ = -1.850;
-  const neckR = 0.440;
+  const neckR = 0.450; // 0.900 in diameter undercut neck
   const cBase = phiAngles.length * 360;
   for (let s = 0; s <= 24; s++) {
     const frac = s / 24;
@@ -962,7 +970,7 @@ function buildSphereOn5InchBarProgram() {
     const x = neckR * Math.cos(theta);
     const y = neckR * Math.sin(theta);
     lines.push(
-      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${neckZ.toFixed(4)} B+115.00 C+${cDeg.toFixed(1)} F145.0`
+      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${neckZ.toFixed(4)} B+118.00 C+${cDeg.toFixed(1)} F150.0`
     );
   }
 
@@ -1196,8 +1204,12 @@ const state = {
     speedMultiplier: 1.0,
     lastFrameTs: 0,
     lastBuiltTimeSec: -1,
+    lastCarvedSegmentIdx: 0,
+    lastCarvedSubT: 0,
     spindleAngle: 0,
-    coolantParticles: []
+    coolantParticles: [],
+    fpsSamples: [],
+    lastFpsUiTs: 0
   },
 
   cam: {
@@ -2038,7 +2050,7 @@ function finalizeParsedSimulation(segments, alarms, collisionLineSet, minX, maxX
 
   state.sim.currentTimeSec = elapsedTimeSec;
   el.scrubber.value = segments.length > 0 ? 1000 : 0;
-  rebuildStockUpToTime(state.sim.currentTimeSec);
+  rebuildStockUpToTime(state.sim.currentTimeSec, true);
 
   renderAlarmLogDock();
   renderEditorView();
@@ -2124,7 +2136,7 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
     for (const seg of state.segments) {
       const toolObj = state.tools[seg.tool] || { dia: 0.375, shape: 'ball', fluteLen: 1.25 };
       if (seg.type === 'G00') {
-        const hit = carveOrCheckCylinderGrid(tempCyl, null, seg, toolObj, true);
+        const hit = carveOrCheckCylinderGrid(tempCyl, null, seg, toolObj, true, 0.0, 1.0);
         if (hit) {
           seg.isCollision = true;
           state.collisionLineSet.add(seg.line);
@@ -2136,12 +2148,13 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
           });
         }
       } else {
-        carveOrCheckCylinderGrid(tempCyl, null, seg, toolObj, false);
+        carveOrCheckCylinderGrid(tempCyl, null, seg, toolObj, false, 0.0, 1.0);
       }
     }
     return;
   }
 
+  // Rectangular Billet Z-Map Initialization & G00 Rapid Gouge Pre-Verification
   const totalCells = stk.cols * stk.rows;
   stk.initialZ = new Float32Array(totalCells);
   stk.currentZ = new Float32Array(totalCells);
@@ -2153,8 +2166,8 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
   tempGrid.fill(stk.maxZ);
 
   for (const seg of state.segments) {
-    const toolObj = state.tools[seg.tool] || { dia: 0.375 };
-    const r = (toolObj.dia || 0.375) / 2;
+    const toolObj = state.tools[seg.tool] || { dia: 10.0 };
+    const r = (toolObj.dia || 10.0) * 0.5;
     if (seg.type === 'G00') {
       const hit = carveOrCheckGrid(tempGrid, null, seg.pts, r, true);
       if (hit) {
@@ -2163,7 +2176,7 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
         state.alarms.push({
           line: seg.line,
           title: 'RAPID-INTO-STOCK GOUGE (G00 / FMAX)',
-          detail: `Rapid traverse crashes through workpiece at Z=${hit.z.toFixed(3)}.`,
+          detail: `Rapid traverse collides with solid workpiece at X=${hit.x.toFixed(2)}, Y=${hit.y.toFixed(2)}, Z=${hit.z.toFixed(2)}.`,
           timeSec: seg.startTimeSec
         });
       }
@@ -2171,6 +2184,267 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
       carveOrCheckGrid(tempGrid, null, seg.pts, r, false);
     }
   }
+}
+
+// Exact 3D Swept Ball-Nose & Flute Envelope Removal on Cylindrical Radial Heightfield r[thetaIdx][zIdx]
+function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFrac = 0.0, maxFrac = 1.0) {
+  const stk = state.stock;
+  const nTheta = stk.cylThetaSegs;
+  const nZ = stk.cylZSegs;
+  const zMin = stk.minZ;
+  const zMax = stk.maxZ;
+  const zSpan = Math.max(0.01, zMax - zMin);
+  const dz = zSpan / nZ;
+  const dTheta = (Math.PI * 2) / nTheta;
+  const barCx = (stk.minX + stk.maxX) * 0.5;
+  const barCy = (stk.minY + stk.maxY) * 0.5;
+
+  const toolR = Math.max(0.02, (toolObj.dia || 0.375) * 0.5);
+  const isBall = (toolObj.shape === 'ball');
+  const tipOffset = isBall ? toolR : 0.0;
+  // Active cutting flute length above the ball center (bounded so non-cutting shank doesn't wipe out lower bar)
+  const activeCutLen = isBall ? Math.max(toolR * 1.6, 0.42) : Math.max(toolR * 2.0, toolObj.fluteLen || 1.2);
+  const fluteSteps = Math.max(4, Math.ceil(activeCutLen / (dz * 1.35)));
+
+  const pts = seg.pts;
+  if (!pts || pts.length < 2 || maxFrac <= minFrac + 1e-6) return null;
+  let firstHit = null;
+
+  const totalPathSegs = pts.length - 1;
+  for (let i = 1; i < pts.length; i++) {
+    const segStartFrac = (i - 1) / totalPathSegs;
+    const segEndFrac = i / totalPathSegs;
+    if (segEndFrac <= minFrac) continue;
+    if (segStartFrac >= maxFrac) break;
+
+    const clippedStart = Math.max(segStartFrac, minFrac);
+    const clippedEnd = Math.min(segEndFrac, maxFrac);
+    const segSpan = Math.max(1e-6, segEndFrac - segStartFrac);
+    const uStart = (clippedStart - segStartFrac) / segSpan;
+    const uEnd = (clippedEnd - segStartFrac) / segSpan;
+
+    const p0 = pts[i - 1], p1 = pts[i];
+    const moveDist = Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z) * (uEnd - uStart);
+    const rot0 = {
+      a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * clippedStart,
+      b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * clippedStart,
+      c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * clippedStart
+    };
+    const rot1 = {
+      a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * clippedEnd,
+      b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * clippedEnd,
+      c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * clippedEnd
+    };
+    const dRot = Math.abs(rot1.b - rot0.b) + Math.abs(rot1.c - rot0.c);
+    const pathSteps = Math.max(1, Math.ceil(moveDist / (dz * 0.9)), Math.ceil(dRot / 3.0));
+
+    for (let s = 0; s <= pathSteps; s++) {
+      const f = s / pathSteps;
+      const u = uStart + (uEnd - uStart) * f;
+      const tipX = (p0.x + (p1.x - p0.x) * u) - barCx;
+      const tipY = (p0.y + (p1.y - p0.y) * u) - barCy;
+      const tipZ = p0.z + (p1.z - p0.z) * u;
+
+      const curRot = {
+        a: rot0.a + (rot1.a - rot0.a) * f,
+        b: rot0.b + (rot1.b - rot0.b) * f,
+        c: rot0.c + (rot1.c - rot0.c) * f
+      };
+      const vTool = getToolAxisWorkpieceVector(curRot, seg.plane);
+
+      // Ball-nose sphere center is offset by +toolR along the tool axis from the programmed contact tip
+      const ballCx = tipX + vTool.x * tipOffset;
+      const ballCy = tipY + vTool.y * tipOffset;
+      const ballCz = tipZ + vTool.z * tipOffset;
+
+      // Sample spherical tip + bounded cutting flute zone from h = 0 (ball center) to activeCutLen
+      for (let fs = 0; fs <= fluteSteps; fs++) {
+        const h = (fs / fluteSteps) * activeCutLen;
+        const cx = ballCx + vTool.x * h;
+        const cy = ballCy + vTool.y * h;
+        const cz = ballCz + vTool.z * h;
+
+        const zLow = cz - toolR;
+        const zHigh = cz + toolR;
+        if (zHigh < zMin || zLow > zMax) continue;
+
+        const iz0 = Math.max(0, Math.floor((zLow - zMin) / dz));
+        const iz1 = Math.min(nZ - 1, Math.floor((zHigh - zMin) / dz));
+        const distCenter = Math.hypot(cx, cy);
+        const centerTheta = Math.atan2(cy, cx);
+
+        for (let iz = iz0; iz <= iz1; iz++) {
+          const zCell = zMin + (iz + 0.5) * dz;
+          const dzSlice = zCell - cz;
+          const sliceRemSq = toolR * toolR - dzSlice * dzSlice;
+          if (sliceRemSq <= 0) continue;
+          const sliceR = Math.sqrt(sliceRemSq);
+
+          if (distCenter <= sliceR + 1e-4) {
+            // Cutter fully envelops the central bar axis at this Z slice (faces off front stock cleanly to r=0)
+            for (let it = 0; it < nTheta; it++) {
+              const idx = it * nZ + iz;
+              if (rGrid[idx] > 0.0005) {
+                if (isRapid) {
+                  if (!firstHit) firstHit = { z: zCell, r: 0 };
+                  if (gougeArr) { rGrid[idx] = 0; gougeArr[idx] = 1; }
+                } else {
+                  rGrid[idx] = 0;
+                }
+              }
+            }
+          } else {
+            const sinHalf = Math.min(1.0, sliceR / distCenter);
+            const halfSpan = Math.asin(sinHalf) + dTheta * 0.6;
+            const stepsAng = Math.max(1, Math.ceil(halfSpan / dTheta));
+
+            for (let ia = -stepsAng; ia <= stepsAng; ia++) {
+              const theta = centerTheta + ia * dTheta;
+              const ux = Math.cos(theta);
+              const uy = Math.sin(theta);
+
+              const proj = cx * ux + cy * uy;
+              if (proj <= 0) continue;
+              const perpSq = distCenter * distCenter - proj * proj;
+              if (perpSq >= sliceR * sliceR) continue;
+              const chordHalf = Math.sqrt(sliceR * sliceR - perpSq);
+              // Exact radial intersection where cutter surface touches the bar ray
+              const rEntry = Math.max(0, proj - chordHalf);
+
+              let it = Math.round((theta / (Math.PI * 2)) * nTheta) % nTheta;
+              if (it < 0) it += nTheta;
+              const idx = it * nZ + iz;
+
+              if (rEntry < rGrid[idx] - 1e-4) {
+                if (isRapid) {
+                  if (!firstHit) firstHit = { z: zCell, r: rEntry };
+                  if (gougeArr) {
+                    rGrid[idx] = rEntry;
+                    gougeArr[idx] = 1;
+                  }
+                } else {
+                  rGrid[idx] = rEntry;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return firstHit;
+}
+
+function rebuildStockUpToTime(targetTimeSec, forceFullReset = false) {
+  const stk = state.stock;
+  const sim = state.sim;
+
+  if (state.kinematicsMode === 'lathe-2ax' && stk.latheCurrentR) {
+    const nZ = stk.latheZSegs;
+    const rMax = Math.max(5, (stk.latheDia || 66) * 0.5);
+    const len = Math.max(10, stk.latheLen || 80);
+    stk.latheCurrentR.fill(rMax);
+    for (const seg of state.segments) {
+      if (seg.startTimeSec > targetTimeSec) break;
+      if (seg.type === 'G00') continue;
+      for (let i = 1; i < seg.pts.length; i++) {
+        const p0 = seg.pts[i - 1], p1 = seg.pts[i];
+        const steps = 20;
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          const rx = Math.abs(p0.x + (p1.x - p0.x) * t);
+          const zz = p0.z + (p1.z - p0.z) * t;
+          if (zz <= 0 && zz >= -len) {
+            const iz = Math.min(nZ - 1, Math.max(0, Math.floor(((-zz) / len) * nZ)));
+            if (rx < stk.latheCurrentR[iz]) stk.latheCurrentR[iz] = Math.max(2, rx);
+          }
+        }
+      }
+    }
+    sim.lastBuiltTimeSec = targetTimeSec;
+    return;
+  }
+
+  if (stk.shape === 'cylinder') {
+    if (!stk.cylInitialR || !stk.cylCurrentR) return;
+
+    const isBackwardOrReset = forceFullReset || sim.lastBuiltTimeSec < 0 || targetTimeSec < sim.lastBuiltTimeSec - 1e-5;
+    if (isBackwardOrReset) {
+      stk.cylCurrentR.set(stk.cylInitialR);
+      stk.cylGougeFlags.fill(0);
+      sim.lastCarvedSegmentIdx = 0;
+      sim.lastCarvedSubT = 0;
+    }
+
+    // Incremental forward delta carving: only process newly advanced toolpath segments
+    for (let idx = sim.lastCarvedSegmentIdx; idx < state.segments.length; idx++) {
+      const seg = state.segments[idx];
+      if (seg.startTimeSec > targetTimeSec) break;
+
+      const toolObj = state.tools[seg.tool] || { dia: 0.375, shape: 'ball', fluteLen: 1.25 };
+      const dur = Math.max(0.001, seg.endTimeSec - seg.startTimeSec);
+      const startFrac = (idx === sim.lastCarvedSegmentIdx) ? sim.lastCarvedSubT : 0.0;
+      const endFrac = targetTimeSec < seg.endTimeSec
+        ? Math.max(startFrac, Math.min(1.0, (targetTimeSec - seg.startTimeSec) / dur))
+        : 1.0;
+
+      if (endFrac > startFrac + 1e-6) {
+        carveOrCheckCylinderGrid(stk.cylCurrentR, stk.cylGougeFlags, seg, toolObj, seg.type === 'G00', startFrac, endFrac);
+      }
+
+      if (endFrac >= 1.0 - 1e-6) {
+        sim.lastCarvedSegmentIdx = idx + 1;
+        sim.lastCarvedSubT = 0.0;
+      } else {
+        sim.lastCarvedSegmentIdx = idx;
+        sim.lastCarvedSubT = endFrac;
+        break;
+      }
+    }
+
+    sim.lastBuiltTimeSec = targetTimeSec;
+    return;
+  }
+
+  if (!stk.initialZ || !stk.currentZ) return;
+  const isBackwardBox = forceFullReset || sim.lastBuiltTimeSec < 0 || targetTimeSec < sim.lastBuiltTimeSec - 1e-5;
+  if (isBackwardBox) {
+    stk.currentZ.set(stk.initialZ);
+    stk.gougeFlags.fill(0);
+    sim.lastCarvedSegmentIdx = 0;
+    sim.lastCarvedSubT = 0;
+  }
+
+  for (let idx = sim.lastCarvedSegmentIdx; idx < state.segments.length; idx++) {
+    const seg = state.segments[idx];
+    if (seg.startTimeSec > targetTimeSec) break;
+    const toolObj = state.tools[seg.tool] || { dia: 0.375 };
+    const r = (toolObj.dia || 0.375) / 2;
+    const dur = Math.max(0.001, seg.endTimeSec - seg.startTimeSec);
+    const startFrac = (idx === sim.lastCarvedSegmentIdx) ? sim.lastCarvedSubT : 0.0;
+    const endFrac = targetTimeSec < seg.endTimeSec
+      ? Math.max(startFrac, Math.min(1.0, (targetTimeSec - seg.startTimeSec) / dur))
+      : 1.0;
+
+    if (seg.pts.length >= 2 && endFrac > startFrac + 1e-6) {
+      const i0 = Math.max(0, Math.floor(startFrac * (seg.pts.length - 1)));
+      const i1 = Math.min(seg.pts.length - 1, Math.ceil(endFrac * (seg.pts.length - 1)));
+      const ptsSlice = seg.pts.slice(i0, i1 + 1);
+      if (ptsSlice.length >= 2) {
+        carveOrCheckGrid(stk.currentZ, stk.gougeFlags, ptsSlice, r, seg.type === 'G00');
+      }
+    }
+
+    if (endFrac >= 1.0 - 1e-6) {
+      sim.lastCarvedSegmentIdx = idx + 1;
+      sim.lastCarvedSubT = 0.0;
+    } else {
+      sim.lastCarvedSegmentIdx = idx;
+      sim.lastCarvedSubT = endFrac;
+      break;
+    }
+  }
+  sim.lastBuiltTimeSec = targetTimeSec;
 }
 
 // Z-Buffer Heightfield Material Removal & Collision Verification for Rectangular Billet Stock
@@ -2721,7 +2995,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
   const barCy = (stk.minY + stk.maxY) * 0.5;
 
   // =========================================================================
-  // CYLINDRICAL DEFORMED RADIAL SOLID MESH r[thetaIdx][zIdx] (NO OUTER SKIN!)
+  // CYLINDRICAL DEFORMED RADIAL SOLID MESH r[thetaIdx][zIdx] (60 FPS ADAPTIVE)
   // =========================================================================
   if (stk.shape === 'cylinder' && stk.cylCurrentR) {
     const nTheta = stk.cylThetaSegs;
@@ -2733,8 +3007,9 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
     const zMax = stk.maxZ;
     const dz = (zMax - zMin) / nZ;
 
-    const tStep = 2;
-    const zStep = 2;
+    // Adaptive mesh resolution: 72x90 during active playback, 144x180 high-detail when paused
+    const tStep = state.sim.playing ? 2 : 1;
+    const zStep = state.sim.playing ? 2 : 1;
     const quads = [];
     const lx = -0.45, ly = -0.55, lz = 0.70;
     const hx = -0.25, hy = -0.30, hz = 0.92;
@@ -2755,8 +3030,8 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       let firstSolidIz = -1;
       let lastSolidIz = -1;
       for (let iz = 0; iz < nZ; iz += zStep) {
-        const rHere = Math.min(rGrid[it * nZ + iz], rGrid[itNext * nZ + iz]);
-        if (rHere > 0.002) {
+        const rHere = Math.max(rGrid[it * nZ + iz], rGrid[itNext * nZ + iz]);
+        if (rHere > 0.0005) {
           if (firstSolidIz === -1) firstSolidIz = iz;
           lastSolidIz = iz;
         }
@@ -2774,7 +3049,19 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         const r11 = rGrid[itNext * nZ + izNext];
         const r01 = rGrid[it * nZ + izNext];
 
-        if (r00 <= 0.002 && r10 <= 0.002 && r11 <= 0.002 && r01 <= 0.002) continue;
+        // Skip collapsed zero-radius rings
+        if (r00 <= 0.0005 && r10 <= 0.0005 && r11 <= 0.0005 && r01 <= 0.0005) continue;
+
+        const p00 = ptCyl(a0, r00, z0);
+        const p10 = ptCyl(a1, r10, z0);
+        const p11 = ptCyl(a1, r11, z1);
+        const p01 = ptCyl(a0, r01, z1);
+
+        // Screen-space backface culling (cuts rendered polygons by >55%)
+        if (mode === 'solid') {
+          const cross = (p10.sx - p00.sx) * (p11.sy - p00.sy) - (p10.sy - p00.sy) * (p11.sx - p00.sx);
+          if (cross > 2.0) continue;
+        }
 
         const isGouge = (gFlags[it * nZ + iz] === 1) || (gFlags[itNext * nZ + iz] === 1);
         const rAvg = (r00 + r10 + r11 + r01) * 0.25;
@@ -2787,14 +3074,9 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         const nLen = Math.hypot(nx, ny, nz) || 1;
         nx /= nLen; ny /= nLen; nz /= nLen;
 
-        const diff = Math.max(0.26, nx * lx + ny * ly + nz * lz);
+        const diff = Math.max(0.28, nx * lx + ny * ly + nz * lz);
         const specDot = Math.max(0, nx * hx + ny * hy + nz * hz);
         const spec = Math.pow(specDot, mat.specPower) * mat.specIntensity * 255;
-
-        const p00 = ptCyl(a0, r00, z0);
-        const p10 = ptCyl(a1, r10, z0);
-        const p11 = ptCyl(a1, r11, z1);
-        const p01 = ptCyl(a0, r01, z1);
         const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) * 0.25;
 
         let fillCol;
@@ -2838,7 +3120,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       const zFront = zMin + Math.min(nZ, lastSolidIz + zStep) * dz;
       const rF0 = rGrid[it * nZ + lastSolidIz];
       const rF1 = rGrid[itNext * nZ + lastSolidIz];
-      if (rF0 > 0.002 || rF1 > 0.002) {
+      if (rF0 > 0.0005 || rF1 > 0.0005) {
         const pCenter = ptCyl(aMid, 0, zFront);
         const pEdge0 = ptCyl(a0, rF0, zFront);
         const pEdge1 = ptCyl(a1, rF1, zFront);
@@ -2857,7 +3139,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       const zBack = zMin + firstSolidIz * dz;
       const rB0 = rGrid[it * nZ + firstSolidIz];
       const rB1 = rGrid[itNext * nZ + firstSolidIz];
-      if (rB0 > 0.002 || rB1 > 0.002) {
+      if (rB0 > 0.0005 || rB1 > 0.0005) {
         const pCenterB = ptCyl(aMid, 0, zBack);
         const pEdgeB0 = ptCyl(a0, rB0, zBack);
         const pEdgeB1 = ptCyl(a1, rB1, zBack);
@@ -2876,27 +3158,24 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       fillProjectedQuad(ctx, quads[i].pts, quads[i].fill, quads[i].stroke, 0.5);
     }
 
-    if (state.cam.showRawGhost) {
-      ctx.strokeStyle = 'rgba(130, 195, 255, 0.26)';
-      ctx.setLineDash([4, 4]);
-      ctx.lineWidth = 1.0;
-      [stk.minZ, stk.maxZ].forEach(zRing => {
-        ctx.beginPath();
-        for (let i = 0; i <= 36; i++) {
+    if (mode === 'wireframe' || state.cam.showRawGhost) {
+      const ghostRings = [zMin, zMax];
+      const gPts = ghostRings.map(zg => {
+        const arr = [];
+        for (let i = 0; i < 36; i++) {
           const a = (i / 36) * Math.PI * 2;
-          const p = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: zRing }), cx, cy);
-          if (i === 0) ctx.moveTo(p.sx, p.sy);
-          else ctx.lineTo(p.sx, p.sy);
+          arr.push(ptCyl(a, barRadius, zg));
         }
+        return arr;
+      });
+      ctx.strokeStyle = 'rgba(185, 205, 230, 0.35)';
+      ctx.lineWidth = 1.0;
+      gPts.forEach(ring => {
+        ctx.beginPath();
+        ring.forEach((p, i) => i === 0 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy));
+        ctx.closePath();
         ctx.stroke();
       });
-      for (let g = 0; g < 8; g++) {
-        const a = (g / 8) * Math.PI * 2;
-        const p0 = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: stk.minZ }), cx, cy);
-        const p1 = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: stk.maxZ }), cx, cy);
-        ctx.beginPath(); ctx.moveTo(p0.sx, p0.sy); ctx.lineTo(p1.sx, p1.sy); ctx.stroke();
-      }
-      ctx.setLineDash([]);
     }
     return;
   }
@@ -3170,88 +3449,88 @@ function drawBackplot() {
       el.canvas.height = Math.floor(h * dpr);
     }
 
-    const ctx = el.canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-
-    const cx = w / 2, cy = h / 2;
-    const isTableMode = (state.kinematicsMode === 'table-bc');
-    const isLathe = (state.kinematicsMode === 'lathe-2ax');
-    const playState = getActivePlaybackState();
-    const activeRot = playState.rot;
-    const activePlane = playState.plane;
-
-    // 1. Machine Base Reference Grid
-    const gridSpan = Math.max(2.0, (state.extents.maxX - state.extents.minX) * 1.4);
-    const gridStep = gridSpan / 6;
-    const baseZ = state.stock.minZ - gridSpan * 0.35;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    for (let g = -3; g <= 3; g++) {
-      const off = g * gridStep;
-      const a1 = project3D({ x: -gridSpan * 0.5, y: off, z: baseZ }, cx, cy);
-      const a2 = project3D({ x: gridSpan * 0.5, y: off, z: baseZ }, cx, cy);
-      const b1 = project3D({ x: off, y: -gridSpan * 0.5, z: baseZ }, cx, cy);
-      const b2 = project3D({ x: off, y: gridSpan * 0.5, z: baseZ }, cx, cy);
-      ctx.beginPath();
-      ctx.moveTo(a1.sx, a1.sy); ctx.lineTo(a2.sx, a2.sy);
-      ctx.moveTo(b1.sx, b1.sy); ctx.lineTo(b2.sx, b2.sy);
-      ctx.stroke();
-    }
-
-    // 2. 5-Axis B/C Rotary Trunnion Table & 3-Jaw Chuck / Vice
-    if (!isLathe) {
-      drawRotaryTableAssembly(ctx, cx, cy, activeRot, activePlane);
-    }
-
-    // 3. 3D Shaded Solid Workpiece
-    if (state.segments.length > 0) {
-      if (isLathe) drawLatheStock3D(ctx, cx, cy);
-      else drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane);
-    }
-
-    // 4. Workpiece Coordinate Triad (Xw, Yw, Zw)
-    const triadLen = Math.max(0.45, (state.extents.maxX - state.extents.minX) * 0.25);
-    const xformPathPt = (pt) => isTableMode ? workpieceToMachinePoint(pt, activeRot, activePlane) : pt;
-    const orig = project3D(xformPathPt({ x: 0, y: 0, z: 0 }), cx, cy);
-    [
-      { pt: { x: triadLen, y: 0, z: 0 }, col: '#ff7b72', lbl: isLathe ? 'X(Dia)' : 'Xw' },
-      { pt: { x: 0, y: triadLen, z: 0 }, col: '#7ee787', lbl: 'Yw' },
-      { pt: { x: 0, y: 0, z: triadLen }, col: '#79c0ff', lbl: 'Zw' }
-    ].forEach(ax => {
-      const ep = project3D(xformPathPt(ax.pt), cx, cy);
-      ctx.strokeStyle = ax.col;
-      ctx.lineWidth = 1.8;
-      ctx.beginPath(); ctx.moveTo(orig.sx, orig.sy); ctx.lineTo(ep.sx, ep.sy); ctx.stroke();
-      ctx.fillStyle = ax.col;
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillText(ax.lbl, ep.sx + 3, ep.sy - 3);
-    });
-
-    // 5. Toolpaths (Transformed onto Rotating/Tilting B/C Table)
+    // 5. Batched Path2D Toolpaths (Single Pass for Locked 60 FPS)
     const tNow = state.sim.currentTimeSec;
     if (state.cam.showPaths) {
+      const pathRapidDone = new Path2D();
+      const pathRapidFuture = new Path2D();
+      const path5AxDone = new Path2D();
+      const path5AxFuture = new Path2D();
+      const pathFeedDone = new Path2D();
+      const pathFeedFuture = new Path2D();
+      const pathColl = new Path2D();
+      let activePath = null;
+      let activeColor = '#56d4dd';
+
       for (const seg of state.segments) {
         if (seg.type === 'G00' && !state.cam.showRapids) continue;
+        if (seg.pts.length < 2) continue;
+
         const isDone = seg.endTimeSec <= tNow;
         const isCurr = seg.startTimeSec <= tNow && tNow <= seg.endTimeSec;
-        const alpha = isDone || isCurr ? 0.92 : 0.20;
+        let targetPath;
 
-        if (seg.isCollision) ctx.strokeStyle = `rgba(248, 81, 73, ${alpha})`;
-        else if (seg.type === 'G00') ctx.strokeStyle = `rgba(255, 123, 114, ${alpha * 0.7})`;
-        else if (seg.is5Ax) ctx.strokeStyle = `rgba(86, 212, 221, ${alpha})`;
-        else ctx.strokeStyle = `rgba(126, 231, 135, ${alpha})`;
-
-        ctx.lineWidth = isCurr ? 2.4 : (seg.type === 'G00' ? 1.0 : 1.5);
-        ctx.setLineDash(seg.type === 'G00' ? [4, 4] : []);
-        ctx.beginPath();
-        for (let i = 0; i < seg.pts.length; i++) {
-          const p2 = project3D(xformPathPt(seg.pts[i]), cx, cy);
-          if (i === 0) ctx.moveTo(p2.sx, p2.sy);
-          else ctx.lineTo(p2.sx, p2.sy);
+        if (isCurr) {
+          activePath = new Path2D();
+          activeColor = seg.isCollision ? '#f85149' : (seg.type === 'G00' ? '#ff7b72' : (seg.is5Ax ? '#56d4dd' : '#7ee787'));
+          targetPath = activePath;
+        } else if (seg.isCollision) {
+          targetPath = pathColl;
+        } else if (seg.type === 'G00') {
+          targetPath = isDone ? pathRapidDone : pathRapidFuture;
+        } else if (seg.is5Ax) {
+          targetPath = isDone ? path5AxDone : path5AxFuture;
+        } else {
+          targetPath = isDone ? pathFeedDone : pathFeedFuture;
         }
-        ctx.stroke();
+
+        const p0 = project3D(xformPathPt(seg.pts[0]), cx, cy);
+        targetPath.moveTo(p0.sx, p0.sy);
+        for (let i = 1; i < seg.pts.length; i++) {
+          const p2 = project3D(xformPathPt(seg.pts[i]), cx, cy);
+          targetPath.lineTo(p2.sx, p2.sy);
+        }
       }
+
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(126, 231, 135, 0.20)'; ctx.stroke(pathFeedFuture);
+      ctx.strokeStyle = 'rgba(86, 212, 221, 0.20)'; ctx.stroke(path5AxFuture);
+      ctx.strokeStyle = 'rgba(126, 231, 135, 0.90)'; ctx.stroke(pathFeedDone);
+      ctx.strokeStyle = 'rgba(86, 212, 221, 0.90)'; ctx.stroke(path5AxDone);
+      ctx.strokeStyle = 'rgba(248, 81, 73, 0.92)'; ctx.stroke(pathColl);
+
+      if (state.cam.showRapids) {
+        ctx.lineWidth = 1.0;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255, 123, 114, 0.16)'; ctx.stroke(pathRapidFuture);
+        ctx.strokeStyle = 'rgba(255, 123, 114, 0.65)'; ctx.stroke(pathRapidDone);
+        ctx.setLineDash([]);
+      }
+
+      if (activePath) {
+        ctx.lineWidth = 2.4;
+        ctx.strokeStyle = activeColor;
+        ctx.stroke(activePath);
+      }
+    }
+
+    // 6. Batched Cutter Compensation Offset Trace
+    if (state.cam.showCutterComp && state.compPolylines.length > 0) {
+      const compPath = new Path2D();
+      for (const poly of state.compPolylines) {
+        if (poly.endTimeSec > tNow || poly.pts.length < 2) continue;
+        const p0 = project3D(xformPathPt(poly.pts[0]), cx, cy);
+        compPath.moveTo(p0.sx, p0.sy);
+        for (let i = 1; i < poly.pts.length; i++) {
+          const p2 = project3D(xformPathPt(poly.pts[i]), cx, cy);
+          compPath.lineTo(p2.sx, p2.sy);
+        }
+      }
+      ctx.strokeStyle = 'rgba(210, 153, 34, 0.85)';
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([3, 3]);
+      ctx.stroke(compPath);
       ctx.setLineDash([]);
     }
 
@@ -3313,8 +3592,20 @@ function drawBackplot() {
 
 function animationLoop(ts) {
   if (!state.sim.lastFrameTs) state.sim.lastFrameTs = ts;
-  const dt = Math.min(0.1, (ts - state.sim.lastFrameTs) / 1000);
+  const rawDt = Math.max(0.001, (ts - state.sim.lastFrameTs) / 1000);
+  const dt = Math.min(0.1, rawDt);
   state.sim.lastFrameTs = ts;
+
+  // Track rolling FPS & update HUD badge every 250ms
+  const instFps = Math.min(60, 1 / rawDt);
+  state.sim.fpsSamples.push(instFps);
+  if (state.sim.fpsSamples.length > 20) state.sim.fpsSamples.shift();
+  if (!state.sim.lastFpsUiTs || ts - state.sim.lastFpsUiTs > 250) {
+    state.sim.lastFpsUiTs = ts;
+    const avgFps = Math.round(state.sim.fpsSamples.reduce((a, b) => a + b, 0) / state.sim.fpsSamples.length);
+    const fpsEl = document.getElementById('hud-fps');
+    if (fpsEl) fpsEl.textContent = `${avgFps} FPS`;
+  }
 
   const playState = getActivePlaybackState();
   if (playState.seg && playState.seg.spindleDir !== 'M05') {
@@ -3330,7 +3621,7 @@ function animationLoop(ts) {
       document.getElementById('btn-sim-play').textContent = '▶ Play';
     }
     el.scrubber.value = Math.round((state.sim.currentTimeSec / state.stats.totalTimeSec) * 1000);
-    rebuildStockUpToTime(state.sim.currentTimeSec);
+    rebuildStockUpToTime(state.sim.currentTimeSec, false);
     drawBackplot();
   } else if (playState.seg && playState.seg.spindleDir !== 'M05') {
     drawBackplot();
@@ -3838,7 +4129,7 @@ function wireEvents() {
   document.getElementById('btn-reset-stock').onclick = () => {
     state.sim.currentTimeSec = 0;
     el.scrubber.value = 0;
-    rebuildStockUpToTime(0);
+    rebuildStockUpToTime(0, true);
     drawBackplot();
   };
 
