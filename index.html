@@ -1,0 +1,2774 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNC Edit Pro — Portable NC Editor, 3D Backplotter &amp; DNC Suite</title>
+<style>
+/* ==========================================================================
+   1. DESIGN TOKENS & THEME SYSTEM (Industrial CAD/CAM Ribbon Aesthetic)
+   ========================================================================== */
+:root {
+  --bg-app: #14171c;
+  --bg-ribbon: #1c2026;
+  --bg-ribbon-group: #232830;
+  --bg-panel: #181c22;
+  --bg-editor: #111317;
+  --bg-gutter: #16191f;
+  --bg-input: #0e1014;
+  --bg-hover: #2c333d;
+  --bg-active: #1f4e78;
+  --border-color: #2d333b;
+  --border-strong: #3e4652;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent-blue: #2f81f7;
+  --accent-blue-hover: #388bfd;
+  --accent-green: #2ea043;
+  --accent-orange: #d29922;
+  --accent-red: #f85149;
+  --accent-purple: #a371f7;
+  --accent-cyan: #39c5cf;
+
+  /* CNC Syntax Token Colors */
+  --tok-g: #58a6ff;
+  --tok-m: #d2a8ff;
+  --tok-x: #ff7b72;
+  --tok-y: #7ee787;
+  --tok-z: #79c0ff;
+  --tok-rot: #ffa657;
+  --tok-arc: #39c5cf;
+  --tok-feed: #e3b341;
+  --tok-n: #6e7681;
+  --tok-o: #f778ba;
+  --tok-comment: #5c7e52;
+  --tok-macro: #ff9bce;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Cascadia Code", "Fira Code", Consolas, "Courier New", monospace;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}
+
+[data-theme="light"] {
+  --bg-app: #eef1f5;
+  --bg-ribbon: #f8f9fa;
+  --bg-ribbon-group: #ffffff;
+  --bg-panel: #f3f5f8;
+  --bg-editor: #ffffff;
+  --bg-gutter: #f6f8fa;
+  --bg-input: #ffffff;
+  --bg-hover: #e2e6ec;
+  --bg-active: #d0e3ff;
+  --border-color: #d0d7de;
+  --border-strong: #afb8c1;
+  --text-primary: #1f2328;
+  --text-secondary: #57606a;
+  --text-muted: #8c959f;
+  --accent-blue: #0969da;
+  --accent-blue-hover: #0550ae;
+  --accent-green: #1a7f37;
+  --accent-orange: #9a6700;
+  --accent-red: #cf222e;
+  --accent-purple: #8250df;
+  --accent-cyan: #0598bc;
+
+  --tok-g: #0550ae;
+  --tok-m: #6639ba;
+  --tok-x: #cf222e;
+  --tok-y: #116329;
+  --tok-z: #0969da;
+  --tok-rot: #953800;
+  --tok-arc: #0598bc;
+  --tok-feed: #7d4e00;
+  --tok-n: #8c959f;
+  --tok-o: #bf3989;
+  --tok-comment: #2da44e;
+  --tok-macro: #a40177;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: var(--font-ui); font-size: 12px;
+  background: var(--bg-app); color: var(--text-primary);
+  user-select: none;
+}
+
+/* ==========================================================================
+   2. APP SHELL & RIBBON TOOLBAR
+   ========================================================================== */
+#app-shell {
+  display: flex; flex-direction: column;
+  width: 100%; height: 100%;
+}
+
+/* Top Title & Ribbon Tab Strip */
+#ribbon-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-app); border-bottom: 1px solid var(--border-color);
+  padding: 0 10px; height: 32px; flex-shrink: 0;
+}
+.brand-badge {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: 12px; letter-spacing: 0.4px;
+  color: var(--text-primary);
+}
+.brand-pill {
+  background: var(--accent-blue); color: #fff;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+  font-size: 10px; font-weight: 800;
+}
+.ribbon-tabs {
+  display: flex; align-items: flex-end; gap: 2px; height: 100%; margin-left: 16px;
+}
+.ribbon-tab {
+  padding: 6px 14px; border: 1px solid transparent; border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: transparent; color: var(--text-secondary);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.ribbon-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.ribbon-tab.active {
+  background: var(--bg-ribbon); color: var(--accent-blue);
+  border-color: var(--border-color);
+}
+.header-controls {
+  display: flex; align-items: center; gap: 8px;
+}
+select.compact-select, input.compact-input {
+  background: var(--bg-input); color: var(--text-primary);
+  border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+  padding: 3px 6px; font-size: 11px; font-family: var(--font-ui);
+}
+select.compact-select:focus, input.compact-input:focus {
+  outline: 1px solid var(--accent-blue); border-color: var(--accent-blue);
+}
+
+/* Ribbon Command Bar */
+#ribbon-body {
+  display: flex; align-items: stretch; gap: 6px;
+  background: var(--bg-ribbon); border-bottom: 1px solid var(--border-color);
+  padding: 6px 10px; height: 74px; flex-shrink: 0;
+  overflow-x: auto;
+}
+.ribbon-pane { display: none; align-items: stretch; gap: 6px; width: 100%; }
+.ribbon-pane.active { display: flex; }
+.ribbon-group {
+  display: flex; flex-direction: column; justify-content: space-between;
+  background: var(--bg-ribbon-group); border: 1px solid var(--border-color);
+  border-radius: var(--radius-md); padding: 4px 8px 2px 8px;
+  flex-shrink: 0;
+}
+.ribbon-group-items {
+  display: flex; align-items: center; gap: 4px; flex: 1;
+}
+.ribbon-group-title {
+  text-align: center; font-size: 10px; color: var(--text-muted);
+  border-top: 1px solid var(--border-color); padding-top: 1px; margin-top: 2px;
+}
+.r-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 4px 8px; min-width: 52px; height: 44px;
+  background: transparent; border: 1px solid transparent;
+  border-radius: var(--radius-sm); color: var(--text-primary);
+  cursor: pointer; font-size: 11px; white-space: nowrap;
+}
+.r-btn:hover { background: var(--bg-hover); border-color: var(--border-color); }
+.r-btn.active { background: var(--bg-active); border-color: var(--accent-blue); color: #fff; }
+.r-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.r-btn-col { display: flex; flex-direction: column; gap: 2px; }
+.r-btn-sm {
+  display: flex; align-items: center; gap: 5px;
+  padding: 2px 7px; height: 21px;
+  background: transparent; border: 1px solid transparent;
+  border-radius: var(--radius-sm); color: var(--text-primary);
+  cursor: pointer; font-size: 11px; white-space: nowrap;
+}
+.r-btn-sm:hover { background: var(--bg-hover); border-color: var(--border-color); }
+.r-btn-sm.active { background: var(--bg-active); border-color: var(--accent-blue); color: #fff; }
+.r-btn-sm svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+/* ==========================================================================
+   3. DOCUMENT TAB BAR
+   ========================================================================== */
+#doc-tabs-bar {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+  padding: 3px 8px 0 8px; height: 28px; flex-shrink: 0;
+  overflow-x: auto;
+}
+.doc-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; height: 24px;
+  background: var(--bg-ribbon); border: 1px solid var(--border-color); border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  color: var(--text-secondary); font-size: 11px; cursor: pointer;
+}
+.doc-tab.active {
+  background: var(--bg-editor); color: var(--text-primary); font-weight: 600;
+  border-top: 2px solid var(--accent-blue);
+}
+.doc-tab .close-tab {
+  font-size: 13px; line-height: 1; padding: 0 3px; border-radius: 3px; color: var(--text-muted);
+}
+.doc-tab .close-tab:hover { background: var(--accent-red); color: #fff; }
+.doc-tab-add {
+  padding: 2px 8px; background: transparent; border: none;
+  color: var(--text-secondary); font-size: 14px; font-weight: bold; cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.doc-tab-add:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* ==========================================================================
+   4. MAIN WORKSPACE (EDITOR + SIDE PANELS + BACKPLOT + COMPARE + DNC)
+   ========================================================================== */
+#workspace {
+  display: flex; flex: 1; min-height: 0; width: 100%; overflow: hidden;
+  position: relative;
+}
+
+/* Left Side Panel: NC-Assistant */
+#nc-assistant-panel {
+  width: 245px; flex-shrink: 0;
+  background: var(--bg-panel); border-right: 1px solid var(--border-color);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+#nc-assistant-panel.collapsed { display: none; }
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 10px; background: var(--bg-ribbon);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600; font-size: 11px; color: var(--text-primary);
+}
+.panel-body {
+  padding: 8px; overflow-y: auto; flex: 1;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.assist-badge {
+  background: var(--bg-ribbon-group); border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm); padding: 6px 8px;
+}
+.assist-badge .code-title { font-weight: 700; color: var(--accent-blue); font-size: 12px; }
+.assist-badge .code-desc { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
+.word-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.word-field {
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--bg-ribbon-group); border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm); padding: 4px 6px;
+}
+.word-field label {
+  font-size: 10px; font-weight: 700; color: var(--text-secondary);
+  display: flex; justify-content: space-between;
+}
+.word-field input {
+  width: 100%; background: var(--bg-input); color: var(--text-primary);
+  border: 1px solid var(--border-color); border-radius: 3px;
+  padding: 3px 5px; font-family: var(--font-mono); font-size: 12px;
+}
+.word-field input:focus { outline: 1px solid var(--accent-blue); border-color: var(--accent-blue); }
+
+/* Center Editor Container */
+#editor-pane {
+  flex: 1; min-width: 240px; display: flex; flex-direction: column;
+  background: var(--bg-editor); position: relative; overflow: hidden;
+}
+#editor-wrapper {
+  display: flex; flex: 1; position: relative; overflow: hidden;
+}
+#line-gutter {
+  width: 52px; flex-shrink: 0;
+  background: var(--bg-gutter); border-right: 1px solid var(--border-color);
+  color: var(--text-muted); font-family: var(--font-mono); font-size: 13px;
+  line-height: 20px; padding: 8px 6px 8px 0; text-align: right;
+  overflow: hidden; user-select: none;
+}
+.gutter-line { height: 20px; }
+.gutter-line.active-line {
+  color: var(--accent-blue); font-weight: 700;
+  background: rgba(47, 129, 247, 0.12);
+}
+#code-stage {
+  position: relative; flex: 1; overflow: hidden;
+}
+#syntax-backdrop, #gcode-textarea {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  margin: 0; padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 13px; line-height: 20px;
+  letter-spacing: 0px; tab-size: 4;
+  white-space: pre; overflow: auto;
+  border: none; outline: none; resize: none;
+}
+#syntax-backdrop {
+  pointer-events: none; z-index: 1;
+  color: var(--text-primary); background: var(--bg-editor);
+}
+#gcode-textarea {
+  z-index: 2; background: transparent;
+  color: transparent; caret-color: var(--text-primary);
+  user-select: text;
+}
+#gcode-textarea::selection { background: rgba(47, 129, 247, 0.35); }
+.active-line-highlight {
+  display: inline-block; width: 100%;
+  background: rgba(47, 129, 247, 0.10);
+}
+
+/* Syntax Token Classes */
+.tok-g { color: var(--tok-g); font-weight: 600; }
+.tok-m { color: var(--tok-m); font-weight: 600; }
+.tok-x { color: var(--tok-x); }
+.tok-y { color: var(--tok-y); }
+.tok-z { color: var(--tok-z); }
+.tok-rot { color: var(--tok-rot); }
+.tok-arc { color: var(--tok-arc); }
+.tok-feed { color: var(--tok-feed); }
+.tok-n { color: var(--tok-n); }
+.tok-o { color: var(--tok-o); font-weight: 700; }
+.tok-comment { color: var(--tok-comment); font-style: italic; }
+.tok-macro { color: var(--tok-macro); }
+
+/* ==========================================================================
+   5. RIGHT PANE: 3D BACKPLOTTER & SIMULATION VIEWPORT
+   ========================================================================== */
+#backplot-pane {
+  width: 48%; min-width: 300px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  background: #0d1015; border-left: 1px solid var(--border-color);
+  position: relative;
+}
+#backplot-pane.hidden { display: none; }
+#viewport-toolbar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;
+  padding: 5px 8px; background: var(--bg-ribbon);
+  border-bottom: 1px solid var(--border-color);
+}
+.vp-btn-group { display: flex; align-items: center; gap: 3px; }
+.vp-btn {
+  padding: 3px 7px; background: var(--bg-ribbon-group);
+  border: 1px solid var(--border-color); border-radius: 3px;
+  color: var(--text-primary); font-size: 11px; cursor: pointer;
+}
+.vp-btn:hover { background: var(--bg-hover); }
+.vp-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+#canvas-container {
+  position: relative; flex: 1; width: 100%; height: 100%; overflow: hidden;
+  cursor: grab;
+}
+#canvas-container:active { cursor: grabbing; }
+#backplot-canvas { display: block; width: 100%; height: 100%; }
+
+/* HUD Overlay on 3D Viewport */
+#hud-telemetry {
+  position: absolute; top: 10px; left: 10px;
+  background: rgba(16, 20, 26, 0.84); backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-md);
+  padding: 8px 10px; color: #e6edf3; font-family: var(--font-mono); font-size: 11px;
+  pointer-events: none; min-width: 195px;
+}
+.hud-row { display: flex; justify-content: space-between; gap: 12px; line-height: 1.5; }
+.hud-label { color: #8b949e; }
+.hud-val-x { color: #ff7b72; font-weight: 700; }
+.hud-val-y { color: #7ee787; font-weight: 700; }
+.hud-val-z { color: #79c0ff; font-weight: 700; }
+.hud-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+
+#hud-legend {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(16, 20, 26, 0.8); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm); padding: 6px 8px;
+  color: #c9d1d9; font-size: 10px; pointer-events: none;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.swatch-rapid { width: 16px; height: 0; border-top: 2px dashed #f85149; }
+.swatch-feed { width: 16px; height: 2px; background: #39c5cf; }
+.swatch-arc { width: 16px; height: 2px; background: #7ee787; }
+.swatch-active { width: 16px; height: 3px; background: #ffd33d; }
+
+/* Simulation Playback Control Bar */
+#sim-controls {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; background: var(--bg-ribbon);
+  border-top: 1px solid var(--border-color);
+}
+#sim-scrubber { flex: 1; accent-color: var(--accent-blue); cursor: pointer; }
+
+/* ==========================================================================
+   6. CNC-AWARE FILE COMPARE VIEW (OVERLAY MODE)
+   ========================================================================== */
+#compare-view {
+  display: none; flex-direction: column; width: 100%; height: 100%;
+  background: var(--bg-editor);
+}
+#compare-view.active { display: flex; }
+#compare-toolbar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  padding: 6px 12px; background: var(--bg-ribbon);
+  border-bottom: 1px solid var(--border-color);
+}
+.compare-panes {
+  display: flex; flex: 1; min-height: 0; overflow: hidden;
+}
+.compare-col {
+  flex: 1; display: flex; flex-direction: column; min-width: 0;
+  border-right: 1px solid var(--border-color);
+}
+.compare-col-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 10px; background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color); font-weight: 600;
+}
+.compare-scroll {
+  flex: 1; overflow: auto; font-family: var(--font-mono); font-size: 12px; line-height: 20px;
+}
+.diff-row {
+  display: flex; align-items: center; min-height: 20px; padding: 0 8px;
+  border-bottom: 1px solid rgba(128,128,128,0.08);
+}
+.diff-row.same { background: transparent; }
+.diff-row.added { background: rgba(46, 160, 67, 0.22); }
+.diff-row.removed { background: rgba(248, 81, 73, 0.22); }
+.diff-row.modified { background: rgba(210, 153, 34, 0.24); }
+.diff-row.focused { outline: 2px solid var(--accent-blue); outline-offset: -2px; }
+.diff-ln { width: 38px; color: var(--text-muted); user-select: none; flex-shrink: 0; }
+.diff-text { flex: 1; white-space: pre; overflow-x: auto; user-select: text; }
+.merge-btn {
+  padding: 0 5px; font-size: 10px; background: var(--bg-ribbon-group);
+  border: 1px solid var(--border-color); border-radius: 3px; color: var(--text-primary);
+  cursor: pointer; margin-left: 4px;
+}
+.merge-btn:hover { background: var(--accent-blue); color: #fff; }
+
+/* ==========================================================================
+   7. WEB SERIAL DNC DRAWER / PANEL
+   ========================================================================== */
+#dnc-panel {
+  width: 340px; flex-shrink: 0;
+  display: none; flex-direction: column;
+  background: var(--bg-panel); border-left: 1px solid var(--border-color);
+}
+#dnc-panel.active { display: flex; }
+.dnc-form {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  padding: 8px; border-bottom: 1px solid var(--border-color);
+}
+.dnc-field { display: flex; flex-direction: column; gap: 2px; }
+.dnc-field label { font-size: 10px; color: var(--text-secondary); font-weight: 600; }
+.dnc-actions {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+.btn-primary {
+  background: var(--accent-blue); color: #fff; border: none;
+  padding: 5px 10px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; font-size: 11px;
+}
+.btn-primary:hover { background: var(--accent-blue-hover); }
+.btn-success {
+  background: var(--accent-green); color: #fff; border: none;
+  padding: 5px 10px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; font-size: 11px;
+}
+.btn-danger {
+  background: var(--accent-red); color: #fff; border: none;
+  padding: 5px 10px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; font-size: 11px;
+}
+.btn-secondary {
+  background: var(--bg-ribbon-group); color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 5px 10px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; font-size: 11px;
+}
+.btn-secondary:hover { background: var(--bg-hover); }
+.progress-track {
+  width: 100%; height: 8px; background: var(--bg-input);
+  border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);
+}
+.progress-fill {
+  height: 100%; width: 0%; background: var(--accent-green); transition: width 0.15s;
+}
+#dnc-terminal {
+  flex: 1; background: #0a0c10; color: #58a6ff;
+  font-family: var(--font-mono); font-size: 11px; padding: 8px;
+  overflow-y: auto; white-space: pre-wrap; user-select: text;
+}
+
+/* ==========================================================================
+   8. MODALS & STATUS BAR
+   ========================================================================== */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.6); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal-card {
+  background: var(--bg-ribbon); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md); width: 380px; max-width: 94vw;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5); overflow: hidden;
+}
+.modal-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color); font-weight: 700;
+}
+.modal-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.modal-foot {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 10px 14px; background: var(--bg-panel);
+  border-top: 1px solid var(--border-color);
+}
+.form-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.form-row label { color: var(--text-secondary); font-weight: 600; }
+
+#status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 12px; height: 24px; flex-shrink: 0;
+  background: var(--accent-blue); color: #ffffff;
+  font-size: 11px; font-weight: 500;
+}
+.status-group { display: flex; align-items: center; gap: 14px; }
+
+/* Toast Notification */
+#toast-box {
+  position: fixed; bottom: 32px; right: 16px; z-index: 200;
+  background: var(--bg-ribbon-group); color: var(--text-primary);
+  border: 1px solid var(--accent-blue); border-left: 4px solid var(--accent-blue);
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  font-size: 12px; display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  #nc-assistant-panel { width: 190px; }
+  #backplot-pane { width: 45%; }
+}
+@media (max-width: 680px) {
+  #workspace { flex-direction: column; }
+  #nc-assistant-panel { display: none; }
+  #backplot-pane { width: 100%; height: 45%; border-left: none; border-top: 1px solid var(--border-color); }
+}
+</style>
+</head>
+<body>
+
+<div id="app-shell">
+  <!-- TOP HEADER & RIBBON TABS -->
+  <header id="ribbon-header">
+    <div style="display:flex; align-items:center; height:100%;">
+      <div class="brand-badge">
+        <span class="brand-pill">CNC</span>
+        <span>EDIT PRO</span>
+      </div>
+      <nav class="ribbon-tabs" id="ribbon-tabs">
+        <button class="ribbon-tab active" data-tab="tab-editor">Editor</button>
+        <button class="ribbon-tab" data-tab="tab-nc">NC Functions</button>
+        <button class="ribbon-tab" data-tab="tab-backplot">Backplot</button>
+        <button class="ribbon-tab" data-tab="tab-compare">File Compare</button>
+        <button class="ribbon-tab" data-tab="tab-dnc">Transmission (DNC)</button>
+      </nav>
+    </div>
+    <div class="header-controls">
+      <label style="color:var(--text-secondary); font-size:11px;">Machine:</label>
+      <select id="machine-profile-select" class="compact-select" title="Active Machine Configuration Profile"></select>
+      <button class="vp-btn" id="btn-open-profile-modal" title="Configure Machine Profile">⚙</button>
+      <button class="vp-btn" id="btn-toggle-theme" title="Toggle Dark/Light Industrial Theme">◐ Theme</button>
+    </div>
+  </header>
+
+  <!-- RIBBON COMMAND BAR -->
+  <section id="ribbon-body">
+    <!-- TAB 1: EDITOR -->
+    <div class="ribbon-pane active" id="tab-editor">
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn" id="btn-new-file">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <span>New</span>
+          </button>
+          <button class="r-btn" id="btn-open-file">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span>Open</span>
+          </button>
+          <button class="r-btn" id="btn-save-file">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span>Save NC</span>
+          </button>
+        </div>
+        <div class="ribbon-group-title">File I/O</div>
+      </div>
+
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <div class="r-btn-col">
+            <button class="r-btn-sm" id="btn-insert-spaces">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              <span>Insert Spaces</span>
+            </button>
+            <button class="r-btn-sm" id="btn-remove-spaces">
+              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>Remove Spaces</span>
+            </button>
+          </div>
+          <div class="r-btn-col">
+            <button class="r-btn-sm" id="btn-uppercase">
+              <svg viewBox="0 0 24 24"><path d="M4 20h16M6 16l6-12 6 12M8 12h8"/></svg>
+              <span>UPPERCASE</span>
+            </button>
+            <button class="r-btn-sm" id="btn-strip-comments">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Strip Comments</span>
+            </button>
+          </div>
+        </div>
+        <div class="ribbon-group-title">Formatting</div>
+      </div>
+
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn active" id="btn-toggle-assistant">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+            <span>NC-Assistant</span>
+          </button>
+          <button class="r-btn active" id="btn-toggle-backplot-main">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>3D Backplot</span>
+          </button>
+        </div>
+        <div class="ribbon-group-title">Workspace Panels</div>
+      </div>
+    </div>
+
+    <!-- TAB 2: NC FUNCTIONS -->
+    <div class="ribbon-pane" id="tab-nc">
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn" id="btn-open-renumber">
+            <svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/></svg>
+            <span>Renumber N</span>
+          </button>
+          <button class="r-btn" id="btn-remove-n">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            <span>Remove N</span>
+          </button>
+        </div>
+        <div class="ribbon-group-title">Block Numbers</div>
+      </div>
+
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn" id="btn-open-transform">
+            <svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+            <span>Shift / Scale</span>
+          </button>
+          <div class="r-btn-col">
+            <button class="r-btn-sm" id="btn-mirror-x">
+              <svg viewBox="0 0 24 24"><path d="M12 3v18M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>
+              <span>Mirror X</span>
+            </button>
+            <button class="r-btn-sm" id="btn-mirror-y">
+              <svg viewBox="0 0 24 24"><path d="M3 12h18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg>
+              <span>Mirror Y</span>
+            </button>
+          </div>
+          <div class="r-btn-col">
+            <button class="r-btn-sm" id="btn-to-metric">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12h6"/></svg>
+              <span>Inch → Metric (G21)</span>
+            </button>
+            <button class="r-btn-sm" id="btn-to-inch">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 9v6M9 12h6"/></svg>
+              <span>Metric → Inch (G20)</span>
+            </button>
+          </div>
+        </div>
+        <div class="ribbon-group-title">Math &amp; Coordinate Transforms</div>
+      </div>
+
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn" id="btn-insert-header">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span>Safe Start</span>
+          </button>
+          <button class="r-btn" id="btn-insert-drill-cycle">
+            <svg viewBox="0 0 24 24"><path d="M12 2v16M8 14l4 4 4-4M5 22h14"/></svg>
+            <span>G83 Peck Cycle</span>
+          </button>
+        </div>
+        <div class="ribbon-group-title">Macro &amp; Cycle Snippets</div>
+      </div>
+    </div>
+
+    <!-- TAB 3: BACKPLOT -->
+    <div class="ribbon-pane" id="tab-backplot">
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn" data-view="iso"><span>Isometric</span></button>
+          <button class="r-btn" data-view="top"><span>Top (XY)</span></button>
+          <button class="r-btn" data-view="front"><span>Front (XZ)</span></button>
+          <button class="r-btn" data-view="side"><span>Side (YZ)</span></button>
+          <button class="r-btn" id="btn-fit-view"><span>Fit View</span></button>
+        </div>
+        <div class="ribbon-group-title">Camera Views</div>
+      </div>
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn active" id="btn-toggle-rapids"><span>Show Rapids</span></button>
+          <button class="r-btn active" id="btn-toggle-stock"><span>Stock Box</span></button>
+          <button class="r-btn active" id="btn-toggle-nodes"><span>Endpoints</span></button>
+        </div>
+        <div class="ribbon-group-title">Display Filters</div>
+      </div>
+    </div>
+
+    <!-- TAB 4: FILE COMPARE -->
+    <div class="ribbon-pane" id="tab-compare">
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn active" id="btn-enter-compare"><span>Side-by-Side Diff</span></button>
+          <button class="r-btn" id="btn-exit-compare"><span>Exit Compare</span></button>
+        </div>
+        <div class="ribbon-group-title">Compare Mode</div>
+      </div>
+      <div class="ribbon-group">
+        <div class="ribbon-group-items" style="gap:10px; padding:0 6px;">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-n" checked> Ignore N-Numbers</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-ws" checked> Ignore Whitespace</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-zeros" checked> Ignore Trailing Zeros</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="cmp-ignore-comments"> Ignore Comments</label>
+        </div>
+        <div class="ribbon-group-title">CNC-Aware Normalization Rules</div>
+      </div>
+    </div>
+
+    <!-- TAB 5: TRANSMISSION (DNC) -->
+    <div class="ribbon-pane" id="tab-dnc">
+      <div class="ribbon-group">
+        <div class="ribbon-group-items">
+          <button class="r-btn" id="btn-toggle-dnc-pane"><span>Toggle DNC Panel</span></button>
+          <button class="r-btn" id="btn-dnc-quick-send"><span>Send Active NC</span></button>
+          <button class="r-btn" id="btn-dnc-quick-recv"><span>Receive New NC</span></button>
+        </div>
+        <div class="ribbon-group-title">RS-232 Web Serial DNC</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCUMENT TABS BAR -->
+  <div id="doc-tabs-bar">
+    <!-- Populated dynamically -->
+  </div>
+
+  <!-- MAIN WORKSPACE -->
+  <main id="workspace">
+    <!-- LEFT: NC-ASSISTANT INSPECTOR -->
+    <aside id="nc-assistant-panel">
+      <div class="panel-header">
+        <span>NC-ASSISTANT</span>
+        <span id="assist-line-badge" style="color:var(--accent-blue);">Line 1</span>
+      </div>
+      <div class="panel-body">
+        <div class="assist-badge">
+          <div class="code-title" id="assist-code-title">Ready</div>
+          <div class="code-desc" id="assist-code-desc">Place cursor on any G-code block to inspect and edit parameters live.</div>
+        </div>
+        <div class="word-grid" id="assist-word-grid"></div>
+        <div style="margin-top:auto; border-top:1px solid var(--border-color); padding-top:8px;">
+          <div style="font-size:10px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">ACTIVE MODAL STATE</div>
+          <div id="assist-modal-summary" style="font-family:var(--font-mono); font-size:11px; color:var(--text-primary); line-height:1.5;">
+            G90 G17 G21 G40 G80
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER: G-CODE SYNTAX EDITOR -->
+    <section id="editor-pane">
+      <div id="editor-wrapper">
+        <div id="line-gutter"></div>
+        <div id="code-stage">
+          <pre id="syntax-backdrop" aria-hidden="true"></pre>
+          <textarea id="gcode-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: INTERACTIVE 3D BACKPLOTTER -->
+    <section id="backplot-pane">
+      <div id="viewport-toolbar">
+        <div class="vp-btn-group">
+          <button class="vp-btn active" data-view="iso">ISO</button>
+          <button class="vp-btn" data-view="top">XY</button>
+          <button class="vp-btn" data-view="front">XZ</button>
+          <button class="vp-btn" data-view="side">YZ</button>
+          <button class="vp-btn" id="vp-btn-fit">Fit</button>
+        </div>
+        <div class="vp-btn-group">
+          <span style="font-size:10px; color:var(--text-secondary);">Drag: Orbit | Shift/Right-Drag: Pan | Wheel: Zoom</span>
+        </div>
+      </div>
+
+      <div id="canvas-container">
+        <canvas id="backplot-canvas"></canvas>
+
+        <!-- Telemetry HUD -->
+        <div id="hud-telemetry">
+          <div class="hud-row"><span class="hud-label">MODAL:</span><span id="hud-modal">G00 G90 G17</span></div>
+          <div class="hud-row"><span class="hud-label">TOOL:</span><span id="hud-tool">T01 (S0)</span></div>
+          <div class="hud-divider"></div>
+          <div class="hud-row"><span class="hud-label">X:</span><span class="hud-val-x" id="hud-x">0.000</span></div>
+          <div class="hud-row"><span class="hud-label">Y:</span><span class="hud-val-y" id="hud-y">0.000</span></div>
+          <div class="hud-row"><span class="hud-label">Z:</span><span class="hud-val-z" id="hud-z">0.000</span></div>
+          <div class="hud-divider"></div>
+          <div class="hud-row"><span class="hud-label">FEED:</span><span id="hud-feed">0.0</span></div>
+          <div class="hud-row"><span class="hud-label">CUT DIST:</span><span id="hud-cut-dist">0.0 mm</span></div>
+          <div class="hud-row"><span class="hud-label">CYCLE TIME:</span><span id="hud-cycle-time">00:00</span></div>
+        </div>
+
+        <!-- Legend HUD -->
+        <div id="hud-legend">
+          <div class="legend-item"><span class="swatch-rapid"></span><span>Rapid (G00)</span></div>
+          <div class="legend-item"><span class="swatch-feed"></span><span>Linear Feed (G01)</span></div>
+          <div class="legend-item"><span class="swatch-arc"></span><span>Arc (G02/G03)</span></div>
+          <div class="legend-item"><span class="swatch-active"></span><span>Selected Block</span></div>
+        </div>
+      </div>
+
+      <!-- Playback Scrubber Bar -->
+      <div id="sim-controls">
+        <button class="vp-btn" id="sim-play" title="Play / Pause Simulation">▶ Play</button>
+        <button class="vp-btn" id="sim-step-back" title="Step Previous Block">⏮</button>
+        <button class="vp-btn" id="sim-step-fwd" title="Step Next Block">⏭</button>
+        <input type="range" id="sim-scrubber" min="0" max="100" value="100">
+        <select id="sim-speed" class="compact-select" title="Playback Speed">
+          <option value="1">1x</option>
+          <option value="3" selected>3x</option>
+          <option value="10">10x</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- OVERLAY: CNC-AWARE FILE COMPARE -->
+    <section id="compare-view">
+      <div id="compare-toolbar">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <strong>CNC File Compare</strong>
+          <span style="color:var(--text-secondary);">Base:</span>
+          <select id="cmp-left-select" class="compact-select"></select>
+          <span style="color:var(--text-secondary);">vs Modified:</span>
+          <select id="cmp-right-select" class="compact-select"></select>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span id="cmp-stats" style="font-weight:600; color:var(--accent-orange); margin-right:6px;">0 differences</span>
+          <button class="vp-btn" id="cmp-prev-diff">▲ Prev Diff</button>
+          <button class="vp-btn" id="cmp-next-diff">▼ Next Diff</button>
+          <button class="btn-secondary" id="cmp-close-btn">✕ Close Compare</button>
+        </div>
+      </div>
+      <div class="compare-panes">
+        <div class="compare-col">
+          <div class="compare-col-header">
+            <span id="cmp-left-title">Left Program</span>
+            <span style="font-size:10px; color:var(--text-secondary);">Base Buffer</span>
+          </div>
+          <div class="compare-scroll" id="cmp-left-body"></div>
+        </div>
+        <div class="compare-col" style="border-right:none;">
+          <div class="compare-col-header">
+            <span id="cmp-right-title">Right Program</span>
+            <span style="font-size:10px; color:var(--text-secondary);">Comparison Buffer</span>
+          </div>
+          <div class="compare-scroll" id="cmp-right-body"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT DRAWER: WEB SERIAL DNC TRANSMISSION -->
+    <aside id="dnc-panel">
+      <div class="panel-header">
+        <span>DNC RS-232 COMMUNICATIONS</span>
+        <button class="vp-btn" id="btn-close-dnc">✕</button>
+      </div>
+      <div class="dnc-form">
+        <div class="dnc-field">
+          <label>Baud Rate</label>
+          <select id="dnc-baud" class="compact-select">
+            <option value="2400">2400</option>
+            <option value="4800">4800</option>
+            <option value="9600" selected>9600</option>
+            <option value="19200">19200</option>
+            <option value="38400">38400</option>
+            <option value="57600">57600</option>
+            <option value="115200">115200</option>
+          </select>
+        </div>
+        <div class="dnc-field">
+          <label>Data Bits</label>
+          <select id="dnc-databits" class="compact-select">
+            <option value="7">7 Bits (Fanuc)</option>
+            <option value="8" selected>8 Bits (ISO/Haas)</option>
+          </select>
+        </div>
+        <div class="dnc-field">
+          <label>Parity</label>
+          <select id="dnc-parity" class="compact-select">
+            <option value="none" selected>None</option>
+            <option value="even">Even</option>
+            <option value="odd">Odd</option>
+          </select>
+        </div>
+        <div class="dnc-field">
+          <label>Stop Bits</label>
+          <select id="dnc-stopbits" class="compact-select">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+          </select>
+        </div>
+        <div class="dnc-field">
+          <label>Flow Control</label>
+          <select id="dnc-flow" class="compact-select">
+            <option value="none">None</option>
+            <option value="hardware" selected>RTS / CTS</option>
+            <option value="xonxoff">XON / XOFF</option>
+          </select>
+        </div>
+        <div class="dnc-field">
+          <label>Line Delay (ms)</label>
+          <input type="number" id="dnc-delay" class="compact-input" value="15" min="0" max="2000">
+        </div>
+      </div>
+
+      <div class="dnc-actions">
+        <button class="btn-primary" id="btn-dnc-connect">🔌 Connect COM Port</button>
+        <button class="btn-success" id="btn-dnc-send">⬆ Send Program</button>
+        <button class="btn-secondary" id="btn-dnc-receive">⬇ Receive NC</button>
+        <button class="btn-danger" id="btn-dnc-abort">■ Abort</button>
+      </div>
+
+      <div style="padding:0 8px 8px 8px; border-bottom:1px solid var(--border-color);">
+        <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-secondary); margin-bottom:4px;">
+          <span id="dnc-status-text">Port: Disconnected (Simulator Ready)</span>
+          <span id="dnc-pct-text">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="dnc-progress"></div></div>
+      </div>
+
+      <div class="panel-header" style="border-top:none;">
+        <span>TX / RX TERMINAL MONITOR</span>
+        <button class="vp-btn" id="btn-dnc-clear-log">Clear</button>
+      </div>
+      <div id="dnc-terminal"></div>
+    </aside>
+  </main>
+
+  <!-- STATUS BAR -->
+  <footer id="status-bar">
+    <div class="status-group">
+      <span id="st-cursor">Ln 1, Col 1</span>
+      <span id="st-lines">Lines: 0</span>
+      <span id="st-extents">Extents: X[0..0] Y[0..0] Z[0..0]</span>
+    </div>
+    <div class="status-group">
+      <span id="st-machine">Profile: Haas VF-2 (3-Axis)</span>
+      <span id="st-units">Units: Metric (G21)</span>
+    </div>
+  </footer>
+</div>
+
+<!-- HIDDEN FILE INPUT FOR LOCAL FILE LOADING -->
+<input type="file" id="hidden-file-input" accept=".nc,.cnc,.tap,.mpf,.spf,.eia,.min,.prg,.txt" style="display:none;">
+
+<!-- MODAL: RENUMBER BLOCKS -->
+<div class="modal-backdrop" id="modal-renumber">
+  <div class="modal-card">
+    <div class="modal-head"><span>Renumber NC Blocks (N-Codes)</span><button class="vp-btn modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Start Number:</label><input type="number" id="renum-start" class="compact-input" value="10" min="1"></div>
+      <div class="form-row"><label>Increment:</label><input type="number" id="renum-inc" class="compact-input" value="10" min="1"></div>
+      <div class="form-row"><label>Skip Comments &amp; Blank Lines:</label><input type="checkbox" id="renum-skip-comments" checked></div>
+      <div class="form-row"><label>Skip % and O-Program Headers:</label><input type="checkbox" id="renum-skip-headers" checked></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary modal-close">Cancel</button>
+      <button class="btn-primary" id="btn-apply-renumber">Apply Renumber</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: COORDINATE SHIFT & SCALE -->
+<div class="modal-backdrop" id="modal-transform">
+  <div class="modal-card">
+    <div class="modal-head"><span>Coordinate Shift &amp; Scale Transform</span><button class="vp-btn modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Shift X (dX):</label><input type="number" id="tr-dx" class="compact-input" value="0" step="any"></div>
+      <div class="form-row"><label>Shift Y (dY):</label><input type="number" id="tr-dy" class="compact-input" value="0" step="any"></div>
+      <div class="form-row"><label>Shift Z (dZ):</label><input type="number" id="tr-dz" class="compact-input" value="0" step="any"></div>
+      <div class="form-row"><label>Scale Factor (1.0 = 100%):</label><input type="number" id="tr-scale" class="compact-input" value="1.0" step="0.01"></div>
+      <div class="form-row"><label>Decimal Places:</label><input type="number" id="tr-decimals" class="compact-input" value="3" min="1" max="6"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary modal-close">Cancel</button>
+      <button class="btn-primary" id="btn-apply-transform">Apply Transform</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MACHINE PROFILE SETTINGS -->
+<div class="modal-backdrop" id="modal-profile">
+  <div class="modal-card">
+    <div class="modal-head"><span>Machine Configuration Profile</span><button class="vp-btn modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Profile Name:</label><input type="text" id="prof-name" class="compact-input" value="Custom CNC Mill"></div>
+      <div class="form-row"><label>Rapid Traverse Rate (mm/min):</label><input type="number" id="prof-rapid" class="compact-input" value="15000"></div>
+      <div class="form-row"><label>Default Decimal Precision:</label><input type="number" id="prof-decimals" class="compact-input" value="3" min="1" max="5"></div>
+      <div class="form-row"><label>Arc Center Mode:</label>
+        <select id="prof-arc-mode" class="compact-select">
+          <option value="incremental" selected>Incremental I/J/K (Fanuc/Haas)</option>
+          <option value="absolute">Absolute I/J/K</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" id="btn-export-profiles">Export JSON</button>
+      <button class="btn-secondary modal-close">Close</button>
+      <button class="btn-primary" id="btn-save-profile">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast-box"></div>
+
+<script>
+/* ==========================================================================
+   1. SAMPLE G-CODE PROGRAMS & DEFAULT MACHINE PROFILES
+   ========================================================================== */
+const SAMPLE_PROGRAMS = [
+  {
+    id: 'doc-1',
+    name: 'O1001_POCKET_BRACKET.nc',
+    content: `%
+O1001 (AEROSPACE MOUNTING BRACKET - 3-AXIS MILL)
+(MATERIAL: 6061-T6 ALUMINUM | WORK OFFSET: G54)
+N10 G90 G17 G21 G40 G80
+N20 T01 M06 (12MM 3-FLUTE CARBIDE ENDMILL)
+N30 S12000 M03
+N40 G00 G54 X-45.000 Y-30.000
+N50 G43 H01 Z25.000 M08
+N60 G00 Z2.000
+N70 G01 Z-4.000 F450.0
+(OUTER CONTOUR PROFILE WITH CORNER ARCS)
+N80 G01 X35.000 F1800.0
+N90 G03 X45.000 Y-20.000 I0.000 J10.000
+N100 G01 Y20.000
+N110 G03 X35.000 Y30.000 I-10.000 J0.000
+N120 G01 X-35.000
+N130 G03 X-45.000 Y20.000 I0.000 J-10.000
+N140 G01 Y-20.000
+N150 G03 X-35.000 Y-30.000 I10.000 J0.000
+(INNER ISLAND POCKET PASS)
+N160 G00 Z5.000
+N170 G00 X-20.000 Y-12.000
+N180 G01 Z-6.500 F400.0
+N190 G01 X20.000 F1500.0
+N200 G01 Y12.000
+N210 G01 X-20.000
+N220 G01 Y-12.000
+N230 G02 X20.000 Y12.000 R28.000
+N240 G00 Z25.000 M09
+(CANNED PECK DRILLING CYCLE - 4X M6 MOUNTING HOLES)
+N250 T02 M06 (5.0MM CARBIDE DRILL)
+N260 S6500 M03
+N270 G00 X-32.000 Y-18.000
+N280 G43 H02 Z15.000 M08
+N290 G83 Z-14.000 R2.000 Q3.500 F320.0
+N300 X32.000 Y-18.000
+N310 X32.000 Y18.000
+N320 X-32.000 Y18.000
+N330 G80 G00 Z50.000 M09
+N340 M05
+N350 G91 G28 Z0.000
+N360 G90
+N370 M30
+%`
+  },
+  {
+    id: 'doc-2',
+    name: 'O1001_POCKET_BRACKET_REV_B.nc',
+    content: `%
+O1001 (AEROSPACE MOUNTING BRACKET - REV B OPTIMIZED)
+(MATERIAL: 6061-T6 ALUMINUM | WORK OFFSET: G54)
+G90 G17 G21 G40 G80
+T01 M06 (12MM 3-FLUTE CARBIDE ENDMILL)
+S14000 M03
+G00 G54 X-45. Y-30.
+G43 H01 Z25. M08
+G00 Z2.
+G01 Z-4. F550.
+G01 X35. F2200.
+G03 X45. Y-20. I0. J10.
+G01 Y20.
+G03 X35. Y30. I-10. J0.
+G01 X-35.
+G03 X-45. Y20. I0. J-10.
+G01 Y-20.
+G03 X-35. Y-30. I10. J0.
+G00 Z5.
+G00 X-20. Y-12.
+G01 Z-7.0 F450.
+G01 X20. F1800.
+G01 Y12.
+G01 X-20.
+G01 Y-12.
+G02 X20. Y12. R28.
+G00 Z25. M09
+T02 M06 (5.0MM CARBIDE DRILL)
+S7000 M03
+G00 X-32. Y-18.
+G43 H02 Z15. M08
+G83 Z-15.5 R2. Q4.0 F380.
+X32. Y-18.
+X32. Y18.
+X-32. Y18.
+G80 G00 Z50. M09
+M05
+G91 G28 Z0.
+G90
+M30
+%`
+  },
+  {
+    id: 'doc-3',
+    name: 'O2050_HELICAL_BORE.nc',
+    content: `%
+O2050 (3D HELICAL INTERPOLATION BORE DEMO)
+G90 G17 G21 G40 G80
+T03 M06 (10MM FLAT ENDMILL)
+S10000 M03
+G00 X0.000 Y0.000 Z20.000
+G00 Z2.000
+G01 X15.000 Y0.000 F1200.0
+G03 X15.000 Y0.000 Z-3.000 I-15.000 J0.000 F900.0
+G03 X15.000 Y0.000 Z-6.000 I-15.000 J0.000
+G03 X15.000 Y0.000 Z-9.000 I-15.000 J0.000
+G03 X15.000 Y0.000 Z-12.000 I-15.000 J0.000
+G03 X15.000 Y0.000 Z-12.000 I-15.000 J0.000
+G01 X0.000 Y0.000 F1500.0
+G00 Z25.000
+M30
+%`
+  }
+];
+
+const DEFAULT_PROFILES = [
+  { id: 'haas-vf2', name: 'Haas VF-2 (3-Axis)', rapidRate: 25400, decimals: 3, arcMode: 'incremental', baud: '115200', databits: '8', parity: 'none', stopbits: '1', flow: 'hardware' },
+  { id: 'fanuc-0i', name: 'Fanuc 0i-MF (7E2)', rapidRate: 18000, decimals: 3, arcMode: 'incremental', baud: '9600', databits: '7', parity: 'even', stopbits: '2', flow: 'xonxoff' },
+  { id: 'generic-iso', name: 'Generic ISO Mill', rapidRate: 15000, decimals: 3, arcMode: 'incremental', baud: '9600', databits: '8', parity: 'none', stopbits: '1', flow: 'none' }
+];
+
+const GCODE_DICTIONARY = {
+  'G00': 'Rapid Positioning (Non-cutting traverse)',
+  'G01': 'Linear Interpolation (Controlled feed move)',
+  'G02': 'Circular / Helical Interpolation (Clockwise CW)',
+  'G03': 'Circular / Helical Interpolation (Counter-Clockwise CCW)',
+  'G04': 'Dwell / Pause (P = milliseconds/seconds)',
+  'G17': 'XY Plane Selection',
+  'G18': 'ZX Plane Selection',
+  'G19': 'YZ Plane Selection',
+  'G20': 'Programming in Inches',
+  'G21': 'Programming in Millimeters (Metric)',
+  'G28': 'Return to Machine Reference Point (Home)',
+  'G40': 'Cutter Radius Compensation Cancel',
+  'G41': 'Cutter Radius Compensation Left',
+  'G42': 'Cutter Radius Compensation Right',
+  'G43': 'Tool Length Offset + Compensation',
+  'G54': 'Work Coordinate System 1',
+  'G80': 'Canned Cycle Cancel',
+  'G81': 'Standard Drilling Canned Cycle',
+  'G82': 'Spot Drilling / Counterbore Cycle with Dwell',
+  'G83': 'Deep Hole Peck Drilling Cycle',
+  'G90': 'Absolute Coordinate Programming',
+  'G91': 'Incremental Coordinate Programming',
+  'M03': 'Spindle On (Clockwise)',
+  'M04': 'Spindle On (Counter-Clockwise)',
+  'M05': 'Spindle Stop',
+  'M06': 'Automatic Tool Change',
+  'M08': 'Flood Coolant On',
+  'M09': 'Coolant Off',
+  'M30': 'Program End and Rewind'
+};
+
+/* ==========================================================================
+   2. APPLICATION STATE
+   ========================================================================== */
+const state = {
+  docs: JSON.parse(JSON.stringify(SAMPLE_PROGRAMS)),
+  activeDocId: 'doc-1',
+  activeLine: 0,
+  profiles: [],
+  activeProfileId: 'haas-vf2',
+
+  // Parsed Toolpath Segments for Active Doc
+  segments: [],
+  extents: { minX: -50, maxX: 50, minY: -50, maxY: 50, minZ: -20, maxZ: 25 },
+  stats: { cutDist: 0, rapidDist: 0, cycleSeconds: 0 },
+
+  // Backplot Camera & Simulation State
+  cam: {
+    rotX: -0.65,
+    rotZ: 0.65,
+    zoom: 3.4,
+    panX: 0,
+    panY: 0,
+    showRapids: true,
+    showStock: true,
+    showNodes: true
+  },
+  sim: {
+    playing: false,
+    progressRatio: 1.0, // 0.0 to 1.0
+    lastFrameTime: 0
+  },
+
+  // File Compare State
+  compare: {
+    active: false,
+    diffs: [],
+    diffIndices: [],
+    focusedDiffCursor: -1
+  },
+
+  // Web Serial DNC State
+  dnc: {
+    port: null,
+    writer: null,
+    reader: null,
+    sending: false,
+    abortRequested: false
+  }
+};
+
+/* ==========================================================================
+   3. DOM ELEMENT CACHE & INITIALIZATION
+   ========================================================================== */
+const el = {
+  textarea: document.getElementById('gcode-textarea'),
+  backdrop: document.getElementById('syntax-backdrop'),
+  gutter: document.getElementById('line-gutter'),
+  docTabsBar: document.getElementById('doc-tabs-bar'),
+  canvas: document.getElementById('backplot-canvas'),
+  canvasContainer: document.getElementById('canvas-container'),
+  scrubber: document.getElementById('sim-scrubber'),
+  simPlayBtn: document.getElementById('sim-play'),
+  profileSelect: document.getElementById('machine-profile-select')
+};
+
+function showToast(msg) {
+  const box = document.getElementById('toast-box');
+  box.textContent = msg;
+  box.style.display = 'block';
+  clearTimeout(box._timer);
+  box._timer = setTimeout(() => { box.style.display = 'none'; }, 2800);
+}
+
+function getActiveDoc() {
+  return state.docs.find(d => d.id === state.activeDocId) || state.docs[0];
+}
+
+function getActiveProfile() {
+  return state.profiles.find(p => p.id === state.activeProfileId) || state.profiles[0];
+}
+
+/* ==========================================================================
+   4. PERSISTENCE (MACHINE PROFILES IN LOCALSTORAGE)
+   ========================================================================== */
+function loadProfiles() {
+  try {
+    const saved = localStorage.getItem('cnc_edit_profiles_v1');
+    state.profiles = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PROFILES));
+  } catch (e) {
+    state.profiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES));
+  }
+  renderProfileSelect();
+}
+
+function saveProfilesToStorage() {
+  try {
+    localStorage.setItem('cnc_edit_profiles_v1', JSON.stringify(state.profiles));
+  } catch (e) {
+    console.warn('localStorage unavailable:', e);
+  }
+}
+
+function renderProfileSelect() {
+  el.profileSelect.innerHTML = '';
+  state.profiles.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if (p.id === state.activeProfileId) opt.selected = true;
+    el.profileSelect.appendChild(opt);
+  });
+  const prof = getActiveProfile();
+  if (prof) {
+    document.getElementById('st-machine').textContent = `Profile: ${prof.name}`;
+    document.getElementById('dnc-baud').value = prof.baud || '9600';
+    document.getElementById('dnc-databits').value = prof.databits || '8';
+    document.getElementById('dnc-parity').value = prof.parity || 'none';
+    document.getElementById('dnc-stopbits').value = prof.stopbits || '1';
+    document.getElementById('dnc-flow').value = prof.flow || 'none';
+  }
+}
+
+/* ==========================================================================
+   5. MULTI-TAB DOCUMENT MANAGEMENT
+   ========================================================================== */
+function renderDocTabs() {
+  el.docTabsBar.innerHTML = '';
+  state.docs.forEach(doc => {
+    const tab = document.createElement('div');
+    tab.className = 'doc-tab' + (doc.id === state.activeDocId ? ' active' : '');
+    tab.innerHTML = `<span>${escapeHtml(doc.name)}</span>`;
+    if (state.docs.length > 1) {
+      const closeBtn = document.createElement('span');
+      closeBtn.className = 'close-tab';
+      closeBtn.textContent = '×';
+      closeBtn.title = 'Close Tab';
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        closeDoc(doc.id);
+      };
+      tab.appendChild(closeBtn);
+    }
+    tab.onclick = () => switchDoc(doc.id);
+    el.docTabsBar.appendChild(tab);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'doc-tab-add';
+  addBtn.textContent = '+';
+  addBtn.title = 'New NC Program Tab';
+  addBtn.onclick = createNewDoc;
+  el.docTabsBar.appendChild(addBtn);
+}
+
+function switchDoc(docId) {
+  state.activeDocId = docId;
+  const doc = getActiveDoc();
+  el.textarea.value = doc.content;
+  state.activeLine = 0;
+  renderDocTabs();
+  onEditorContentChanged(true);
+}
+
+function createNewDoc() {
+  const num = state.docs.length + 1;
+  const id = 'doc-' + Date.now();
+  const progNum = 1000 + num;
+  state.docs.push({
+    id,
+    name: `O${progNum}_NEW_PROGRAM.nc`,
+    content: `%\nO${progNum} (NEW CNC PROGRAM)\nG90 G17 G21 G40 G80\nT01 M06\nS8000 M03\nG00 X0.000 Y0.000 Z25.000\n\nM30\n%`
+  });
+  switchDoc(id);
+}
+
+function closeDoc(docId) {
+  if (state.docs.length <= 1) return;
+  const idx = state.docs.findIndex(d => d.id === docId);
+  state.docs.splice(idx, 1);
+  if (state.activeDocId === docId) {
+    state.activeDocId = state.docs[Math.max(0, idx - 1)].id;
+  }
+  switchDoc(state.activeDocId);
+}
+
+/* ==========================================================================
+   6. SYNTAX HIGHLIGHTING & EDITOR SYNC
+   ========================================================================== */
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function tokenizeLine(line) {
+  // Split out parenthetical or semicolon comments first
+  let codePart = line;
+  let commentPart = '';
+  const parenIdx = line.indexOf('(');
+  const semiIdx = line.indexOf(';');
+  let splitIdx = -1;
+  if (parenIdx !== -1 && semiIdx !== -1) splitIdx = Math.min(parenIdx, semiIdx);
+  else if (parenIdx !== -1) splitIdx = parenIdx;
+  else if (semiIdx !== -1) splitIdx = semiIdx;
+
+  if (splitIdx !== -1) {
+    codePart = line.slice(0, splitIdx);
+    commentPart = line.slice(splitIdx);
+  }
+
+  // Highlight NC words in codePart
+  const highlightedCode = escapeHtml(codePart).replace(
+    /([A-Za-z#])([+-]?\d*\.?\d+)/g,
+    (match, letter, num) => {
+      const up = letter.toUpperCase();
+      let cls = '';
+      if (up === 'G') cls = 'tok-g';
+      else if (up === 'M') cls = 'tok-m';
+      else if (up === 'X') cls = 'tok-x';
+      else if (up === 'Y') cls = 'tok-y';
+      else if (up === 'Z') cls = 'tok-z';
+      else if (up === 'A' || up === 'B' || up === 'C') cls = 'tok-rot';
+      else if (up === 'I' || up === 'J' || up === 'K' || up === 'R') cls = 'tok-arc';
+      else if (up === 'F' || up === 'S' || up === 'T' || up === 'H' || up === 'D' || up === 'Q' || up === 'P') cls = 'tok-feed';
+      else if (up === 'N') cls = 'tok-n';
+      else if (up === 'O') cls = 'tok-o';
+      else if (up === '#') cls = 'tok-macro';
+      return cls ? `<span class="${cls}">${letter}${num}</span>` : match;
+    }
+  );
+
+  const highlightedComment = commentPart
+    ? `<span class="tok-comment">${escapeHtml(commentPart)}</span>`
+    : '';
+
+  return highlightedCode + highlightedComment;
+}
+
+function renderSyntaxAndGutter() {
+  const text = el.textarea.value;
+  const lines = text.split('\n');
+  let htmlLines = [];
+  let gutterHtml = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const isAct = (i === state.activeLine);
+    const tok = tokenizeLine(lines[i]) || ' ';
+    htmlLines.push(isAct ? `<span class="active-line-highlight">${tok}</span>` : tok);
+    gutterHtml.push(`<div class="gutter-line${isAct ? ' active-line' : ''}">${i + 1}</div>`);
+  }
+
+  el.backdrop.innerHTML = htmlLines.join('\n') + '\n';
+  el.gutter.innerHTML = gutterHtml.join('');
+  document.getElementById('st-lines').textContent = `Lines: ${lines.length}`;
+}
+
+function syncScroll() {
+  el.backdrop.scrollTop = el.textarea.scrollTop;
+  el.backdrop.scrollLeft = el.textarea.scrollLeft;
+  el.gutter.scrollTop = el.textarea.scrollTop;
+}
+
+function updateCursorPosition() {
+  const pos = el.textarea.selectionStart;
+  const textBefore = el.textarea.value.slice(0, pos);
+  const linesBefore = textBefore.split('\n');
+  const lineIdx = linesBefore.length - 1;
+  const colIdx = linesBefore[lineIdx].length + 1;
+
+  document.getElementById('st-cursor').textContent = `Ln ${lineIdx + 1}, Col ${colIdx}`;
+
+  if (state.activeLine !== lineIdx) {
+    state.activeLine = lineIdx;
+    renderSyntaxAndGutter();
+    updateNCAssistant();
+    drawBackplot();
+  }
+}
+
+/* ==========================================================================
+   7. NC-ASSISTANT (LIVE PARAMETER INSPECTOR & EDITOR)
+   ========================================================================== */
+function updateNCAssistant() {
+  const lines = el.textarea.value.split('\n');
+  const rawLine = lines[state.activeLine] || '';
+  document.getElementById('assist-line-badge').textContent = `Line ${state.activeLine + 1}`;
+
+  // Strip comments for word extraction
+  const codeOnly = rawLine.replace(/\(.*?\)/g, '').split(';')[0].trim();
+  const wordRegex = /([A-Za-z])([+-]?\d*\.?\d+)/g;
+  const words = [];
+  let m;
+  while ((m = wordRegex.exec(codeOnly)) !== null) {
+    words.push({ letter: m[1].toUpperCase(), value: m[2], index: m.index, raw: m[0] });
+  }
+
+  // Find primary G or M description
+  const primary = words.find(w => w.letter === 'G' || w.letter === 'M');
+  const titleEl = document.getElementById('assist-code-title');
+  const descEl = document.getElementById('assist-code-desc');
+  if (primary) {
+    const codeKey = primary.letter + primary.value.padStart(2, '0');
+    titleEl.textContent = `${primary.letter}${primary.value}`;
+    descEl.textContent = GCODE_DICTIONARY[codeKey] || GCODE_DICTIONARY[primary.letter + primary.value] || 'NC Word Parameter Block';
+  } else if (rawLine.trim().startsWith('(') || rawLine.trim().startsWith(';')) {
+    titleEl.textContent = 'Comment Block';
+    descEl.textContent = 'Operator note / setup documentation (ignored by CNC motion controller).';
+  } else {
+    titleEl.textContent = words.length ? 'Modal Coordinate Block' : 'Empty / Header Line';
+    descEl.textContent = words.length ? 'Inherits active modal G-code from preceding block.' : 'No executable NC words on this line.';
+  }
+
+  // Render editable word fields
+  const grid = document.getElementById('assist-word-grid');
+  grid.innerHTML = '';
+  const labels = {
+    N: 'Block #', G: 'Prep Code', M: 'Misc Func',
+    X: 'X Axis', Y: 'Y Axis', Z: 'Z Axis',
+    A: 'A Rotary', B: 'B Rotary', C: 'C Rotary',
+    I: 'Arc Center I', J: 'Arc Center J', K: 'Arc Center K', R: 'Arc / Retract R',
+    F: 'Feed Rate', S: 'Spindle RPM', T: 'Tool #', H: 'Offset H', Q: 'Peck Q'
+  };
+
+  words.forEach((w, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'word-field';
+    cell.innerHTML = `<label><span>${w.letter}</span><span>${labels[w.letter] || 'Word'}</span></label>`;
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = w.value;
+    inp.onchange = () => {
+      const newVal = inp.value.trim();
+      if (!newVal || isNaN(Number(newVal))) return;
+      applyWordEditToLine(state.activeLine, idx, w.letter, newVal);
+    };
+    cell.appendChild(inp);
+    grid.appendChild(cell);
+  });
+
+  // Update active modal readout up to activeLine
+  const segAtLine = state.segments.find(s => s.line >= state.activeLine) || state.segments[state.segments.length - 1];
+  if (segAtLine) {
+    document.getElementById('assist-modal-summary').textContent = segAtLine.modalStr;
+  }
+}
+
+function applyWordEditToLine(lineIdx, wordOccurrenceIdx, letter, newValue) {
+  const lines = el.textarea.value.split('\n');
+  let line = lines[lineIdx];
+  let count = 0;
+  lines[lineIdx] = line.replace(/([A-Za-z])([+-]?\d*\.?\d+)/g, (match, l, v) => {
+    if (count++ === wordOccurrenceIdx) {
+      return `${l}${newValue}`;
+    }
+    return match;
+  });
+  el.textarea.value = lines.join('\n');
+  onEditorContentChanged(false);
+  updateNCAssistant();
+}
+
+/* ==========================================================================
+   8. NC FUNCTIONS & MATH TRANSFORMS
+   ========================================================================== */
+function updateEditorText(newText, toastMsg) {
+  el.textarea.value = newText;
+  onEditorContentChanged(true);
+  if (toastMsg) showToast(toastMsg);
+}
+
+function applyRenumber() {
+  const start = parseInt(document.getElementById('renum-start').value, 10) || 10;
+  const inc = parseInt(document.getElementById('renum-inc').value, 10) || 10;
+  const skipComments = document.getElementById('renum-skip-comments').checked;
+  const skipHeaders = document.getElementById('renum-skip-headers').checked;
+
+  let n = start;
+  const lines = el.textarea.value.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return line;
+    if (skipHeaders && (trimmed === '%' || /^O\d+/i.test(trimmed))) return line;
+    if (skipComments && (trimmed.startsWith('(') || trimmed.startsWith(';'))) return line;
+
+    const stripped = line.replace(/^\s*N\d+\s*/i, '');
+    const out = `N${n} ${stripped}`;
+    n += inc;
+    return out;
+  });
+
+  closeAllModals();
+  updateEditorText(lines.join('\n'), `Renumbered blocks starting at N${start} (step ${inc})`);
+}
+
+function removeNNumbers() {
+  const lines = el.textarea.value.split('\n').map(l => l.replace(/^\s*N\d+\s*/i, ''));
+  updateEditorText(lines.join('\n'), 'Removed all N block numbers');
+}
+
+function applyCoordinateTransform() {
+  const dx = parseFloat(document.getElementById('tr-dx').value) || 0;
+  const dy = parseFloat(document.getElementById('tr-dy').value) || 0;
+  const dz = parseFloat(document.getElementById('tr-dz').value) || 0;
+  const scale = parseFloat(document.getElementById('tr-scale').value) || 1.0;
+  const dec = parseInt(document.getElementById('tr-decimals').value, 10) || 3;
+
+  const lines = el.textarea.value.split('\n').map(line => {
+    let comment = '';
+    let code = line;
+    const cIdx = line.indexOf('(');
+    if (cIdx !== -1) { code = line.slice(0, cIdx); comment = line.slice(cIdx); }
+
+    code = code.replace(/([XYZIJKR])([+-]?\d*\.?\d+)/gi, (m, axis, valStr) => {
+      const up = axis.toUpperCase();
+      let v = parseFloat(valStr) * scale;
+      if (up === 'X') v += dx;
+      else if (up === 'Y') v += dy;
+      else if (up === 'Z') v += dz;
+      return `${axis}${v.toFixed(dec)}`;
+    });
+    return code + comment;
+  });
+
+  closeAllModals();
+  updateEditorText(lines.join('\n'), `Applied Transform (dX:${dx}, dY:${dy}, dZ:${dz}, Scale:${scale})`);
+}
+
+function mirrorAxis(targetAxis) {
+  const dec = getActiveProfile().decimals || 3;
+  const arcAxis = targetAxis === 'X' ? 'I' : 'J';
+  const lines = el.textarea.value.split('\n').map(line => {
+    let comment = '';
+    let code = line;
+    const cIdx = line.indexOf('(');
+    if (cIdx !== -1) { code = line.slice(0, cIdx); comment = line.slice(cIdx); }
+
+    // Flip G02 <-> G03 on mirror
+    code = code.replace(/\bG0?2\b/g, 'G__TMP3').replace(/\bG0?3\b/g, 'G02').replace(/G__TMP3/g, 'G03');
+
+    code = code.replace(/([XYIJ])([+-]?\d*\.?\d+)/gi, (m, axis, valStr) => {
+      const up = axis.toUpperCase();
+      let v = parseFloat(valStr);
+      if (up === targetAxis || up === arcAxis) v = -v;
+      return `${axis}${v.toFixed(dec)}`;
+    });
+    return code + comment;
+  });
+  updateEditorText(lines.join('\n'), `Mirrored toolpath across ${targetAxis}-axis (arcs inverted)`);
+}
+
+function convertUnits(toMetric) {
+  const factor = toMetric ? 25.4 : (1 / 25.4);
+  const dec = toMetric ? 3 : 4;
+  const lines = el.textarea.value.split('\n').map(line => {
+    let comment = '';
+    let code = line;
+    const cIdx = line.indexOf('(');
+    if (cIdx !== -1) { code = line.slice(0, cIdx); comment = line.slice(cIdx); }
+
+    if (toMetric) code = code.replace(/\bG20\b/g, 'G21');
+    else code = code.replace(/\bG21\b/g, 'G20');
+
+    code = code.replace(/([XYZIJKRQF])([+-]?\d*\.?\d+)/gi, (m, axis, valStr) => {
+      const v = parseFloat(valStr) * factor;
+      return `${axis}${v.toFixed(dec)}`;
+    });
+    return code + comment;
+  });
+  updateEditorText(lines.join('\n'), toMetric ? 'Converted Inch (G20) → Metric (G21)' : 'Converted Metric (G21) → Inch (G20)');
+}
+
+function formatSpaces(insert) {
+  const lines = el.textarea.value.split('\n').map(line => {
+    let comment = '';
+    let code = line;
+    const cIdx = line.indexOf('(');
+    if (cIdx !== -1) { code = line.slice(0, cIdx); comment = line.slice(cIdx); }
+
+    if (insert) {
+      code = code.replace(/\s+/g, '').replace(/([A-Za-z])([+-]?\d*\.?\d+)/g, '$1$2 ').trim();
+      if (comment) code += ' ';
+    } else {
+      code = code.replace(/\s+/g, '');
+    }
+    return code + comment;
+  });
+  updateEditorText(lines.join('\n'), insert ? 'Inserted spaces between NC words' : 'Removed whitespace between NC words');
+}
+
+/* ==========================================================================
+   9. G-CODE MOTION PARSER & 3D WIREFRAME BACKPLOTTER
+   ========================================================================== */
+function parseGCodeProgram(text) {
+  const lines = text.split('\n');
+  const segments = [];
+  const prof = getActiveProfile();
+  const rapidRate = prof ? prof.rapidRate : 15000;
+
+  // Modal Machine State
+  let pos = { x: 0, y: 0, z: 0 };
+  let motionMode = 'G00'; // G00, G01, G02, G03, G81, G82, G83
+  let absMode = true;     // G90 = true, G91 = false
+  let plane = 'G17';      // G17 (XY), G18 (ZX), G19 (YZ)
+  let metric = true;      // G21 = true, G20 = false
+  let feed = 500;
+  let spindle = 0;
+  let tool = 1;
+  let cannedR = 2;
+  let cannedZ = -10;
+
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  let cutDist = 0, rapidDist = 0, cycleSeconds = 0;
+
+  function recordBounds(p) {
+    if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+    if (p.z < minZ) minZ = p.z; if (p.z > maxZ) maxZ = p.z;
+  }
+
+  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+    const clean = lines[lineIdx].replace(/\(.*?\)/g, '').split(';')[0].trim();
+    if (!clean || clean === '%' || /^O\d+/i.test(clean)) continue;
+
+    const words = {};
+    const gCodes = [];
+    const wordRe = /([A-Za-z])([+-]?\d*\.?\d+)/g;
+    let m;
+    while ((m = wordRe.exec(clean)) !== null) {
+      const k = m[1].toUpperCase();
+      const v = parseFloat(m[2]);
+      if (k === 'G') gCodes.push(v);
+      else words[k] = v;
+    }
+
+    let hasMotionWord = ('X' in words || 'Y' in words || 'Z' in words);
+    let isG28 = false;
+
+    for (const g of gCodes) {
+      if (g === 0) motionMode = 'G00';
+      else if (g === 1) motionMode = 'G01';
+      else if (g === 2) motionMode = 'G02';
+      else if (g === 3) motionMode = 'G03';
+      else if (g === 81 || g === 82 || g === 83) motionMode = 'G' + g;
+      else if (g === 80) motionMode = 'G00';
+      else if (g === 90) absMode = true;
+      else if (g === 91) absMode = false;
+      else if (g === 17) plane = 'G17';
+      else if (g === 18) plane = 'G18';
+      else if (g === 19) plane = 'G19';
+      else if (g === 20) metric = false;
+      else if (g === 21) metric = true;
+      else if (g === 28) isG28 = true;
+    }
+
+    if ('F' in words) feed = words.F;
+    if ('S' in words) spindle = words.S;
+    if ('T' in words) tool = words.T;
+    if ('R' in words && (motionMode === 'G81' || motionMode === 'G82' || motionMode === 'G83')) {
+      cannedR = words.R;
+    }
+    if ('Z' in words && (motionMode === 'G81' || motionMode === 'G82' || motionMode === 'G83')) {
+      cannedZ = words.Z;
+    }
+
+    const modalStr = `${motionMode} ${absMode ? 'G90' : 'G91'} ${plane} ${metric ? 'G21' : 'G20'}`;
+
+    if (isG28) {
+      const target = {
+        x: 'X' in words ? 0 : pos.x,
+        y: 'Y' in words ? 0 : pos.y,
+        z: 'Z' in words ? 0 : pos.z
+      };
+      const d = Math.hypot(target.x - pos.x, target.y - pos.y, target.z - pos.z);
+      rapidDist += d;
+      cycleSeconds += (d / rapidRate) * 60;
+      segments.push({ line: lineIdx, type: 'G00', pts: [{ ...pos }, { ...target }], modalStr, tool, spindle, feed });
+      pos = target;
+      recordBounds(pos);
+      continue;
+    }
+
+    if (!hasMotionWord) continue;
+
+    // Canned Drilling Cycles (G81/G82/G83)
+    if (motionMode === 'G81' || motionMode === 'G82' || motionMode === 'G83') {
+      const holeX = 'X' in words ? (absMode ? words.X : pos.x + words.X) : pos.x;
+      const holeY = 'Y' in words ? (absMode ? words.Y : pos.y + words.Y) : pos.y;
+      const topZ = pos.z;
+      const rPlane = absMode ? cannedR : pos.z + cannedR;
+      const bottomZ = absMode ? cannedZ : rPlane + cannedZ;
+
+      const p1 = { x: holeX, y: holeY, z: topZ };
+      const p2 = { x: holeX, y: holeY, z: rPlane };
+      const p3 = { x: holeX, y: holeY, z: bottomZ };
+
+      const dRapid = Math.hypot(holeX - pos.x, holeY - pos.y) + Math.abs(rPlane - topZ) + Math.abs(topZ - bottomZ);
+      const dFeed = Math.abs(bottomZ - rPlane);
+      rapidDist += dRapid;
+      cutDist += dFeed;
+      cycleSeconds += (dRapid / rapidRate) * 60 + (dFeed / Math.max(1, feed)) * 60;
+
+      segments.push({
+        line: lineIdx, type: 'G01',
+        pts: [{ ...pos }, p1, p2, p3, p1],
+        modalStr, tool, spindle, feed
+      });
+      recordBounds(p1); recordBounds(p3);
+      pos = p1;
+      continue;
+    }
+
+    const target = {
+      x: 'X' in words ? (absMode ? words.X : pos.x + words.X) : pos.x,
+      y: 'Y' in words ? (absMode ? words.Y : pos.y + words.Y) : pos.y,
+      z: 'Z' in words ? (absMode ? words.Z : pos.z + words.Z) : pos.z
+    };
+
+    if (motionMode === 'G00' || motionMode === 'G01') {
+      const d = Math.hypot(target.x - pos.x, target.y - pos.y, target.z - pos.z);
+      if (motionMode === 'G00') {
+        rapidDist += d;
+        cycleSeconds += (d / rapidRate) * 60;
+      } else {
+        cutDist += d;
+        cycleSeconds += (d / Math.max(1, feed)) * 60;
+      }
+      segments.push({
+        line: lineIdx, type: motionMode,
+        pts: [{ ...pos }, { ...target }],
+        modalStr, tool, spindle, feed
+      });
+      recordBounds(pos); recordBounds(target);
+      pos = target;
+    } else if (motionMode === 'G02' || motionMode === 'G03') {
+      // Circular / Helical Arc Interpolation (supports I/J/K and R)
+      const pts = interpolateArc(pos, target, words, motionMode === 'G02', plane);
+      let arcLen = 0;
+      for (let i = 1; i < pts.length; i++) {
+        arcLen += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y, pts[i].z - pts[i - 1].z);
+        recordBounds(pts[i]);
+      }
+      cutDist += arcLen;
+      cycleSeconds += (arcLen / Math.max(1, feed)) * 60;
+      segments.push({
+        line: lineIdx, type: motionMode,
+        pts, modalStr, tool, spindle, feed
+      });
+      pos = target;
+    }
+  }
+
+  if (!isFinite(minX)) {
+    minX = -50; maxX = 50; minY = -50; maxY = 50; minZ = -10; maxZ = 25;
+  }
+
+  state.segments = segments;
+  state.extents = { minX, maxX, minY, maxY, minZ, maxZ };
+  state.stats = { cutDist, rapidDist, cycleSeconds };
+  document.getElementById('st-units').textContent = metric ? 'Units: Metric (G21)' : 'Units: Inch (G20)';
+  document.getElementById('st-extents').textContent =
+    `Extents: X[${minX.toFixed(1)}..${maxX.toFixed(1)}] Y[${minY.toFixed(1)}..${maxY.toFixed(1)}] Z[${minZ.toFixed(1)}..${maxZ.toFixed(1)}]`;
+}
+
+function interpolateArc(start, end, words, isCW, plane) {
+  // Map plane axes: u, v are planar coordinates; w is helical axis
+  let u1, v1, w1, u2, v2, w2, iOff = 0, jOff = 0;
+  if (plane === 'G17') {
+    u1 = start.x; v1 = start.y; w1 = start.z;
+    u2 = end.x;   v2 = end.y;   w2 = end.z;
+    iOff = words.I || 0; jOff = words.J || 0;
+  } else if (plane === 'G18') {
+    u1 = start.z; v1 = start.x; w1 = start.y;
+    u2 = end.z;   v2 = end.x;   w2 = end.y;
+    iOff = words.K || 0; jOff = words.I || 0;
+  } else {
+    u1 = start.y; v1 = start.z; w1 = start.x;
+    u2 = end.y;   v2 = end.z;   w2 = end.x;
+    iOff = words.J || 0; jOff = words.K || 0;
+  }
+
+  let cu, cv, radius;
+  if ('R' in words && !('I' in words || 'J' in words || 'K' in words)) {
+    // R-format arc center computation
+    const r = Math.abs(words.R);
+    const du = u2 - u1, dv = v2 - v1;
+    const chord = Math.hypot(du, dv);
+    if (chord < 1e-6) return [{ ...start }, { ...end }];
+    const h = Math.sqrt(Math.max(0, r * r - (chord * chord) / 4));
+    const mu = (u1 + u2) / 2, mv = (v1 + v2) / 2;
+    const nx = -dv / chord, ny = du / chord;
+    const sign = (isCW ? -1 : 1) * (words.R < 0 ? -1 : 1);
+    cu = mu + sign * h * nx;
+    cv = mv + sign * h * ny;
+    radius = r;
+  } else {
+    cu = u1 + iOff;
+    cv = v1 + jOff;
+    radius = Math.hypot(u1 - cu, v1 - cv);
+  }
+
+  if (radius < 1e-5) return [{ ...start }, { ...end }];
+
+  let a1 = Math.atan2(v1 - cv, u1 - cu);
+  let a2 = Math.atan2(v2 - cv, u2 - cu);
+  let sweep = a2 - a1;
+
+  if (isCW) {
+    if (sweep >= -1e-6) sweep -= 2 * Math.PI;
+  } else {
+    if (sweep <= 1e-6) sweep += 2 * Math.PI;
+  }
+
+  const steps = Math.max(12, Math.min(96, Math.ceil(Math.abs(sweep) * 18)));
+  const pts = [];
+  for (let s = 0; s <= steps; s++) {
+    const t = s / steps;
+    const ang = a1 + sweep * t;
+    const u = cu + radius * Math.cos(ang);
+    const v = cv + radius * Math.sin(ang);
+    const w = w1 + (w2 - w1) * t;
+    if (plane === 'G17') pts.push({ x: u, y: v, z: w });
+    else if (plane === 'G18') pts.push({ x: v, y: w, z: u });
+    else pts.push({ x: w, y: u, z: v });
+  }
+  return pts;
+}
+
+/* ==========================================================================
+   10. 3D PROJECTION ENGINE & CANVAS RENDERER
+   ========================================================================== */
+function project3D(pt, cx, cy) {
+  const { rotX, rotZ, zoom, panX, panY } = state.cam;
+  // Rotate around Z (turntable), then tilt around X
+  const cosZ = Math.cos(rotZ), sinZ = Math.sin(rotZ);
+  const x1 = pt.x * cosZ - pt.y * sinZ;
+  const y1 = pt.x * sinZ + pt.y * cosZ;
+
+  const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+  const y2 = y1 * cosX - pt.z * sinX;
+
+  return {
+    sx: cx + panX + x1 * zoom,
+    sy: cy + panY - y2 * zoom
+  };
+}
+
+function fitCameraToExtents() {
+  const rect = el.canvasContainer.getBoundingClientRect();
+  const { minX, maxX, minY, maxY } = state.extents;
+  const spanX = Math.max(20, maxX - minX);
+  const spanY = Math.max(20, maxY - minY);
+  const maxSpan = Math.max(spanX, spanY);
+
+  state.cam.zoom = Math.min(rect.width, rect.height) / (maxSpan * 1.65);
+  const midX = (minX + maxX) / 2;
+  const midY = (minY + maxY) / 2;
+  const midZ = (state.extents.minZ + state.extents.maxZ) / 2;
+
+  state.cam.panX = 0;
+  state.cam.panY = 0;
+  const p = project3D({ x: midX, y: midY, z: midZ }, rect.width / 2, rect.height / 2);
+  state.cam.panX = (rect.width / 2) - p.sx;
+  state.cam.panY = (rect.height / 2) - p.sy;
+  drawBackplot();
+}
+
+function setCameraView(preset) {
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === preset));
+  if (preset === 'top') { state.cam.rotX = 0; state.cam.rotZ = 0; }
+  else if (preset === 'front') { state.cam.rotX = -Math.PI / 2; state.cam.rotZ = 0; }
+  else if (preset === 'side') { state.cam.rotX = -Math.PI / 2; state.cam.rotZ = -Math.PI / 2; }
+  else { state.cam.rotX = -0.65; state.cam.rotZ = 0.65; }
+  fitCameraToExtents();
+}
+
+function drawBackplot() {
+  const rect = el.canvasContainer.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  if (el.canvas.width !== Math.floor(rect.width * dpr) || el.canvas.height !== Math.floor(rect.height * dpr)) {
+    el.canvas.width = Math.floor(rect.width * dpr);
+    el.canvas.height = Math.floor(rect.height * dpr);
+  }
+
+  const ctx = el.canvas.getContext('2d');
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const w = rect.width;
+  const h = rect.height;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // Background gradient
+  ctx.fillStyle = '#0d1015';
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle Reference Grid on Z=0 plane
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 1;
+  const gridStep = 20;
+  const gridSpan = 120;
+  ctx.beginPath();
+  for (let g = -gridSpan; g <= gridSpan; g += gridStep) {
+    const a1 = project3D({ x: g, y: -gridSpan, z: 0 }, cx, cy);
+    const a2 = project3D({ x: g, y: gridSpan, z: 0 }, cx, cy);
+    ctx.moveTo(a1.sx, a1.sy); ctx.lineTo(a2.sx, a2.sy);
+
+    const b1 = project3D({ x: -gridSpan, y: g, z: 0 }, cx, cy);
+    const b2 = project3D({ x: gridSpan, y: g, z: 0 }, cx, cy);
+    ctx.moveTo(b1.sx, b1.sy); ctx.lineTo(b2.sx, b2.sy);
+  }
+  ctx.stroke();
+
+  // Bounding Stock Box Wireframe
+  if (state.cam.showStock && state.segments.length > 0) {
+    const { minX, maxX, minY, maxY, minZ } = state.extents;
+    const topZ = 0;
+    const corners = [
+      { x: minX, y: minY, z: minZ }, { x: maxX, y: minY, z: minZ },
+      { x: maxX, y: maxY, z: minZ }, { x: minX, y: maxY, z: minZ },
+      { x: minX, y: minY, z: topZ }, { x: maxX, y: minY, z: topZ },
+      { x: maxX, y: maxY, z: topZ }, { x: minX, y: maxY, z: topZ }
+    ].map(p => project3D(p, cx, cy));
+
+    const edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+    ctx.strokeStyle = 'rgba(139, 148, 158, 0.28)';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    edges.forEach(([i, j]) => {
+      ctx.moveTo(corners[i].sx, corners[i].sy);
+      ctx.lineTo(corners[j].sx, corners[j].sy);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Work Coordinate Origin Triad (X=Red, Y=Green, Z=Blue)
+  const origin = project3D({ x: 0, y: 0, z: 0 }, cx, cy);
+  const axisLen = 18;
+  const axes = [
+    { pt: { x: axisLen, y: 0, z: 0 }, color: '#ff7b72', label: 'X' },
+    { pt: { x: 0, y: axisLen, z: 0 }, color: '#7ee787', label: 'Y' },
+    { pt: { x: 0, y: 0, z: axisLen }, color: '#79c0ff', label: 'Z' }
+  ];
+  axes.forEach(ax => {
+    const end = project3D(ax.pt, cx, cy);
+    ctx.strokeStyle = ax.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(origin.sx, origin.sy);
+    ctx.lineTo(end.sx, end.sy);
+    ctx.stroke();
+    ctx.fillStyle = ax.color;
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillText(ax.label, end.sx + 3, end.sy + 3);
+  });
+
+  // Render Toolpath Segments up to Scrubbing Progress
+  const maxSegIdx = Math.floor(state.segments.length * state.sim.progressRatio);
+  let activeTip = { x: 0, y: 0, z: 0 };
+  let activeSeg = null;
+
+  for (let i = 0; i < maxSegIdx; i++) {
+    const seg = state.segments[i];
+    activeSeg = seg;
+    const isSelectedLine = (seg.line === state.activeLine);
+
+    if (seg.type === 'G00' && !state.cam.showRapids && !isSelectedLine) {
+      activeTip = seg.pts[seg.pts.length - 1];
+      continue;
+    }
+
+    ctx.beginPath();
+    if (isSelectedLine) {
+      ctx.strokeStyle = '#ffd33d';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([]);
+    } else if (seg.type === 'G00') {
+      ctx.strokeStyle = 'rgba(248, 81, 73, 0.75)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 4]);
+    } else if (seg.type === 'G02' || seg.type === 'G03') {
+      ctx.strokeStyle = '#7ee787';
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = '#39c5cf';
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([]);
+    }
+
+    seg.pts.forEach((pt, idx) => {
+      const p2 = project3D(pt, cx, cy);
+      if (idx === 0) ctx.moveTo(p2.sx, p2.sy);
+      else ctx.lineTo(p2.sx, p2.sy);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (state.cam.showNodes && seg.type !== 'G00') {
+      const endPt = project3D(seg.pts[seg.pts.length - 1], cx, cy);
+      ctx.fillStyle = isSelectedLine ? '#ffd33d' : '#ffffff';
+      ctx.fillRect(endPt.sx - 1.5, endPt.sy - 1.5, 3, 3);
+    }
+
+    activeTip = seg.pts[seg.pts.length - 1];
+  }
+
+  // Draw Simulated Spindle / Endmill Tool Representation at Active Tip
+  if (state.segments.length > 0) {
+    const tip2D = project3D(activeTip, cx, cy);
+    const top2D = project3D({ x: activeTip.x, y: activeTip.y, z: activeTip.z + 18 }, cx, cy);
+    ctx.strokeStyle = '#ffd33d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(tip2D.sx, tip2D.sy);
+    ctx.lineTo(top2D.sx, top2D.sy);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffd33d';
+    ctx.beginPath();
+    ctx.arc(tip2D.sx, tip2D.sy, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Update Telemetry HUD
+  document.getElementById('hud-x').textContent = activeTip.x.toFixed(3);
+  document.getElementById('hud-y').textContent = activeTip.y.toFixed(3);
+  document.getElementById('hud-z').textContent = activeTip.z.toFixed(3);
+  if (activeSeg) {
+    document.getElementById('hud-modal').textContent = activeSeg.modalStr;
+    document.getElementById('hud-tool').textContent = `T${String(activeSeg.tool).padStart(2, '0')} (S${activeSeg.spindle})`;
+    document.getElementById('hud-feed').textContent = activeSeg.feed.toFixed(1);
+  }
+  document.getElementById('hud-cut-dist').textContent = `${state.stats.cutDist.toFixed(1)} mm`;
+  const mins = Math.floor(state.stats.cycleSeconds / 60);
+  const secs = Math.floor(state.stats.cycleSeconds % 60);
+  document.getElementById('hud-cycle-time').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  ctx.restore();
+}
+
+/* ==========================================================================
+   11. SIMULATION PLAYBACK LOOP & MOUSE ORBIT/PAN/ZOOM
+   ========================================================================== */
+function animationLoop(ts) {
+  if (state.sim.playing) {
+    if (!state.sim.lastFrameTime) state.sim.lastFrameTime = ts;
+    const dt = (ts - state.sim.lastFrameTime) / 1000;
+    state.sim.lastFrameTime = ts;
+
+    const speed = parseFloat(document.getElementById('sim-speed').value) || 3;
+    state.sim.progressRatio += dt * 0.08 * speed;
+    if (state.sim.progressRatio >= 1.0) {
+      state.sim.progressRatio = 1.0;
+      state.sim.playing = false;
+      el.simPlayBtn.textContent = '▶ Play';
+    }
+    el.scrubber.value = Math.round(state.sim.progressRatio * 100);
+
+    // Sync active editor line to simulation tip
+    const segIdx = Math.min(state.segments.length - 1, Math.floor(state.segments.length * state.sim.progressRatio));
+    if (segIdx >= 0 && state.segments[segIdx]) {
+      state.activeLine = state.segments[segIdx].line;
+      renderSyntaxAndGutter();
+    }
+    drawBackplot();
+  }
+  requestAnimationFrame(animationLoop);
+}
+
+// Mouse Interaction on 3D Canvas
+let isDragging = false;
+let dragMode = 'orbit';
+let lastMouse = { x: 0, y: 0 };
+
+el.canvasContainer.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  dragMode = (e.button === 2 || e.shiftKey) ? 'pan' : 'orbit';
+  lastMouse = { x: e.clientX, y: e.clientY };
+});
+el.canvasContainer.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('mouseup', () => { isDragging = false; });
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastMouse.x;
+  const dy = e.clientY - lastMouse.y;
+  lastMouse = { x: e.clientX, y: e.clientY };
+
+  if (dragMode === 'orbit') {
+    state.cam.rotZ += dx * 0.01;
+    state.cam.rotX = Math.max(-Math.PI, Math.min(0, state.cam.rotX + dy * 0.01));
+  } else {
+    state.cam.panX += dx;
+    state.cam.panY += dy;
+  }
+  drawBackplot();
+});
+
+el.canvasContainer.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.12 : 0.89;
+  state.cam.zoom = Math.max(0.15, Math.min(80, state.cam.zoom * factor));
+  drawBackplot();
+}, { passive: false });
+
+/* ==========================================================================
+   12. INTELLIGENT CNC-AWARE FILE COMPARE ENGINE
+   ========================================================================== */
+function normalizeCNCLine(line) {
+  let s = line;
+  if (document.getElementById('cmp-ignore-comments').checked) {
+    s = s.replace(/\(.*?\)/g, '').split(';')[0];
+  }
+  if (document.getElementById('cmp-ignore-n').checked) {
+    s = s.replace(/^\s*N\d+\s*/i, '');
+  }
+  if (document.getElementById('cmp-ignore-zeros').checked) {
+    // Normalize X10.000 -> X10, X10. -> X10
+    s = s.replace(/([+-]?\d+)\.0+\b/g, '$1').replace(/([+-]?\d+)\.(?=\s|$|[A-Za-z])/g, '$1');
+  }
+  if (document.getElementById('cmp-ignore-ws').checked) {
+    s = s.replace(/\s+/g, '');
+  } else {
+    s = s.trim();
+  }
+  return s.toUpperCase();
+}
+
+function runCNCFileCompare() {
+  const leftId = document.getElementById('cmp-left-select').value;
+  const rightId = document.getElementById('cmp-right-select').value;
+  const leftDoc = state.docs.find(d => d.id === leftId) || state.docs[0];
+  const rightDoc = state.docs.find(d => d.id === rightId) || state.docs[Math.min(1, state.docs.length - 1)];
+
+  document.getElementById('cmp-left-title').textContent = leftDoc.name;
+  document.getElementById('cmp-right-title').textContent = rightDoc.name;
+
+  const linesA = leftDoc.content.split('\n');
+  const linesB = rightDoc.content.split('\n');
+  const maxLen = Math.max(linesA.length, linesB.length);
+
+  const rows = [];
+  const diffIndices = [];
+
+  for (let i = 0; i < maxLen; i++) {
+    const rawA = i < linesA.length ? linesA[i] : null;
+    const rawB = i < linesB.length ? linesB[i] : null;
+    let status = 'same';
+
+    if (rawA === null) status = 'added';
+    else if (rawB === null) status = 'removed';
+    else if (normalizeCNCLine(rawA) !== normalizeCNCLine(rawB)) status = 'modified';
+
+    if (status !== 'same') diffIndices.push(i);
+    rows.push({ idx: i, rawA, rawB, status });
+  }
+
+  state.compare.diffs = rows;
+  state.compare.diffIndices = diffIndices;
+  state.compare.focusedDiffCursor = diffIndices.length > 0 ? 0 : -1;
+
+  document.getElementById('cmp-stats').textContent = `${diffIndices.length} CNC difference(s)`;
+  renderComparePanes();
+}
+
+function renderComparePanes() {
+  const leftBody = document.getElementById('cmp-left-body');
+  const rightBody = document.getElementById('cmp-right-body');
+  leftBody.innerHTML = '';
+  rightBody.innerHTML = '';
+
+  const focusedRowIdx = state.compare.focusedDiffCursor >= 0
+    ? state.compare.diffIndices[state.compare.focusedDiffCursor]
+    : -1;
+
+  state.compare.diffs.forEach(row => {
+    const isFocused = (row.idx === focusedRowIdx);
+
+    // Left Row
+    const divL = document.createElement('div');
+    divL.className = `diff-row ${row.status === 'added' ? 'same' : row.status}${isFocused ? ' focused' : ''}`;
+    divL.innerHTML = `<span class="diff-ln">${row.rawA !== null ? row.idx + 1 : ''}</span><span class="diff-text">${row.rawA !== null ? tokenizeLine(row.rawA) : ''}</span>`;
+    if (row.status !== 'same' && row.rawA !== null) {
+      const btn = document.createElement('button');
+      btn.className = 'merge-btn';
+      btn.textContent = '→';
+      btn.title = 'Copy Left line to Right file';
+      btn.onclick = () => mergeCompareLine(row.idx, 'L2R');
+      divL.appendChild(btn);
+    }
+    leftBody.appendChild(divL);
+
+    // Right Row
+    const divR = document.createElement('div');
+    divR.className = `diff-row ${row.status === 'removed' ? 'same' : row.status}${isFocused ? ' focused' : ''}`;
+    if (row.status !== 'same' && row.rawB !== null) {
+      const btn = document.createElement('button');
+      btn.className = 'merge-btn';
+      btn.style.marginRight = '6px';
+      btn.textContent = '←';
+      btn.title = 'Copy Right line to Left file';
+      btn.onclick = () => mergeCompareLine(row.idx, 'R2L');
+      divR.appendChild(btn);
+    }
+    const lnSpan = document.createElement('span');
+    lnSpan.className = 'diff-ln';
+    lnSpan.textContent = row.rawB !== null ? row.idx + 1 : '';
+    const txtSpan = document.createElement('span');
+    txtSpan.className = 'diff-text';
+    txtSpan.innerHTML = row.rawB !== null ? tokenizeLine(row.rawB) : '';
+    divR.appendChild(lnSpan);
+    divR.appendChild(txtSpan);
+    rightBody.appendChild(divR);
+  });
+
+  // Synchronize scrolling
+  leftBody.onscroll = () => { rightBody.scrollTop = leftBody.scrollTop; rightBody.scrollLeft = leftBody.scrollLeft; };
+  rightBody.onscroll = () => { leftBody.scrollTop = rightBody.scrollTop; leftBody.scrollLeft = rightBody.scrollLeft; };
+}
+
+function mergeCompareLine(lineIdx, direction) {
+  const leftId = document.getElementById('cmp-left-select').value;
+  const rightId = document.getElementById('cmp-right-select').value;
+  const leftDoc = state.docs.find(d => d.id === leftId);
+  const rightDoc = state.docs.find(d => d.id === rightId);
+  if (!leftDoc || !rightDoc) return;
+
+  const linesA = leftDoc.content.split('\n');
+  const linesB = rightDoc.content.split('\n');
+
+  if (direction === 'L2R') linesB[lineIdx] = linesA[lineIdx] ?? '';
+  else linesA[lineIdx] = linesB[lineIdx] ?? '';
+
+  leftDoc.content = linesA.join('\n');
+  rightDoc.content = linesB.join('\n');
+
+  if (state.activeDocId === leftDoc.id || state.activeDocId === rightDoc.id) {
+    el.textarea.value = getActiveDoc().content;
+    onEditorContentChanged(false);
+  }
+  runCNCFileCompare();
+  showToast('Merged block between files');
+}
+
+/* ==========================================================================
+   13. WEB SERIAL API DNC TRANSMISSION ENGINE (WITH OFFLINE SIMULATOR)
+   ========================================================================== */
+function logDNC(msg) {
+  const term = document.getElementById('dnc-terminal');
+  const stamp = new Date().toLocaleTimeString();
+  term.textContent += `[${stamp}] ${msg}\n`;
+  term.scrollTop = term.scrollHeight;
+}
+
+async function connectSerialPort() {
+  if (!('serial' in navigator)) {
+    logDNC('WARN: Web Serial API not exposed in this browser. Running in Virtual Loopback DNC Mode.');
+    document.getElementById('dnc-status-text').textContent = 'Port: Virtual Loopback Ready';
+    showToast('Web Serial unavailable — Virtual Loopback enabled');
+    return;
+  }
+
+  try {
+    const port = await navigator.serial.requestPort();
+    const baudRate = parseInt(document.getElementById('dnc-baud').value, 10);
+    const dataBits = parseInt(document.getElementById('dnc-databits').value, 10);
+    const stopBits = parseInt(document.getElementById('dnc-stopbits').value, 10);
+    const parity = document.getElementById('dnc-parity').value;
+    const flowControl = document.getElementById('dnc-flow').value === 'hardware' ? 'hardware' : 'none';
+
+    await port.open({ baudRate, dataBits, stopBits, parity, flowControl });
+    state.dnc.port = port;
+    document.getElementById('dnc-status-text').textContent = `Port: Connected (${baudRate} ${dataBits}${parity[0].toUpperCase()}${stopBits})`;
+    logDNC(`CONNECTED: RS-232 opened at ${baudRate} baud, ${dataBits}-${parity}-${stopBits}, flow=${flowControl}`);
+    showToast('COM Port Connected');
+  } catch (err) {
+    logDNC(`ERROR: ${err.message}`);
+  }
+}
+
+async function sendProgramDNC() {
+  if (state.dnc.sending) return;
+  const lines = el.textarea.value.split('\n');
+  const delayMs = parseInt(document.getElementById('dnc-delay').value, 10) || 10;
+  const progBar = document.getElementById('dnc-progress');
+  const pctText = document.getElementById('dnc-pct-text');
+
+  state.dnc.sending = true;
+  state.dnc.abortRequested = false;
+  logDNC(`TX START: Streaming ${lines.length} blocks (${getActiveDoc().name})...`);
+
+  let writer = null;
+  const encoder = new TextEncoder();
+  if (state.dnc.port && state.dnc.port.writable) {
+    writer = state.dnc.port.writable.getWriter();
+  }
+
+  try {
+    for (let i = 0; i < lines.length; i++) {
+      if (state.dnc.abortRequested) {
+        logDNC('TX ABORTED BY OPERATOR.');
+        break;
+      }
+      const payload = lines[i] + '\r\n';
+      if (writer) {
+        await writer.write(encoder.encode(payload));
+      }
+      if (i % 5 === 0 || i === lines.length - 1) {
+        logDNC(`TX > ${lines[i]}`);
+      }
+      const pct = Math.round(((i + 1) / lines.length) * 100);
+      progBar.style.width = `${pct}%`;
+      pctText.textContent = `${pct}%`;
+
+      if (delayMs > 0) {
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+    }
+    if (!state.dnc.abortRequested) {
+      logDNC('TX COMPLETE: End-of-Program (M30/%) acknowledged.');
+      showToast('DNC Program Transmission Complete');
+    }
+  } catch (err) {
+    logDNC(`TX FAULT: ${err.message}`);
+  } finally {
+    if (writer) writer.releaseLock();
+    state.dnc.sending = false;
+  }
+}
+
+async function receiveProgramDNC() {
+  if (state.dnc.port && state.dnc.port.readable) {
+    logDNC('RX LISTENING: Waiting for incoming RS-232 stream from CNC...');
+    const decoder = new TextDecoder();
+    const reader = state.dnc.port.readable.getReader();
+    let buffer = '';
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done || state.dnc.abortRequested) break;
+        const chunk = decoder.decode(value);
+        buffer += chunk;
+        logDNC(`RX < ${chunk.trim()}`);
+        if (buffer.includes('M30') || buffer.includes('M02') || (buffer.split('%').length > 2)) {
+          break;
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    if (buffer.trim()) {
+      const id = 'doc-rx-' + Date.now();
+      state.docs.push({ id, name: `RX_CNC_${new Date().getHours()}${new Date().getMinutes()}.nc`, content: buffer });
+      switchDoc(id);
+      logDNC('RX COMPLETE: Imported received program into new editor tab.');
+    }
+  } else {
+    // Simulated CNC Upload if no physical hardware is connected
+    logDNC('RX SIMULATOR: Receiving test program from virtual CNC control...');
+    const simSample = `%\nO8842 (RECEIVED FROM CNC CONTROL)\nG90 G17 G21\nT01 M06\nS9500 M03\nG00 X0.000 Y0.000 Z15.000\nG01 Z-2.000 F300.0\nG01 X40.000 F1200.0\nG01 Y40.000\nG01 X0.000\nG01 Y0.000\nG00 Z25.000\nM30\n%`;
+    const id = 'doc-rx-' + Date.now();
+    state.docs.push({ id, name: 'O8842_CNC_UPLOAD.nc', content: simSample });
+    switchDoc(id);
+    logDNC('RX COMPLETE: Created tab O8842_CNC_UPLOAD.nc');
+    showToast('Received program from CNC into new tab');
+  }
+}
+
+/* ==========================================================================
+   14. CORE PIPELINE & EVENT WIRING
+   ========================================================================== */
+function onEditorContentChanged(fitView = false) {
+  const doc = getActiveDoc();
+  doc.content = el.textarea.value;
+  renderSyntaxAndGutter();
+  parseGCodeProgram(doc.content);
+  updateNCAssistant();
+  if (fitView) fitCameraToExtents();
+  else drawBackplot();
+}
+
+function closeAllModals() {
+  document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+}
+
+function wireEvents() {
+  // Ribbon Tab Switching
+  document.querySelectorAll('.ribbon-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.ribbon-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.ribbon-pane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+
+      if (tab.dataset.tab === 'tab-dnc') {
+        document.getElementById('dnc-panel').classList.add('active');
+        drawBackplot();
+      }
+    };
+  });
+
+  // Theme Toggle
+  document.getElementById('btn-toggle-theme').onclick = () => {
+    const root = document.documentElement;
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+  };
+
+  // Editor Input, Scroll & Caret Events
+  el.textarea.addEventListener('input', () => onEditorContentChanged(false));
+  el.textarea.addEventListener('scroll', syncScroll);
+  el.textarea.addEventListener('click', updateCursorPosition);
+  el.textarea.addEventListener('keyup', updateCursorPosition);
+
+  // File I/O
+  document.getElementById('btn-new-file').onclick = createNewDoc;
+  document.getElementById('btn-open-file').onclick = () => document.getElementById('hidden-file-input').click();
+  document.getElementById('hidden-file-input').onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const id = 'doc-' + Date.now();
+      state.docs.push({ id, name: file.name, content: ev.target.result });
+      switchDoc(id);
+      showToast(`Loaded ${file.name}`);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  document.getElementById('btn-save-file').onclick = () => {
+    const doc = getActiveDoc();
+    const blob = new Blob([doc.content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = doc.name;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Saved ${doc.name}`);
+  };
+
+  // Formatting & NC Functions
+  document.getElementById('btn-insert-spaces').onclick = () => formatSpaces(true);
+  document.getElementById('btn-remove-spaces').onclick = () => formatSpaces(false);
+  document.getElementById('btn-uppercase').onclick = () => updateEditorText(el.textarea.value.toUpperCase(), 'Converted program to UPPERCASE');
+  document.getElementById('btn-strip-comments').onclick = () => {
+    const cleaned = el.textarea.value.split('\n').map(l => l.replace(/\(.*?\)/g, '').split(';')[0].trimEnd()).join('\n');
+    updateEditorText(cleaned, 'Stripped all comments');
+  };
+
+  document.getElementById('btn-open-renumber').onclick = () => document.getElementById('modal-renumber').classList.add('open');
+  document.getElementById('btn-apply-renumber').onclick = applyRenumber;
+  document.getElementById('btn-remove-n').onclick = removeNNumbers;
+
+  document.getElementById('btn-open-transform').onclick = () => document.getElementById('modal-transform').classList.add('open');
+  document.getElementById('btn-apply-transform').onclick = applyCoordinateTransform;
+  document.getElementById('btn-mirror-x').onclick = () => mirrorAxis('X');
+  document.getElementById('btn-mirror-y').onclick = () => mirrorAxis('Y');
+  document.getElementById('btn-to-metric').onclick = () => convertUnits(true);
+  document.getElementById('btn-to-inch').onclick = () => convertUnits(false);
+
+  document.getElementById('btn-insert-header').onclick = () => {
+    const snippet = 'G90 G17 G21 G40 G80\nG54\n';
+    updateEditorText(snippet + el.textarea.value, 'Inserted ISO Safe Start header');
+  };
+  document.getElementById('btn-insert-drill-cycle').onclick = () => {
+    const snippet = '\n(G83 PECK DRILLING CYCLE)\nG98 G83 X0.000 Y0.000 Z-15.000 R2.000 Q3.000 F250.0\nG80\n';
+    updateEditorText(el.textarea.value + snippet, 'Appended G83 Peck Drilling template');
+  };
+
+  // Workspace Panel Toggles
+  document.getElementById('btn-toggle-assistant').onclick = (e) => {
+    const p = document.getElementById('nc-assistant-panel');
+    p.classList.toggle('collapsed');
+    e.currentTarget.classList.toggle('active', !p.classList.contains('collapsed'));
+    drawBackplot();
+  };
+  document.getElementById('btn-toggle-backplot-main').onclick = (e) => {
+    const p = document.getElementById('backplot-pane');
+    p.classList.toggle('hidden');
+    e.currentTarget.classList.toggle('active', !p.classList.contains('hidden'));
+    if (!p.classList.contains('hidden')) fitCameraToExtents();
+  };
+
+  // Backplot Camera & Display Controls
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.onclick = () => setCameraView(btn.dataset.view);
+  });
+  document.getElementById('btn-fit-view').onclick = fitCameraToExtents;
+  document.getElementById('vp-btn-fit').onclick = fitCameraToExtents;
+
+  document.getElementById('btn-toggle-rapids').onclick = (e) => {
+    state.cam.showRapids = !state.cam.showRapids;
+    e.currentTarget.classList.toggle('active', state.cam.showRapids);
+    drawBackplot();
+  };
+  document.getElementById('btn-toggle-stock').onclick = (e) => {
+    state.cam.showStock = !state.cam.showStock;
+    e.currentTarget.classList.toggle('active', state.cam.showStock);
+    drawBackplot();
+  };
+  document.getElementById('btn-toggle-nodes').onclick = (e) => {
+    state.cam.showNodes = !state.cam.showNodes;
+    e.currentTarget.classList.toggle('active', state.cam.showNodes);
+    drawBackplot();
+  };
+
+  // Simulation Playback Controls
+  el.simPlayBtn.onclick = () => {
+    state.sim.playing = !state.sim.playing;
+    if (state.sim.playing && state.sim.progressRatio >= 1.0) {
+      state.sim.progressRatio = 0.0;
+    }
+    state.sim.lastFrameTime = 0;
+    el.simPlayBtn.textContent = state.sim.playing ? '⏸ Pause' : '▶ Play';
+  };
+  el.scrubber.oninput = () => {
+    state.sim.playing = false;
+    el.simPlayBtn.textContent = '▶ Play';
+    state.sim.progressRatio = parseInt(el.scrubber.value, 10) / 100;
+    drawBackplot();
+  };
+  document.getElementById('sim-step-fwd').onclick = () => {
+    state.sim.playing = false;
+    el.simPlayBtn.textContent = '▶ Play';
+    const step = 1 / Math.max(1, state.segments.length);
+    state.sim.progressRatio = Math.min(1, state.sim.progressRatio + step);
+    el.scrubber.value = Math.round(state.sim.progressRatio * 100);
+    drawBackplot();
+  };
+  document.getElementById('sim-step-back').onclick = () => {
+    state.sim.playing = false;
+    el.simPlayBtn.textContent = '▶ Play';
+    const step = 1 / Math.max(1, state.segments.length);
+    state.sim.progressRatio = Math.max(0, state.sim.progressRatio - step);
+    el.scrubber.value = Math.round(state.sim.progressRatio * 100);
+    drawBackplot();
+  };
+
+  // File Compare Controls
+  function openCompareView() {
+    const leftSel = document.getElementById('cmp-left-select');
+    const rightSel = document.getElementById('cmp-right-select');
+    leftSel.innerHTML = '';
+    rightSel.innerHTML = '';
+    state.docs.forEach((d, i) => {
+      leftSel.add(new Option(d.name, d.id, d.id === state.activeDocId, d.id === state.activeDocId));
+      const isSecond = (state.docs.length > 1 && d.id !== state.activeDocId && i === 1) || (state.docs.length === 1);
+      rightSel.add(new Option(d.name, d.id, isSecond, isSecond));
+    });
+    if (leftSel.value === rightSel.value && state.docs.length > 1) {
+      rightSel.value = state.docs.find(d => d.id !== leftSel.value).id;
+    }
+
+    document.getElementById('editor-pane').style.display = 'none';
+    document.getElementById('backplot-pane').style.display = 'none';
+    document.getElementById('nc-assistant-panel').style.display = 'none';
+    document.getElementById('compare-view').classList.add('active');
+    runCNCFileCompare();
+  }
+
+  function closeCompareView() {
+    document.getElementById('compare-view').classList.remove('active');
+    document.getElementById('editor-pane').style.display = 'flex';
+    document.getElementById('backplot-pane').style.display = '';
+    document.getElementById('nc-assistant-panel').style.display = '';
+    fitCameraToExtents();
+  }
+
+  document.getElementById('btn-enter-compare').onclick = openCompareView;
+  document.getElementById('btn-exit-compare').onclick = closeCompareView;
+  document.getElementById('cmp-close-btn').onclick = closeCompareView;
+  ['cmp-left-select', 'cmp-right-select', 'cmp-ignore-n', 'cmp-ignore-ws', 'cmp-ignore-zeros', 'cmp-ignore-comments']
+    .forEach(id => document.getElementById(id).onchange = runCNCFileCompare);
+
+  document.getElementById('cmp-next-diff').onclick = () => {
+    if (!state.compare.diffIndices.length) return;
+    state.compare.focusedDiffCursor = (state.compare.focusedDiffCursor + 1) % state.compare.diffIndices.length;
+    renderComparePanes();
+  };
+  document.getElementById('cmp-prev-diff').onclick = () => {
+    if (!state.compare.diffIndices.length) return;
+    state.compare.focusedDiffCursor = (state.compare.focusedDiffCursor - 1 + state.compare.diffIndices.length) % state.compare.diffIndices.length;
+    renderComparePanes();
+  };
+
+  // DNC Controls
+  document.getElementById('btn-toggle-dnc-pane').onclick = () => {
+    document.getElementById('dnc-panel').classList.toggle('active');
+    drawBackplot();
+  };
+  document.getElementById('btn-close-dnc').onclick = () => {
+    document.getElementById('dnc-panel').classList.remove('active');
+    drawBackplot();
+  };
+  document.getElementById('btn-dnc-connect').onclick = connectSerialPort;
+  document.getElementById('btn-dnc-send').onclick = sendProgramDNC;
+  document.getElementById('btn-dnc-quick-send').onclick = () => {
+    document.getElementById('dnc-panel').classList.add('active');
+    sendProgramDNC();
+  };
+  document.getElementById('btn-dnc-receive').onclick = receiveProgramDNC;
+  document.getElementById('btn-dnc-quick-recv').onclick = () => {
+    document.getElementById('dnc-panel').classList.add('active');
+    receiveProgramDNC();
+  };
+  document.getElementById('btn-dnc-abort').onclick = () => { state.dnc.abortRequested = true; };
+  document.getElementById('btn-dnc-clear-log').onclick = () => { document.getElementById('dnc-terminal').textContent = ''; };
+
+  // Machine Profile Modal
+  el.profileSelect.onchange = () => {
+    state.activeProfileId = el.profileSelect.value;
+    renderProfileSelect();
+    onEditorContentChanged(false);
+  };
+  document.getElementById('btn-open-profile-modal').onclick = () => {
+    const p = getActiveProfile();
+    document.getElementById('prof-name').value = p.name;
+    document.getElementById('prof-rapid').value = p.rapidRate;
+    document.getElementById('prof-decimals').value = p.decimals;
+    document.getElementById('modal-profile').classList.add('open');
+  };
+  document.getElementById('btn-save-profile').onclick = () => {
+    const name = document.getElementById('prof-name').value.trim() || 'Custom Machine';
+    const rapidRate = parseFloat(document.getElementById('prof-rapid').value) || 15000;
+    const decimals = parseInt(document.getElementById('prof-decimals').value, 10) || 3;
+    const id = 'prof-' + Date.now();
+    state.profiles.push({
+      id, name, rapidRate, decimals,
+      baud: document.getElementById('dnc-baud').value,
+      databits: document.getElementById('dnc-databits').value,
+      parity: document.getElementById('dnc-parity').value,
+      stopbits: document.getElementById('dnc-stopbits').value,
+      flow: document.getElementById('dnc-flow').value
+    });
+    state.activeProfileId = id;
+    saveProfilesToStorage();
+    renderProfileSelect();
+    closeAllModals();
+    showToast(`Saved machine profile: ${name}`);
+  };
+  document.getElementById('btn-export-profiles').onclick = () => {
+    const blob = new Blob([JSON.stringify(state.profiles, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cnc_machine_profiles.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  document.querySelectorAll('.modal-close').forEach(b => b.onclick = closeAllModals);
+  window.addEventListener('resize', drawBackplot);
+}
+
+// Boot Application
+window.onload = function () {
+  loadProfiles();
+  wireEvents();
+  switchDoc('doc-1');
+  logDNC('CNC Edit Pro Portable DNC Engine initialized.');
+  requestAnimationFrame(animationLoop);
+};
+</script>
+</body>
+</html>
