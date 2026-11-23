@@ -154,6 +154,12 @@ html, body {
 .word-chip {
   background: var(--bg-editor); border: 1px solid var(--border-color);
   border-radius: 5px; padding: 4px 6px; font-family: var(--font-mono); font-size: 11px;
+  display: flex; align-items: center; justify-content: space-between; gap: 4px;
+}
+.word-chip input {
+  width: 66px; background: var(--bg-input); color: var(--accent-cyan);
+  border: 1px solid var(--border-strong); border-radius: 3px;
+  padding: 1px 4px; font-family: var(--font-mono); font-size: 11px;
 }
 
 /* CENTER MULTI-TAB CODE EDITOR */
@@ -294,7 +300,7 @@ html, body {
   background: rgba(16, 20, 27, 0.86); backdrop-filter: blur(6px);
   border: 1px solid var(--border-strong); border-radius: 8px;
   padding: 8px 10px; font-family: var(--font-mono); font-size: 11px;
-  color: #e6edf3; min-width: 248px; pointer-events: none;
+  color: #e6edf3; min-width: 256px; pointer-events: none;
 }
 .hud-row { display: flex; justify-content: space-between; gap: 10px; line-height: 1.45; }
 .hud-label { color: #8b949e; }
@@ -371,7 +377,7 @@ html, body {
       <nav class="ribbon-tabs" id="ribbon-tabs">
         <button class="ribbon-tab active" data-tab="tab-editor">Editor</button>
         <button class="ribbon-tab" data-tab="tab-nc">NC Functions</button>
-        <button class="ribbon-tab" data-tab="tab-backplot">5-Axis Table Sim</button>
+        <button class="ribbon-tab" data-tab="tab-backplot">Backplot</button>
         <button class="ribbon-tab" data-tab="tab-compare">File Compare</button>
         <button class="ribbon-tab" data-tab="tab-dnc">Transmission (DNC)</button>
       </nav>
@@ -451,7 +457,7 @@ html, body {
       </div>
     </div>
 
-    <!-- TAB 3: 5-AXIS TABLE SIMULATION -->
+    <!-- TAB 3: BACKPLOT & 3D SOLID SIMULATION -->
     <div class="ribbon-pane" id="tab-backplot">
       <div class="ribbon-group">
         <div class="ribbon-group-items">
@@ -469,6 +475,7 @@ html, body {
             </select>
           </div>
           <button class="r-btn active" id="btn-cycle-stock-render" title="Cycle Solid Shaded / Translucent / Wireframe Stock"><span>🧊 Solid Stock</span></button>
+          <button class="r-btn" id="btn-toggle-raw-ghost" title="Toggle Optional Raw Uncut Stock Ghost Overlay"><span>👻 Raw Ghost: OFF</span></button>
           <button class="r-btn" id="btn-reset-stock"><span>Reset Stock</span></button>
         </div>
         <div class="ribbon-group-title">3D Solid Workpiece &amp; Material</div>
@@ -565,14 +572,14 @@ html, body {
         <button class="dock-tab" data-dock="dock-alarms">ALARMS <span id="alarm-count-badge">(0)</span></button>
       </div>
 
-      <!-- Dock 1: NC-Assistant Live Block Inspector -->
+      <!-- Dock 1: NC-Assistant Live Block Parameter Inspector -->
       <div class="dock-pane active" id="dock-assist">
         <div class="assist-badge">
           <div style="font-size:10px; color:var(--text-secondary); font-weight:700;">CURRENT BLOCK (<span id="assist-line-num">Ln 1</span>)</div>
           <div id="assist-raw-line" style="font-family:var(--font-mono); font-size:11px; color:var(--accent-cyan); margin-top:4px; word-break:break-all;">—</div>
         </div>
         <div id="assist-explanation" style="font-size:11.5px; color:var(--text-primary); line-height:1.45;">
-          Click any NC line in the editor to inspect G-codes, Heidenhain Klartext cycles, TCPM vectors, and rotary table angles.
+          Click any NC line in the editor to inspect and edit G-codes, Heidenhain Klartext cycles, TCPM vectors, and rotary table angles in real time.
         </div>
         <div class="assist-word-grid" id="assist-words"></div>
         <div style="margin-top:auto; border-top:1px solid var(--border-color); padding-top:8px;">
@@ -654,6 +661,7 @@ html, body {
           <button class="vp-btn active" id="vp-btn-solid">Solid</button>
           <button class="vp-btn" id="vp-btn-glass">Glass</button>
           <button class="vp-btn" id="vp-btn-wire">Wire</button>
+          <button class="vp-btn" id="vp-btn-ghost" title="Show/Hide Uncut Raw Stock Ghost">Ghost</button>
           <button class="vp-btn active" id="vp-btn-paths">Paths</button>
           <button class="vp-btn active" id="vp-btn-table">B/C Table</button>
         </div>
@@ -678,12 +686,13 @@ html, body {
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label">SPINDLE X/Y/Z:</span><span id="hud-xyz">0.000, 0.000, 0.000</span></div>
           <div class="hud-row"><span class="hud-label">TABLE B / C:</span><span id="hud-rot" style="color:#ffa657;">B+0.00°  C+0.00°</span></div>
+          <div class="hud-row"><span class="hud-label">TOOL I/J/K:</span><span id="hud-ijk" style="color:#7ee787;">0.000, 0.000, 1.000</span></div>
           <div class="hud-divider"></div>
           <div class="hud-row"><span class="hud-label">FEED:</span><span id="hud-feed">0.0</span></div>
           <div class="hud-bar-wrap"><div class="hud-bar-fill" id="hud-feed-bar"></div></div>
           <div class="hud-row" style="margin-top:4px;"><span class="hud-label">SPINDLE RPM:</span><span id="hud-rpm">0 RPM (M05)</span></div>
           <div class="hud-bar-wrap"><div class="hud-bar-fill" id="hud-rpm-bar" style="background:#3fb950;"></div></div>
-          <div class="hud-row" style="margin-top:4px;"><span class="hud-label">SFM / CHIP:</span><span id="hud-sfm">0 m/min | 0.000</span></div>
+          <div class="hud-row" style="margin-top:4px;"><span class="hud-label">SFM / CHIP:</span><span id="hud-sfm">0 SFM | 0.0000</span></div>
         </div>
       </div>
 
@@ -774,7 +783,7 @@ html, body {
         <div style="display:flex;gap:4px;"><input type="number" id="stk-minz" class="compact-input" style="width:75px;" value="-5.0"><input type="number" id="stk-maxz" class="compact-input" style="width:75px;" value="0.0"></div>
       </div>
       <div class="form-row"><label>Lathe Bar Stock Dia / Length (mm):</label>
-        <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="66"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="85"></div>
+        <div style="display:flex;gap:4px;"><input type="number" id="stk-lathe-dia" class="compact-input" style="width:75px;" value="66"><input type="number" id="stk-lathe-len" class="compact-input" style="width:75px;" value="80"></div>
       </div>
     </div>
     <div class="modal-foot">
@@ -862,66 +871,72 @@ function buildSphereOn5InchBarProgram() {
     '0 BEGIN PGM 5AX_SPHERE_5IN_BAR INCH',
     '1 ; 5-AXIS TABLE-TABLE (B/C ROTARY TABLE + VERTICAL X/Y/Z SPINDLE)',
     '2 ; WORKPIECE: 2.000 IN DIA x 5.000 IN TALL 6061-T6 ROUND BAR STOCK',
-    '3 ; FEATURE: 1.500 IN PRECISION SPHERE + UNDERCUT NECK AT TOP END OF BAR',
+    '3 ; FEATURE: 1.750 IN PRECISION SPHERE + UNDERCUT NECK AT TOP END OF BAR',
     '4 BLK FORM 0.1 Z X-1.000 Y-1.000 Z-5.000',
     '5 BLK FORM 0.2 X+1.000 Y+1.000 Z+0.000',
     '6 TOOL DEF 1 L+0.000 R+0.250 ; 0.500IN FLAT ROUGHING ENDMILL',
     '7 TOOL DEF 2 L+0.000 R+0.1875 ; 0.375IN BALL NOSE FINISHING ENDMILL',
-    '8 ; --- STAGE 1: ROUGH TOP END OF 5.000 IN BAR TO SPHERE ENVELOPE ---',
-    '9 TOOL CALL 1 Z S12000 F140.0 ; 0.500IN FLAT ROUGHING ENDMILL',
+    '8 ; --- STAGE 1: FACE TOP END OF 5.000 IN BAR & ROUGH SPHERE ENVELOPE ---',
+    '9 TOOL CALL 1 Z S12000 F150.0 ; 0.500IN FLAT ROUGHING ENDMILL',
     '10 L X+0.000 Y+0.000 Z+1.200 B+0.0 C+0.0 R0 FMAX M03 M08',
-    '11 L X-1.050 Y+0.000 Z+0.250 FMAX'
+    '11 L X+1.150 Y+0.000 Z+0.250 FMAX',
+    '12 L Z+0.050 F90.0',
+    '13 L X-0.050 Y+0.000 Z+0.050 F140.0 ; FACE ACROSS FRONT POLE TO CENTER',
+    '14 L Z+0.300 FMAX'
   ];
 
-  let blk = 12;
-  const sphereR = 0.750;
-  const centerZ = -0.800;
+  let blk = 15;
+  const sphereR = 0.875; // 1.750 in diameter sphere
+  const centerZ = -0.875; // Top pole sits cleanly at Z = 0.000
 
   const roughLevels = [
-    { z: -0.18, r: 0.68 },
-    { z: -0.45, r: 0.84 },
-    { z: -0.80, r: 0.94 },
-    { z: -1.25, r: 0.74 },
-    { z: -1.65, r: 0.52 }
+    { z: -0.05, r: 0.45 },
+    { z: -0.25, r: 0.78 },
+    { z: -0.55, r: 0.96 },
+    { z: -0.88, r: 1.02 },
+    { z: -1.30, r: 0.84 },
+    { z: -1.65, r: 0.62 },
+    { z: -1.85, r: 0.54 }
   ];
   roughLevels.forEach(lv => {
-    lines.push(`${blk++} L X+${lv.r.toFixed(4)} Y+0.000 Z+${(lv.z + 0.25).toFixed(4)} FMAX`);
-    lines.push(`${blk++} L Z${lv.z.toFixed(4)} F65.0`);
-    const segs = 20;
+    lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 Z+${(lv.z + 0.25).toFixed(4)} FMAX`);
+    lines.push(`${blk++} L X+${lv.r.toFixed(4)} Y+0.000 Z${lv.z.toFixed(4)} F75.0`);
+    const segs = 24;
     for (let i = 1; i <= segs; i++) {
       const ang = (i / segs) * Math.PI * 2;
       const x = Math.cos(ang) * lv.r;
       const y = Math.sin(ang) * lv.r;
-      lines.push(`${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} F135.0`);
+      lines.push(`${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} F145.0`);
     }
+    lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 FMAX`);
   });
   lines.push(`${blk++} L Z+1.400 FMAX`);
 
-  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & EQUATORIAL UNDERCUT ---`);
-  lines.push(`${blk++} TOOL CALL 2 Z S16500 F160.0 ; 0.375IN BALL NOSE FINISHING ENDMILL`);
+  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & UNDERCUT NECK ---`);
+  lines.push(`${blk++} TOOL CALL 2 Z S16500 F170.0 ; 0.375IN BALL NOSE FINISHING ENDMILL`);
   lines.push(`${blk++} FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS`);
 
-  const phiAngles = [8, 22, 36, 50, 64, 78, 90, 102, 114];
-  const stepsPerRev = 22;
+  const phiAngles = [6, 15, 24, 36, 48, 60, 72, 84, 96, 108, 115];
+  const stepsPerRev = 24;
 
   phiAngles.forEach((phiDeg, ringIdx) => {
     const phi = phiDeg * (Math.PI / 180);
     let rRing, zRing, bTilt;
-    if (phiDeg <= 96) {
+    if (phiDeg <= 108) {
       rRing = sphereR * Math.sin(phi);
       zRing = centerZ + sphereR * Math.cos(phi);
-      bTilt = Math.min(96, phiDeg);
+      bTilt = Math.min(108, phiDeg);
     } else {
-      const tNeck = (phiDeg - 96) / 18;
-      rRing = 0.745 * (1 - tNeck) + 0.420 * tNeck;
-      zRing = -0.880 - tNeck * 0.680;
-      bTilt = 104 + tNeck * 10;
+      const tNeck = (phiDeg - 108) / 7;
+      rRing = 0.832 * (1 - tNeck) + 0.440 * tNeck;
+      zRing = -1.145 - tNeck * 0.705;
+      bTilt = 112 + tNeck * 3;
     }
 
     const cStart = ringIdx * 360;
     if (ringIdx === 0) {
-      lines.push(`${blk++} L X+${(rRing + 0.25).toFixed(4)} Y+0.000 Z+${(zRing + 0.45).toFixed(4)} B+${bTilt.toFixed(2)} C+${cStart.toFixed(1)} R0 FMAX M03 M08`);
-      lines.push(`${blk++} L X+${rRing.toFixed(4)} Y+0.000 Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} F85.0`);
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.3500 B+6.00 C+0.0 R0 FMAX M03 M08`);
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.0000 F95.0 ; FINISH TOP POLE AT Z=0`);
     }
 
     for (let s = 1; s <= stepsPerRev; s++) {
@@ -931,23 +946,23 @@ function buildSphereOn5InchBarProgram() {
       const x = rRing * Math.cos(theta);
       const y = rRing * Math.sin(theta);
       lines.push(
-        `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} B+${bTilt.toFixed(2)} C+${cDeg.toFixed(1)} F165.0`
+        `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} B+${bTilt.toFixed(2)} C+${cDeg.toFixed(1)} F175.0`
       );
     }
   });
 
-  lines.push(`${blk++} ; --- STAGE 3: 5-AXIS NECK SHOULDER FILLET BLEND (B+112 DEG) ---`);
-  const neckZ = -1.600;
-  const neckR = 0.420;
+  lines.push(`${blk++} ; --- STAGE 3: 5-AXIS NECK SHOULDER FILLET BLEND TO 2.000 IN BAR (Z=-1.85) ---`);
+  const neckZ = -1.850;
+  const neckR = 0.440;
   const cBase = phiAngles.length * 360;
-  for (let s = 0; s <= 22; s++) {
-    const frac = s / 22;
+  for (let s = 0; s <= 24; s++) {
+    const frac = s / 24;
     const theta = frac * Math.PI * 2;
     const cDeg = cBase + frac * 360;
     const x = neckR * Math.cos(theta);
     const y = neckR * Math.sin(theta);
     lines.push(
-      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${neckZ.toFixed(4)} B+112.00 C+${cDeg.toFixed(1)} F140.0`
+      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${neckZ.toFixed(4)} B+115.00 C+${cDeg.toFixed(1)} F145.0`
     );
   }
 
@@ -965,6 +980,32 @@ const SAMPLE_PROGRAMS = [
     dirty: false,
     name: '5AX_SPHERE_ON_5IN_BAR.h',
     content: buildSphereOn5InchBarProgram()
+  },
+  {
+    id: 'doc-5ax-blisk',
+    mode: 'table-bc',
+    dirty: false,
+    name: '5AX_TURBINE_BLISK_DEMO.h',
+    content: `0 BEGIN PGM 5AX_TURBINE_BLISK_DEMO MM
+1 ; 5-AXIS IMPELLER / TURBINE BLADE SWARF & PLANE SPATIAL DEMO
+2 BLK FORM 0.1 Z X-50.0 Y-50.0 Z-35.0
+3 BLK FORM 0.2 X+50.0 Y+50.0 Z+0.0
+4 TOOL DEF 2 L+0.000 R+4.000 ; 8.0MM TAPERED BALL ENDMILL
+5 TOOL CALL 2 Z S18000 F2400
+6 L X+0.0 Y+0.0 Z+30.0 B+0.0 C+0.0 R0 FMAX M03 M08
+7 PLANE SPATIAL SPA+0.0 SPB+32.0 SPC+0.0 TURN FMAX SEQ-
+8 FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS
+9 L X+38.0 Y-12.0 Z+5.0 B+32.0 C+0.0 FMAX
+10 L Z-14.0 F800
+11 L X+22.0 Y+14.0 Z-18.0 B+38.0 C+45.0 F2200
+12 L X+12.0 Y+26.0 Z-22.0 B+42.0 C+90.0 F2200
+13 L X-14.0 Y+24.0 Z-22.0 B+42.0 C+135.0 F2200
+14 L X-26.0 Y-12.0 Z-18.0 B+36.0 C+180.0 F2200
+15 M140 MB MAX
+16 M129
+17 PLANE RESET TURN FMAX
+18 L B+0.0 C+0.0 Z+40.0 FMAX M09 M05
+19 END PGM 5AX_TURBINE_BLISK_DEMO MM`
   },
   {
     id: 'doc-mill-1',
@@ -1009,7 +1050,7 @@ N310 M30
     id: 'doc-mill-revb',
     mode: 'vmc-3ax',
     dirty: false,
-    name: 'O1001_POCKET_REV_B.nc',
+    name: 'O1001_POCKET_G41_MILL_REV_B.nc',
     content: `%
 O1001 (AEROSPACE BRACKET - REV B UPDATED FEEDS & DEPTH)
 N10 G90 G17 G21 G40 G80
@@ -1035,26 +1076,6 @@ N310 M30
 %`
   },
   {
-    id: 'doc-crash-demo',
-    mode: 'vmc-3ax',
-    dirty: false,
-    name: 'O9911_COLLISION_CHECK_DEMO.nc',
-    content: `%
-O9911 (RAPID GOUGE & COLLISION VERIFICATION DEMO)
-N10 G90 G17 G21 G40
-N20 T01 M06 (12.0MM CARBIDE ENDMILL)
-N30 S10000 M03
-N40 G00 X-30.000 Y-20.000 Z15.000 M08
-N50 G01 Z-4.000 F500.0
-N60 G01 X30.000 F1500.0
-(DELIBERATE G00 RAPID CRASH THROUGH WORKPIECE!)
-N70 G00 X-20.000 Y15.000 Z-8.000
-N80 G01 X25.000 F1500.0
-N90 G00 Z20.000 M09
-N100 M30
-%`
-  },
-  {
     id: 'doc-lathe-1',
     mode: 'lathe-2ax',
     dirty: false,
@@ -1075,9 +1096,30 @@ N100 G01 Z-28.000
 N110 G01 X44.000 Z-36.000
 N120 G01 Z-62.000
 N130 G01 X64.000 Z-72.000
+N135 G70 P70 Q130
 N140 G00 X80.000 Z50.000 M09
 N200 M05
 N210 M30
+%`
+  },
+  {
+    id: 'doc-crash-demo',
+    mode: 'vmc-3ax',
+    dirty: false,
+    name: 'O9911_COLLISION_CHECK_DEMO.nc',
+    content: `%
+O9911 (RAPID GOUGE & COLLISION VERIFICATION DEMO)
+N10 G90 G17 G21 G40
+N20 T01 M06 (12.0MM CARBIDE ENDMILL)
+N30 S10000 M03
+N40 G00 X-30.000 Y-20.000 Z15.000 M08
+N50 G01 Z-4.000 F500.0
+N60 G01 X30.000 F1500.0
+(DELIBERATE G00 RAPID CRASH THROUGH WORKPIECE!)
+N70 G00 X-20.000 Y15.000 Z-8.000
+N80 G01 X25.000 F1500.0
+N90 G00 Z20.000 M09
+N100 M30
 %`
   }
 ];
@@ -1134,7 +1176,18 @@ const state = {
     cols: 120, rows: 120,
     initialZ: null,
     currentZ: null,
-    gougeFlags: null
+    gougeFlags: null,
+    // High-resolution Cylindrical Radial Heightfield r[thetaIdx][zIdx] (144 angular x 180 axial)
+    cylThetaSegs: 144,
+    cylZSegs: 180,
+    cylMaxR: 1.0,
+    cylInitialR: null,
+    cylCurrentR: null,
+    cylGougeFlags: null,
+    // Lathe revolved 1D Z-profile r(z)
+    latheZSegs: 180,
+    latheCurrentR: null,
+    latheGougeFlags: null
   },
 
   sim: {
@@ -1158,6 +1211,7 @@ const state = {
     lastX: 0,
     lastY: 0,
     stockRenderMode: 'solid',
+    showRawGhost: false,
     show3DTool: true,
     showTrunnion: true,
     swivelB45: false,
@@ -1305,19 +1359,24 @@ function getToolAxisMachineVector(rot, plane) {
   return rotateVectorByEuler({ x: 0, y: 0, z: 1 }, aTot, bTot, cTot);
 }
 
+// Tool axis vector in Workpiece Coordinates (for 3D swept flute volume carving in cylindrical & box stock)
+function getToolAxisWorkpieceVector(rot, plane) {
+  const aTot = (rot.a || 0) + (plane && plane.spa ? plane.spa : 0);
+  const bTot = (rot.b || 0) + (plane && plane.spb ? plane.spb : 0);
+  const cTot = (rot.c || 0) + (plane && plane.spc ? plane.spc : 0);
+  return rotateVectorByEuler({ x: 0, y: 0, z: 1 }, aTot, bTot, cTot);
+}
+
 /* ==========================================================================
-   5. SYNTAX HIGHLIGHTER & EDITABLE CODE BUFFER
+   5. SYNTAX HIGHLIGHTER & HYBRID VIRTUALIZED CODE EDITOR ENGINE
    ========================================================================== */
-function highlightLineHtml(raw) {
-  let s = escapeHtml(raw);
-  const semiIdx = s.indexOf(';');
-  let commentPart = '';
-  if (semiIdx !== -1) {
-    commentPart = `<span class="tok-comm">${s.slice(semiIdx)}</span>`;
-    s = s.slice(0, semiIdx);
-  }
+function highlightLineHtml(line) {
+  const semiIdx = line.indexOf(';');
+  const codePart = semiIdx >= 0 ? line.slice(0, semiIdx) : line;
+  const commentPart = semiIdx >= 0 ? `<span class="tok-comm">${escapeHtml(line.slice(semiIdx))}</span>` : '';
+  let s = escapeHtml(codePart);
   s = s.replace(/\([^)]*\)/g, m => `<span class="tok-comm">${m}</span>`);
-  s = s.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|TOOL\s+DEF|CYCL\s+DEF|CYCL\s+CALL|PLANE\s+SPATIAL|FUNCTION\s+TCPM|L|CC|C|CR|FMAX|RL|RR|R0)\b/g, '<span class="tok-kw">$1</span>');
+  s = s.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|TOOL\s+DEF|CYCL\s+DEF|CYCL\s+CALL|PLANE\s+SPATIAL|PLANE\s+RESET|FUNCTION\s+TCPM|L|CC|C|CR|FMAX|RL|RR|R0)\b/g, '<span class="tok-kw">$1</span>');
   s = s.replace(/^(\s*N\d+)/i, '<span class="tok-n">$1</span>');
   s = s.replace(/\b(G\d+(?:\.\d+)?)\b/gi, '<span class="tok-g">$1</span>');
   s = s.replace(/\b(M\d+)\b/gi, '<span class="tok-m">$1</span>');
@@ -1411,33 +1470,63 @@ function updateCursorLineFromTextarea() {
 }
 
 /* ==========================================================================
-   6. TOOL LIBRARY & INSPECTOR DOCK RENDERERS
+   6. TOOL LIBRARY & LIVE NC-ASSISTANT INSPECTOR DOCK
    ========================================================================== */
 function updateInspectorDock() {
   const ln = state.activeLine;
+  const doc = getActiveDoc();
   const raw = state.linesCache[ln] || '';
   document.getElementById('assist-line-num').textContent = `Ln ${ln + 1}`;
   document.getElementById('assist-raw-line').textContent = raw.trim() || '(Blank Block)';
 
   const wordsDiv = document.getElementById('assist-words');
   wordsDiv.innerHTML = '';
-  const tokens = raw.split(';')[0].replace(/\([^)]*\)/g, '').trim().split(/\s+/).filter(Boolean);
-  tokens.slice(0, 10).forEach(tok => {
+
+  // Editable parameter chips for numeric NC words (X, Y, Z, A, B, C, F, S, I, J, K, R)
+  const wordRegex = /\b([XYZABCIJKFSR])([+-]?\d*\.?\d+)\b/gi;
+  let match;
+  let count = 0;
+  const codeOnly = raw.split(';')[0].replace(/\([^)]*\)/g, '');
+  while ((match = wordRegex.exec(codeOnly)) !== null && count < 8) {
+    const letter = match[1].toUpperCase();
+    const numStr = match[2];
+    const matchIndex = match.index;
     const chip = document.createElement('div');
     chip.className = 'word-chip';
-    chip.textContent = tok;
+    chip.innerHTML = `<span style="font-weight:700; color:var(--accent-orange);">${letter}</span>`;
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = numStr;
+    inp.title = `Edit ${letter} coordinate/parameter on Line ${ln + 1}`;
+    inp.onchange = () => {
+      if (!doc) return;
+      const lines = doc.content.split('\n');
+      const curLine = lines[ln] || '';
+      const before = curLine.slice(0, matchIndex);
+      const after = curLine.slice(matchIndex + letter.length + numStr.length);
+      lines[ln] = before + letter + inp.value.trim() + after;
+      doc.content = lines.join('\n');
+      doc.dirty = true;
+      renderDocTabs();
+      parseAndBuildSimulation(doc.content, false);
+    };
+    chip.appendChild(inp);
     wordsDiv.appendChild(chip);
-  });
+    count++;
+  }
 
   let desc = 'Standard motion / control block.';
   if (/FUNCTION\s+TCPM/i.test(raw)) desc = 'Tool Center Point Management (TCPM) enabled: controller compensates X/Y/Z linear spindle axes for B/C rotary table tilt.';
   else if (/PLANE\s+SPATIAL/i.test(raw)) desc = 'Tilted working plane definition (SPA/SPB/SPC) rotating local coordinate frame on the 5-axis table.';
   else if (/BLK\s+FORM/i.test(raw)) desc = '3D Workpiece Blank Form bounding envelope definition for solid stock simulation.';
   else if (/TOOL\s+CALL/i.test(raw)) desc = 'Spindle tool change and cutting speed / feedrate activation.';
+  else if (/G71\b/i.test(raw)) desc = 'CNC Lathe longitudinal stock removal roughing cycle (G71).';
+  else if (/G70\b/i.test(raw)) desc = 'CNC Lathe contour finishing pass cycle (G70).';
   else if (/G41|RL\b/i.test(raw)) desc = 'Left cutter radius compensation active.';
   else if (/G42|RR\b/i.test(raw)) desc = 'Right cutter radius compensation active.';
   else if (/G00|FMAX/i.test(raw)) desc = 'Rapid positioning traverse (non-cutting). Verified against solid stock for gouges.';
   document.getElementById('assist-explanation').textContent = desc;
+  document.getElementById('assist-modal-summary').textContent = `${state.kinematicsMode.toUpperCase()} | ${document.getElementById('st-units').textContent.replace('Units: ', '')}`;
 }
 
 function renderToolTableDock() {
@@ -1838,6 +1927,10 @@ function parseIsoGCode(lines, prof, rapidRate, fitView) {
     else if (/\bG0?2\b/i.test(clean)) motionMode = 'G02';
     else if (/\bG0?3\b/i.test(clean)) motionMode = 'G03';
 
+    // Lathe Canned Cycles G71 / G70 summary
+    if (isLathe && /\bG71\b/i.test(clean) && /\bP\d+/i.test(clean)) continue;
+    if (isLathe && /\bG70\b/i.test(clean) && /\bP\d+/i.test(clean)) continue;
+
     const xm = clean.match(/\bX([+-]?\d*\.?\d+)/i);
     const ym = clean.match(/\bY([+-]?\d*\.?\d+)/i);
     const zm = clean.match(/\bZ([+-]?\d*\.?\d+)/i);
@@ -1936,7 +2029,7 @@ function finalizeParsedSimulation(segments, alarms, collisionLineSet, minX, maxX
   state.collisionLineSet = collisionLineSet;
   state.compPolylines = !isLathe ? computeCutterCompPolylines(segments) : [];
 
-  initStockHeightmapAndVerifyCollisions(blkFormFound);
+  initStockHeightmapAndVerifyCollisions(blkFormFound, isLathe);
 
   document.getElementById('st-units').textContent = metric ? 'Units: Metric (MM)' : 'Units: Inch (INCH)';
   document.getElementById('st-extents').textContent = segments.length > 0
@@ -1975,12 +2068,26 @@ function computeCutterCompPolylines(segments) {
   return polys;
 }
 
-function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false) {
+function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe = false) {
   const stk = state.stock;
   if (state.segments.length === 0) {
     stk.initialZ = null;
     stk.currentZ = null;
     stk.gougeFlags = null;
+    stk.cylInitialR = null;
+    stk.cylCurrentR = null;
+    stk.cylGougeFlags = null;
+    stk.latheCurrentR = null;
+    stk.latheGougeFlags = null;
+    return;
+  }
+
+  if (isLathe) {
+    const nZ = stk.latheZSegs;
+    const rMax = Math.max(5, (stk.latheDia || 66) * 0.5);
+    stk.latheCurrentR = new Float32Array(nZ);
+    stk.latheGougeFlags = new Uint8Array(nZ);
+    stk.latheCurrentR.fill(rMax);
     return;
   }
 
@@ -1988,7 +2095,7 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false) {
     const w = stk.maxX - stk.minX;
     const d = stk.maxY - stk.minY;
     const h = stk.maxZ - stk.minZ;
-    if (Math.abs(w - d) < 1e-3 && h > w * 1.6) stk.shape = 'cylinder';
+    stk.shape = (Math.abs(w - d) < 1e-3 && h > w * 1.6) ? 'cylinder' : 'box';
   } else if (stk.autoFit) {
     stk.shape = 'box';
     stk.minX = Math.floor(state.extents.minX - 6);
@@ -1997,6 +2104,42 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false) {
     stk.maxY = Math.ceil(state.extents.maxY + 6);
     stk.minZ = Math.min(-18, Math.floor(state.extents.minZ - 5));
     stk.maxZ = 0;
+  }
+
+  if (stk.shape === 'cylinder') {
+    const nTheta = stk.cylThetaSegs;
+    const nZ = stk.cylZSegs;
+    const totalCyl = nTheta * nZ;
+    const rMax = Math.max(0.1, Math.min(stk.maxX - stk.minX, stk.maxY - stk.minY) * 0.5);
+    stk.cylMaxR = rMax;
+    stk.cylInitialR = new Float32Array(totalCyl);
+    stk.cylCurrentR = new Float32Array(totalCyl);
+    stk.cylGougeFlags = new Uint8Array(totalCyl);
+    stk.cylInitialR.fill(rMax);
+    stk.cylCurrentR.fill(rMax);
+
+    const tempCyl = new Float32Array(totalCyl);
+    tempCyl.fill(rMax);
+
+    for (const seg of state.segments) {
+      const toolObj = state.tools[seg.tool] || { dia: 0.375, shape: 'ball', fluteLen: 1.25 };
+      if (seg.type === 'G00') {
+        const hit = carveOrCheckCylinderGrid(tempCyl, null, seg, toolObj, true);
+        if (hit) {
+          seg.isCollision = true;
+          state.collisionLineSet.add(seg.line);
+          state.alarms.push({
+            line: seg.line,
+            title: 'RAPID-INTO-STOCK GOUGE (FMAX / G00)',
+            detail: `Rapid traverse crashes through cylindrical bar at Z=${hit.z.toFixed(3)}, R=${hit.r.toFixed(3)}.`,
+            timeSec: seg.startTimeSec
+          });
+        }
+      } else {
+        carveOrCheckCylinderGrid(tempCyl, null, seg, toolObj, false);
+      }
+    }
+    return;
   }
 
   const totalCells = stk.cols * stk.rows;
@@ -2030,54 +2173,202 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false) {
   }
 }
 
-function carveOrCheckGrid(grid, gougeArr, pts, toolRadius, isRapid) {
+// Z-Buffer Heightfield Material Removal & Collision Verification for Rectangular Billet Stock
+function carveOrCheckGrid(zGrid, gougeArr, pts, toolR, isRapid) {
   const stk = state.stock;
+  const cols = stk.cols;
+  const rows = stk.rows;
   const spanX = Math.max(0.01, stk.maxX - stk.minX);
   const spanY = Math.max(0.01, stk.maxY - stk.minY);
-  const cellW = spanX / stk.cols;
-  const cellH = spanY / stk.rows;
-  const radCellsX = Math.max(1, Math.ceil(toolRadius / cellW));
-  const radCellsY = Math.max(1, Math.ceil(toolRadius / cellH));
-  const barRadius = Math.min(spanX, spanY) * 0.5;
-  const barCx = (stk.minX + stk.maxX) * 0.5;
-  const barCy = (stk.minY + stk.maxY) * 0.5;
+  const dxCell = spanX / cols;
+  const dyCell = spanY / rows;
+  const effR = Math.max(toolR, Math.min(dxCell, dyCell) * 0.75);
+  const rSq = effR * effR;
+
+  if (!pts || pts.length < 2) return null;
   let firstHit = null;
 
   for (let i = 1; i < pts.length; i++) {
     const p0 = pts[i - 1], p1 = pts[i];
-    const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-    const steps = Math.max(1, Math.ceil(dist / Math.min(cellW, cellH)));
+    const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
+    const steps = Math.max(1, Math.ceil(dist / (Math.min(dxCell, dyCell) * 0.65)));
 
     for (let s = 0; s <= steps; s++) {
       const t = s / steps;
-      const cx = p0.x + (p1.x - p0.x) * t;
-      const cy = p0.y + (p1.y - p0.y) * t;
-      const cz = p0.z + (p1.z - p0.z) * t;
-      const gx = Math.floor(((cx - stk.minX) / spanX) * stk.cols);
-      const gy = Math.floor(((cy - stk.minY) / spanY) * stk.rows);
+      const tx = p0.x + (p1.x - p0.x) * t;
+      const ty = p0.y + (p1.y - p0.y) * t;
+      const tz = p0.z + (p1.z - p0.z) * t;
 
-      for (let dy = -radCellsY; dy <= radCellsY; dy++) {
-        const ny = gy + dy;
-        if (ny < 0 || ny >= stk.rows) continue;
-        for (let dx = -radCellsX; dx <= radCellsX; dx++) {
-          const nx = gx + dx;
-          if (nx < 0 || nx >= stk.cols) continue;
-          const worldX = stk.minX + (nx + 0.5) * cellW;
-          const worldY = stk.minY + (ny + 0.5) * cellH;
-          if (stk.shape === 'cylinder' && Math.hypot(worldX - barCx, worldY - barCy) > barRadius) continue;
+      if (tx + effR < stk.minX || tx - effR > stk.maxX || ty + effR < stk.minY || ty - effR > stk.maxY) continue;
 
-          if (Math.hypot(worldX - cx, worldY - cy) <= toolRadius) {
-            const idx = ny * stk.cols + nx;
+      const cMin = Math.max(0, Math.floor((tx - effR - stk.minX) / dxCell));
+      const cMax = Math.min(cols - 1, Math.ceil((tx + effR - stk.minX) / dxCell));
+      const rMin = Math.max(0, Math.floor((ty - effR - stk.minY) / dyCell));
+      const rMax = Math.min(rows - 1, Math.ceil((ty + effR - stk.minY) / dyCell));
+
+      for (let r = rMin; r <= rMax; r++) {
+        const cy = stk.minY + (r + 0.5) * dyCell;
+        const dy = cy - ty;
+        const dySq = dy * dy;
+        if (dySq > rSq) continue;
+
+        for (let c = cMin; c <= cMax; c++) {
+          const cx = stk.minX + (c + 0.5) * dxCell;
+          const dx = cx - tx;
+          if (dx * dx + dySq > rSq) continue;
+
+          const idx = r * cols + c;
+          if (tz < zGrid[idx] - 1e-4) {
             if (isRapid) {
-              if (cz < grid[idx] - 0.02 && cz >= stk.minZ) {
-                if (!firstHit) firstHit = { x: cx, y: cy, z: cz };
-                if (gougeArr) {
-                  grid[idx] = Math.max(stk.minZ, cz);
-                  gougeArr[idx] = 1;
+              if (!firstHit) firstHit = { x: tx, y: ty, z: tz };
+              if (gougeArr) {
+                zGrid[idx] = Math.max(stk.minZ, tz);
+                gougeArr[idx] = 1;
+              }
+            } else {
+              zGrid[idx] = Math.max(stk.minZ, tz);
+            }
+          }
+        }
+      }
+    }
+  }
+  return firstHit;
+}
+
+// True 3D Swept Cutter Volume Removal on Cylindrical Radial Heightfield r[thetaIdx][zIdx]
+function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, maxFrac = 1.0) {
+  const stk = state.stock;
+  const nTheta = stk.cylThetaSegs;
+  const nZ = stk.cylZSegs;
+  const zMin = stk.minZ;
+  const zMax = stk.maxZ;
+  const zSpan = Math.max(0.01, zMax - zMin);
+  const dz = zSpan / nZ;
+  const dTheta = (Math.PI * 2) / nTheta;
+  const barCx = (stk.minX + stk.maxX) * 0.5;
+  const barCy = (stk.minY + stk.maxY) * 0.5;
+
+  const toolR = Math.max(0.02, (toolObj.dia || 0.375) * 0.5);
+  const isBall = (toolObj.shape === 'ball');
+  const fluteLen = Math.max(toolR * 2.5, toolObj.fluteLen || 1.25);
+  const fluteSteps = Math.max(5, Math.ceil(fluteLen / (dz * 1.4)));
+
+  const pts = seg.pts;
+  if (!pts || pts.length < 2) return null;
+  let firstHit = null;
+
+  const totalPathSegs = pts.length - 1;
+  for (let i = 1; i < pts.length; i++) {
+    const segStartFrac = (i - 1) / totalPathSegs;
+    if (segStartFrac > maxFrac) break;
+    const segEndFrac = Math.min(maxFrac, i / totalPathSegs);
+    const localMaxT = Math.max(0, Math.min(1, (segEndFrac - segStartFrac) / Math.max(1e-6, (1 / totalPathSegs))));
+
+    const p0 = pts[i - 1], p1 = pts[i];
+    const moveDist = Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
+    const rot0 = {
+      a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * segStartFrac,
+      b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * segStartFrac,
+      c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * segStartFrac
+    };
+    const rot1 = {
+      a: seg.rotStart.a + (seg.rotEnd.a - seg.rotStart.a) * segEndFrac,
+      b: seg.rotStart.b + (seg.rotEnd.b - seg.rotStart.b) * segEndFrac,
+      c: seg.rotStart.c + (seg.rotEnd.c - seg.rotStart.c) * segEndFrac
+    };
+    const dRot = Math.abs(rot1.b - rot0.b) + Math.abs(rot1.c - rot0.c);
+    const pathSteps = Math.max(2, Math.ceil(moveDist / (dz * 0.85)), Math.ceil(dRot / 2.5));
+
+    for (let s = 0; s <= pathSteps; s++) {
+      const u = (s / pathSteps) * localMaxT;
+      const tipX = (p0.x + (p1.x - p0.x) * u) - barCx;
+      const tipY = (p0.y + (p1.y - p0.y) * u) - barCy;
+      const tipZ = p0.z + (p1.z - p0.z) * u;
+
+      const curRot = {
+        a: rot0.a + (rot1.a - rot0.a) * u,
+        b: rot0.b + (rot1.b - rot0.b) * u,
+        c: rot0.c + (rot1.c - rot0.c) * u
+      };
+      const vTool = getToolAxisWorkpieceVector(curRot, seg.plane);
+
+      // Sample along cutter flute length from tip (h = 0) up to fluteLen along vTool
+      for (let fs = 0; fs <= fluteSteps; fs++) {
+        const h = (fs / fluteSteps) * fluteLen;
+        let effR = toolR;
+        const centerH = h;
+        if (isBall && h < toolR) {
+          const dh = toolR - h;
+          effR = Math.sqrt(Math.max(0, toolR * toolR - dh * dh));
+          if (effR < 0.015) effR = 0.015;
+        }
+
+        const cx = tipX + vTool.x * centerH;
+        const cy = tipY + vTool.y * centerH;
+        const cz = tipZ + vTool.z * centerH;
+
+        const zLow = cz - effR;
+        const zHigh = cz + effR;
+        if (zHigh < zMin || zLow > zMax) continue;
+
+        const iz0 = Math.max(0, Math.floor((zLow - zMin) / dz));
+        const iz1 = Math.min(nZ - 1, Math.floor((zHigh - zMin) / dz));
+
+        const distCenter = Math.hypot(cx, cy);
+        const centerTheta = Math.atan2(cy, cx);
+
+        for (let iz = iz0; iz <= iz1; iz++) {
+          const zCell = zMin + (iz + 0.5) * dz;
+          const dzSlice = zCell - cz;
+          const sliceRemSq = effR * effR - dzSlice * dzSlice;
+          if (sliceRemSq <= 0) continue;
+          const sliceR = Math.sqrt(sliceRemSq);
+
+          if (distCenter <= sliceR + 1e-4) {
+            for (let it = 0; it < nTheta; it++) {
+              const idx = it * nZ + iz;
+              if (rGrid[idx] > 0.001) {
+                if (isRapid) {
+                  if (!firstHit) firstHit = { z: zCell, r: 0 };
+                  if (gougeArr) { rGrid[idx] = 0; gougeArr[idx] = 1; }
+                } else {
+                  rGrid[idx] = 0;
                 }
               }
-            } else if (cz < grid[idx]) {
-              grid[idx] = Math.max(stk.minZ, cz);
+            }
+          } else {
+            const sinHalf = Math.min(1.0, sliceR / distCenter);
+            const halfSpan = Math.asin(sinHalf) + dTheta * 0.6;
+            const stepsAng = Math.max(1, Math.ceil(halfSpan / dTheta));
+
+            for (let ia = -stepsAng; ia <= stepsAng; ia++) {
+              const theta = centerTheta + ia * dTheta;
+              const ux = Math.cos(theta);
+              const uy = Math.sin(theta);
+
+              const proj = cx * ux + cy * uy;
+              if (proj <= 0) continue;
+              const perpSq = distCenter * distCenter - proj * proj;
+              if (perpSq >= sliceR * sliceR) continue;
+              const chordHalf = Math.sqrt(sliceR * sliceR - perpSq);
+              const rEntry = Math.max(0, proj - chordHalf);
+
+              let it = Math.round((theta / (Math.PI * 2)) * nTheta) % nTheta;
+              if (it < 0) it += nTheta;
+              const idx = it * nZ + iz;
+
+              if (rEntry < rGrid[idx] - 1e-4) {
+                if (isRapid) {
+                  if (!firstHit) firstHit = { z: zCell, r: rEntry };
+                  if (gougeArr) {
+                    rGrid[idx] = rEntry;
+                    gougeArr[idx] = 1;
+                  }
+                } else {
+                  rGrid[idx] = rEntry;
+                }
+              }
             }
           }
         }
@@ -2089,6 +2380,48 @@ function carveOrCheckGrid(grid, gougeArr, pts, toolRadius, isRapid) {
 
 function rebuildStockUpToTime(targetTimeSec) {
   const stk = state.stock;
+  if (state.kinematicsMode === 'lathe-2ax' && stk.latheCurrentR) {
+    const nZ = stk.latheZSegs;
+    const rMax = Math.max(5, (stk.latheDia || 66) * 0.5);
+    const len = Math.max(10, stk.latheLen || 80);
+    stk.latheCurrentR.fill(rMax);
+    for (const seg of state.segments) {
+      if (seg.startTimeSec > targetTimeSec) break;
+      if (seg.type === 'G00') continue;
+      for (let i = 1; i < seg.pts.length; i++) {
+        const p0 = seg.pts[i - 1], p1 = seg.pts[i];
+        const steps = 20;
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          const rx = Math.abs(p0.x + (p1.x - p0.x) * t);
+          const zz = p0.z + (p1.z - p0.z) * t;
+          if (zz <= 0 && zz >= -len) {
+            const iz = Math.min(nZ - 1, Math.max(0, Math.floor(((-zz) / len) * nZ)));
+            if (rx < stk.latheCurrentR[iz]) stk.latheCurrentR[iz] = Math.max(2, rx);
+          }
+        }
+      }
+    }
+    state.sim.lastBuiltTimeSec = targetTimeSec;
+    return;
+  }
+
+  if (stk.shape === 'cylinder') {
+    if (!stk.cylInitialR || !stk.cylCurrentR) return;
+    stk.cylCurrentR.set(stk.cylInitialR);
+    stk.cylGougeFlags.fill(0);
+
+    for (const seg of state.segments) {
+      if (seg.startTimeSec > targetTimeSec) break;
+      const toolObj = state.tools[seg.tool] || { dia: 0.375, shape: 'ball', fluteLen: 1.25 };
+      const dur = Math.max(0.001, seg.endTimeSec - seg.startTimeSec);
+      const frac = targetTimeSec < seg.endTimeSec ? Math.max(0, Math.min(1, (targetTimeSec - seg.startTimeSec) / dur)) : 1.0;
+      carveOrCheckCylinderGrid(stk.cylCurrentR, stk.cylGougeFlags, seg, toolObj, seg.type === 'G00', frac);
+    }
+    state.sim.lastBuiltTimeSec = targetTimeSec;
+    return;
+  }
+
   if (!stk.initialZ || !stk.currentZ) return;
   stk.currentZ.set(stk.initialZ);
   stk.gougeFlags.fill(0);
@@ -2328,9 +2661,49 @@ function drawRotaryTableAssembly(ctx, cx, cy, activeRot, activePlane) {
   }
 }
 
+function drawLatheStock3D(ctx, cx, cy) {
+  const stk = state.stock;
+  if (!stk.latheCurrentR) return;
+  const mat = MATERIAL_SHADERS[stk.material] || MATERIAL_SHADERS.aluminum;
+  const mode = state.cam.stockRenderMode;
+  const alphaMul = mode === 'translucent' ? 0.42 : 1.0;
+  const nZ = stk.latheZSegs;
+  const len = Math.max(10, stk.latheLen || 80);
+  const rMax = Math.max(5, (stk.latheDia || 66) * 0.5);
+  const quads = [];
+  const tSegs = 28;
+  const zStep = 3;
+
+  for (let iz = 0; iz < nZ - zStep; iz += zStep) {
+    const z0 = -(iz / nZ) * len;
+    const z1 = -((iz + zStep) / nZ) * len;
+    const r0 = stk.latheCurrentR[iz];
+    const r1 = stk.latheCurrentR[Math.min(nZ - 1, iz + zStep)];
+    const isCut = r0 < rMax - 0.1;
+    const base = isCut ? mat.cutRgb : mat.rawRgb;
+
+    for (let it = 0; it < tSegs; it++) {
+      const a0 = (it / tSegs) * Math.PI * 2;
+      const a1 = ((it + 1) / tSegs) * Math.PI * 2;
+      const p00 = project3D({ x: Math.cos(a0) * r0, y: Math.sin(a0) * r0, z: z0 }, cx, cy);
+      const p10 = project3D({ x: Math.cos(a1) * r0, y: Math.sin(a1) * r0, z: z0 }, cx, cy);
+      const p11 = project3D({ x: Math.cos(a1) * r1, y: Math.sin(a1) * r1, z: z1 }, cx, cy);
+      const p01 = project3D({ x: Math.cos(a0) * r1, y: Math.sin(a0) * r1, z: z1 }, cx, cy);
+      const shade = 0.45 + 0.55 * Math.max(0, Math.cos(a0 - 0.7));
+      quads.push({
+        pts: [p00, p10, p11, p01],
+        depth: (p00.depth + p11.depth) * 0.5,
+        fill: mode === 'wireframe' ? null : `rgba(${Math.round(base[0] * shade)}, ${Math.round(base[1] * shade)}, ${Math.round(base[2] * shade)}, ${0.96 * alphaMul})`,
+        stroke: mode === 'wireframe' ? 'rgba(86, 212, 221, 0.45)' : null
+      });
+    }
+  }
+  quads.sort((a, b) => a.depth - b.depth);
+  quads.forEach(q => fillProjectedQuad(ctx, q.pts, q.fill, q.stroke, 0.5));
+}
+
 function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
   const stk = state.stock;
-  if (!stk.currentZ) return;
   const mode = state.cam.stockRenderMode;
   const alphaMul = mode === 'translucent' ? 0.42 : 1.0;
   const mat = MATERIAL_SHADERS[stk.material] || MATERIAL_SHADERS.aluminum;
@@ -2347,47 +2720,209 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
   const barCx = (stk.minX + stk.maxX) * 0.5;
   const barCy = (stk.minY + stk.maxY) * 0.5;
 
-  if (mode !== 'wireframe') {
-    const [wr, wg, wb] = mat.wallRgb;
+  // =========================================================================
+  // CYLINDRICAL DEFORMED RADIAL SOLID MESH r[thetaIdx][zIdx] (NO OUTER SKIN!)
+  // =========================================================================
+  if (stk.shape === 'cylinder' && stk.cylCurrentR) {
+    const nTheta = stk.cylThetaSegs;
+    const nZ = stk.cylZSegs;
+    const rGrid = stk.cylCurrentR;
+    const gFlags = stk.cylGougeFlags;
+    const rMax = stk.cylMaxR;
+    const zMin = stk.minZ;
+    const zMax = stk.maxZ;
+    const dz = (zMax - zMin) / nZ;
 
-    if (stk.shape === 'cylinder') {
-      const cylSegs = 28;
-      const cylQuads = [];
-      for (let i = 0; i < cylSegs; i++) {
-        const a0 = (i / cylSegs) * Math.PI * 2;
-        const a1 = ((i + 1) / cylSegs) * Math.PI * 2;
-        const midA = (a0 + a1) * 0.5;
-        const shade = 0.52 + 0.48 * Math.cos(midA - 0.75);
-        const pB0 = project3D(xform({ x: barCx + Math.cos(a0) * barRadius, y: barCy + Math.sin(a0) * barRadius, z: stk.minZ }), cx, cy);
-        const pB1 = project3D(xform({ x: barCx + Math.cos(a1) * barRadius, y: barCy + Math.sin(a1) * barRadius, z: stk.minZ }), cx, cy);
-        const pT1 = project3D(xform({ x: barCx + Math.cos(a1) * barRadius, y: barCy + Math.sin(a1) * barRadius, z: stk.maxZ }), cx, cy);
-        const pT0 = project3D(xform({ x: barCx + Math.cos(a0) * barRadius, y: barCy + Math.sin(a0) * barRadius, z: stk.maxZ }), cx, cy);
-        cylQuads.push({
-          pts: [pB0, pB1, pT1, pT0],
-          depth: (pB0.depth + pT1.depth) * 0.5,
-          col: `rgba(${Math.round(wr * shade * 1.15)}, ${Math.round(wg * shade * 1.15)}, ${Math.round(wb * shade * 1.15)}, ${0.96 * alphaMul})`
+    const tStep = 2;
+    const zStep = 2;
+    const quads = [];
+    const lx = -0.45, ly = -0.55, lz = 0.70;
+    const hx = -0.25, hy = -0.30, hz = 0.92;
+
+    const ptCyl = (ang, rad, z) => project3D(xform({
+      x: barCx + Math.cos(ang) * rad,
+      y: barCy + Math.sin(ang) * rad,
+      z
+    }), cx, cy);
+
+    for (let it = 0; it < nTheta; it += tStep) {
+      const itNext = (it + tStep) % nTheta;
+      const a0 = (it / nTheta) * Math.PI * 2;
+      const a1 = ((it + tStep) / nTheta) * Math.PI * 2;
+      const aMid = (a0 + a1) * 0.5;
+      const cosM = Math.cos(aMid), sinM = Math.sin(aMid);
+
+      let firstSolidIz = -1;
+      let lastSolidIz = -1;
+      for (let iz = 0; iz < nZ; iz += zStep) {
+        const rHere = Math.min(rGrid[it * nZ + iz], rGrid[itNext * nZ + iz]);
+        if (rHere > 0.002) {
+          if (firstSolidIz === -1) firstSolidIz = iz;
+          lastSolidIz = iz;
+        }
+      }
+
+      if (firstSolidIz === -1) continue;
+
+      for (let iz = firstSolidIz; iz <= lastSolidIz; iz += zStep) {
+        const izNext = Math.min(nZ - 1, iz + zStep);
+        const z0 = zMin + iz * dz;
+        const z1 = zMin + (iz + zStep) * dz;
+
+        const r00 = rGrid[it * nZ + iz];
+        const r10 = rGrid[itNext * nZ + iz];
+        const r11 = rGrid[itNext * nZ + izNext];
+        const r01 = rGrid[it * nZ + izNext];
+
+        if (r00 <= 0.002 && r10 <= 0.002 && r11 <= 0.002 && r01 <= 0.002) continue;
+
+        const isGouge = (gFlags[it * nZ + iz] === 1) || (gFlags[itNext * nZ + iz] === 1);
+        const rAvg = (r00 + r10 + r11 + r01) * 0.25;
+        const isCut = rAvg < rMax - 0.004;
+
+        const drDz = ((r01 + r11) * 0.5 - (r00 + r10) * 0.5) / Math.max(1e-4, z1 - z0);
+        let nx = cosM;
+        let ny = sinM;
+        let nz = -drDz;
+        const nLen = Math.hypot(nx, ny, nz) || 1;
+        nx /= nLen; ny /= nLen; nz /= nLen;
+
+        const diff = Math.max(0.26, nx * lx + ny * ly + nz * lz);
+        const specDot = Math.max(0, nx * hx + ny * hy + nz * hz);
+        const spec = Math.pow(specDot, mat.specPower) * mat.specIntensity * 255;
+
+        const p00 = ptCyl(a0, r00, z0);
+        const p10 = ptCyl(a1, r10, z0);
+        const p11 = ptCyl(a1, r11, z1);
+        const p01 = ptCyl(a0, r01, z1);
+        const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) * 0.25;
+
+        let fillCol;
+        if (isGouge) {
+          fillCol = `rgba(238, 52, 52, ${0.96 * alphaMul})`;
+        } else {
+          const base = isCut ? mat.cutRgb : mat.rawRgb;
+          const rCol = Math.min(255, Math.round(base[0] * diff + spec));
+          const gCol = Math.min(255, Math.round(base[1] * diff + spec));
+          const bCol = Math.min(255, Math.round(base[2] * diff + spec));
+          fillCol = `rgba(${rCol}, ${gCol}, ${bCol}, ${0.97 * alphaMul})`;
+        }
+
+        quads.push({
+          pts: [p00, p10, p11, p01],
+          depth: avgDepth,
+          fill: mode === 'wireframe' ? null : fillCol,
+          stroke: mode === 'wireframe' ? 'rgba(86, 212, 221, 0.45)' : null
+        });
+
+        if (iz > firstSolidIz) {
+          const izPrev = iz - zStep;
+          const rPrev0 = rGrid[it * nZ + izPrev];
+          const rPrev1 = rGrid[itNext * nZ + izPrev];
+          if (Math.abs(r00 - rPrev0) > 0.025 || Math.abs(r10 - rPrev1) > 0.025) {
+            const w0 = ptCyl(a0, rPrev0, z0);
+            const w1 = ptCyl(a1, rPrev1, z0);
+            const stepDiff = Math.max(0.32, (r00 > rPrev0 ? -lz : lz) * 0.7 + 0.35);
+            const baseW = mat.cutRgb;
+            quads.push({
+              pts: [w0, w1, p10, p00],
+              depth: avgDepth + 0.02,
+              fill: mode === 'wireframe' ? null : `rgba(${Math.round(baseW[0] * stepDiff)}, ${Math.round(baseW[1] * stepDiff)}, ${Math.round(baseW[2] * stepDiff)}, ${0.97 * alphaMul})`,
+              stroke: mode === 'wireframe' ? 'rgba(86, 212, 221, 0.45)' : null
+            });
+          }
+        }
+      }
+
+      // Dynamic Front Cap at lastSolidIz
+      const zFront = zMin + Math.min(nZ, lastSolidIz + zStep) * dz;
+      const rF0 = rGrid[it * nZ + lastSolidIz];
+      const rF1 = rGrid[itNext * nZ + lastSolidIz];
+      if (rF0 > 0.002 || rF1 > 0.002) {
+        const pCenter = ptCyl(aMid, 0, zFront);
+        const pEdge0 = ptCyl(a0, rF0, zFront);
+        const pEdge1 = ptCyl(a1, rF1, zFront);
+        const isFrontCut = zFront < zMax - dz * 1.5;
+        const baseCap = isFrontCut ? mat.cutRgb : mat.rawRgb;
+        const capDiff = Math.max(0.35, lz * 0.85 + 0.25);
+        quads.push({
+          pts: [pCenter, pEdge0, pEdge1],
+          depth: (pCenter.depth + pEdge0.depth + pEdge1.depth) / 3,
+          fill: mode === 'wireframe' ? null : `rgba(${Math.round(baseCap[0] * capDiff)}, ${Math.round(baseCap[1] * capDiff)}, ${Math.round(baseCap[2] * capDiff)}, ${0.97 * alphaMul})`,
+          stroke: mode === 'wireframe' ? 'rgba(86, 212, 221, 0.45)' : null
         });
       }
-      cylQuads.sort((a, b) => a.depth - b.depth);
-      cylQuads.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, null));
-    } else {
-      const b0 = project3D(xform({ x: stk.minX, y: stk.minY, z: stk.minZ }), cx, cy);
-      const b1 = project3D(xform({ x: stk.maxX, y: stk.minY, z: stk.minZ }), cx, cy);
-      const b2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.minZ }), cx, cy);
-      const b3 = project3D(xform({ x: stk.minX, y: stk.maxY, z: stk.minZ }), cx, cy);
-      const t0 = project3D(xform({ x: stk.minX, y: stk.minY, z: stk.maxZ }), cx, cy);
-      const t1 = project3D(xform({ x: stk.maxX, y: stk.minY, z: stk.maxZ }), cx, cy);
-      const t2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.maxZ }), cx, cy);
-      const t3 = project3D(xform({ x: stk.minX, y: stk.maxY, z: stk.maxZ }), cx, cy);
-      const walls = [
-        { pts: [b0, b1, t1, t0], depth: (b0.depth + b1.depth) * 0.5, col: `rgba(${Math.round(wr * 1.08)}, ${Math.round(wg * 1.08)}, ${Math.round(wb * 1.08)}, ${0.96 * alphaMul})` },
-        { pts: [b1, b2, t2, t1], depth: (b1.depth + b2.depth) * 0.5, col: `rgba(${Math.round(wr * 0.85)}, ${Math.round(wg * 0.85)}, ${Math.round(wb * 0.85)}, ${0.96 * alphaMul})` },
-        { pts: [b2, b3, t3, t2], depth: (b2.depth + b3.depth) * 0.5, col: `rgba(${Math.round(wr * 0.72)}, ${Math.round(wg * 0.72)}, ${Math.round(wb * 0.72)}, ${0.96 * alphaMul})` },
-        { pts: [b3, b0, t0, t3], depth: (b3.depth + b0.depth) * 0.5, col: `rgba(${Math.round(wr * 0.96)}, ${Math.round(wg * 0.96)}, ${Math.round(wb * 0.96)}, ${0.96 * alphaMul})` }
-      ];
-      walls.sort((a, b) => a.depth - b.depth);
-      walls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, `rgba(255,255,255,${0.12 * alphaMul})`));
+
+      // Dynamic Back Cap at firstSolidIz
+      const zBack = zMin + firstSolidIz * dz;
+      const rB0 = rGrid[it * nZ + firstSolidIz];
+      const rB1 = rGrid[itNext * nZ + firstSolidIz];
+      if (rB0 > 0.002 || rB1 > 0.002) {
+        const pCenterB = ptCyl(aMid, 0, zBack);
+        const pEdgeB0 = ptCyl(a0, rB0, zBack);
+        const pEdgeB1 = ptCyl(a1, rB1, zBack);
+        const baseBack = mat.wallRgb;
+        quads.push({
+          pts: [pCenterB, pEdgeB1, pEdgeB0],
+          depth: (pCenterB.depth + pEdgeB0.depth + pEdgeB1.depth) / 3,
+          fill: mode === 'wireframe' ? null : `rgba(${Math.round(baseBack[0] * 0.65)}, ${Math.round(baseBack[1] * 0.65)}, ${Math.round(baseBack[2] * 0.65)}, ${0.97 * alphaMul})`,
+          stroke: mode === 'wireframe' ? 'rgba(86, 212, 221, 0.45)' : null
+        });
+      }
     }
+
+    quads.sort((a, b) => a.depth - b.depth);
+    for (let i = 0; i < quads.length; i++) {
+      fillProjectedQuad(ctx, quads[i].pts, quads[i].fill, quads[i].stroke, 0.5);
+    }
+
+    if (state.cam.showRawGhost) {
+      ctx.strokeStyle = 'rgba(130, 195, 255, 0.26)';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.0;
+      [stk.minZ, stk.maxZ].forEach(zRing => {
+        ctx.beginPath();
+        for (let i = 0; i <= 36; i++) {
+          const a = (i / 36) * Math.PI * 2;
+          const p = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: zRing }), cx, cy);
+          if (i === 0) ctx.moveTo(p.sx, p.sy);
+          else ctx.lineTo(p.sx, p.sy);
+        }
+        ctx.stroke();
+      });
+      for (let g = 0; g < 8; g++) {
+        const a = (g / 8) * Math.PI * 2;
+        const p0 = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: stk.minZ }), cx, cy);
+        const p1 = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: stk.maxZ }), cx, cy);
+        ctx.beginPath(); ctx.moveTo(p0.sx, p0.sy); ctx.lineTo(p1.sx, p1.sy); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+    return;
+  }
+
+  // =========================================================================
+  // RECTANGULAR BILLET HEIGHTFIELD (FOR 3-AXIS / 5-AXIS PRISMATIC PARTS)
+  // =========================================================================
+  if (!stk.currentZ) return;
+  if (mode !== 'wireframe') {
+    const [wr, wg, wb] = mat.wallRgb;
+    const b0 = project3D(xform({ x: stk.minX, y: stk.minY, z: stk.minZ }), cx, cy);
+    const b1 = project3D(xform({ x: stk.maxX, y: stk.minY, z: stk.minZ }), cx, cy);
+    const b2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.minZ }), cx, cy);
+    const b3 = project3D(xform({ x: stk.minX, y: stk.maxY, z: stk.minZ }), cx, cy);
+    const t0 = project3D(xform({ x: stk.minX, y: stk.minY, z: stk.maxZ }), cx, cy);
+    const t1 = project3D(xform({ x: stk.maxX, y: stk.minY, z: stk.maxZ }), cx, cy);
+    const t2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.maxZ }), cx, cy);
+    const t3 = project3D(xform({ x: stk.minX, y: stk.maxY, z: stk.maxZ }), cx, cy);
+    const walls = [
+      { pts: [b0, b1, t1, t0], depth: (b0.depth + b1.depth) * 0.5, col: `rgba(${Math.round(wr * 1.08)}, ${Math.round(wg * 1.08)}, ${Math.round(wb * 1.08)}, ${0.96 * alphaMul})` },
+      { pts: [b1, b2, t2, t1], depth: (b1.depth + b2.depth) * 0.5, col: `rgba(${Math.round(wr * 0.85)}, ${Math.round(wg * 0.85)}, ${Math.round(wb * 0.85)}, ${0.96 * alphaMul})` },
+      { pts: [b2, b3, t3, t2], depth: (b2.depth + b3.depth) * 0.5, col: `rgba(${Math.round(wr * 0.72)}, ${Math.round(wg * 0.72)}, ${Math.round(wb * 0.72)}, ${0.96 * alphaMul})` },
+      { pts: [b3, b0, t0, t3], depth: (b3.depth + b0.depth) * 0.5, col: `rgba(${Math.round(wr * 0.96)}, ${Math.round(wg * 0.96)}, ${Math.round(wb * 0.96)}, ${0.96 * alphaMul})` }
+    ];
+    walls.sort((a, b) => a.depth - b.depth);
+    walls.forEach(w => fillProjectedQuad(ctx, w.pts, w.col, `rgba(255,255,255,${0.12 * alphaMul})`));
 
     const step = 2;
     const cellW = (spanX / stk.cols) * step;
@@ -2402,10 +2937,6 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         const y0 = stk.minY + (r / stk.rows) * spanY;
         const x1 = x0 + cellW;
         const y1 = y0 + cellH;
-        const midX = (x0 + x1) * 0.5;
-        const midY = (y0 + y1) * 0.5;
-
-        if (stk.shape === 'cylinder' && Math.hypot(midX - barCx, midY - barCy) > barRadius) continue;
 
         const idx = r * stk.cols + c;
         const zVal = stk.currentZ[idx];
@@ -2482,20 +3013,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
     }
   }
 
-  if (stk.shape === 'cylinder') {
-    ctx.strokeStyle = 'rgba(185, 205, 230, 0.45)';
-    ctx.lineWidth = 1.1;
-    [stk.minZ, stk.maxZ].forEach(zRing => {
-      ctx.beginPath();
-      for (let i = 0; i <= 28; i++) {
-        const a = (i / 28) * Math.PI * 2;
-        const p = project3D(xform({ x: barCx + Math.cos(a) * barRadius, y: barCy + Math.sin(a) * barRadius, z: zRing }), cx, cy);
-        if (i === 0) ctx.moveTo(p.sx, p.sy);
-        else ctx.lineTo(p.sx, p.sy);
-      }
-      ctx.stroke();
-    });
-  } else {
+  if (mode === 'wireframe' || state.cam.showRawGhost) {
     const b0 = project3D(xform({ x: stk.minX, y: stk.minY, z: stk.minZ }), cx, cy);
     const b1 = project3D(xform({ x: stk.maxX, y: stk.minY, z: stk.minZ }), cx, cy);
     const b2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.minZ }), cx, cy);
@@ -2505,7 +3023,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
     const t2 = project3D(xform({ x: stk.maxX, y: stk.maxY, z: stk.maxZ }), cx, cy);
     const t3 = project3D(xform({ x: stk.minX, y: stk.maxY, z: stk.maxZ }), cx, cy);
     const edges = [[b0,b1],[b1,b2],[b2,b3],[b3,b0],[t0,t1],[t1,t2],[t2,t3],[t3,t0],[b0,t0],[b1,t1],[b2,t2],[b3,t3]];
-    ctx.strokeStyle = 'rgba(185, 205, 230, 0.5)';
+    ctx.strokeStyle = 'rgba(185, 205, 230, 0.45)';
     ctx.lineWidth = 1.1;
     ctx.beginPath();
     edges.forEach(([pA, pB]) => { ctx.moveTo(pA.sx, pA.sy); ctx.lineTo(pB.sx, pB.sy); });
@@ -2687,8 +3205,9 @@ function drawBackplot() {
     }
 
     // 3. 3D Shaded Solid Workpiece
-    if (!isLathe && state.segments.length > 0) {
-      drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane);
+    if (state.segments.length > 0) {
+      if (isLathe) drawLatheStock3D(ctx, cx, cy);
+      else drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane);
     }
 
     // 4. Workpiece Coordinate Triad (Xw, Yw, Zw)
@@ -2764,10 +3283,12 @@ function drawBackplot() {
       // Update Telemetry HUD
       const prof = getActiveProfile();
       const toolObj = state.tools[seg.tool] || { dia: 0.375, flutes: 4, shape: 'ball' };
+      const wpAxis = getToolAxisWorkpieceVector(activeRot, activePlane);
       document.getElementById('hud-modal').textContent = seg.modalStr;
       document.getElementById('hud-tool').textContent = `T${String(seg.tool).padStart(2, '0')} Ø${toolObj.dia} (${toolObj.shape})`;
       document.getElementById('hud-xyz').textContent = `${machineTip.x.toFixed(3)}, ${machineTip.y.toFixed(3)}, ${machineTip.z.toFixed(3)}`;
       document.getElementById('hud-rot').textContent = `B${activeRot.b >= 0 ? '+' : ''}${activeRot.b.toFixed(2)}°  C${activeRot.c >= 0 ? '+' : ''}${activeRot.c.toFixed(2)}°`;
+      document.getElementById('hud-ijk').textContent = `${wpAxis.x.toFixed(3)}, ${wpAxis.y.toFixed(3)}, ${wpAxis.z.toFixed(3)}`;
       document.getElementById('hud-feed').textContent = `${seg.feed.toFixed(1)}`;
       document.getElementById('hud-feed-bar').style.width = `${Math.min(100, (seg.feed / Math.max(200, prof.rapidRate || 40000)) * 100)}%`;
       document.getElementById('hud-rpm').textContent = `${seg.spindle} RPM (${seg.spindleDir})`;
@@ -2780,6 +3301,7 @@ function drawBackplot() {
       document.getElementById('hud-modal').textContent = 'IDLE / EMPTY PROGRAM';
       document.getElementById('hud-xyz').textContent = '0.000, 0.000, 0.000';
       document.getElementById('hud-rot').textContent = 'B+0.00°  C+0.00°';
+      document.getElementById('hud-ijk').textContent = '0.000, 0.000, 1.000';
     }
 
     document.getElementById('sim-time-label').textContent = `${formatTime(tNow)} / ${formatTime(state.stats.totalTimeSec)}`;
@@ -3334,6 +3856,17 @@ function wireEvents() {
     const order = ['solid', 'translucent', 'wireframe'];
     setStockRenderMode(order[(order.indexOf(state.cam.stockRenderMode) + 1) % order.length]);
   };
+
+  const toggleRawGhost = () => {
+    state.cam.showRawGhost = !state.cam.showRawGhost;
+    document.getElementById('vp-btn-ghost').classList.toggle('active', state.cam.showRawGhost);
+    const rBtn = document.getElementById('btn-toggle-raw-ghost');
+    rBtn.classList.toggle('active', state.cam.showRawGhost);
+    rBtn.innerHTML = `<span>👻 Raw Ghost: ${state.cam.showRawGhost ? 'ON' : 'OFF'}</span>`;
+    drawBackplot();
+  };
+  document.getElementById('vp-btn-ghost').onclick = toggleRawGhost;
+  document.getElementById('btn-toggle-raw-ghost').onclick = toggleRawGhost;
 
   document.getElementById('vp-btn-paths').onclick = (e) => {
     state.cam.showPaths = !state.cam.showPaths;
