@@ -6,7 +6,7 @@
 <title>NC Preview — 5-Axis Table-Table (B/C) &amp; Solid Material Simulator</title>
 <style>
 /* ==========================================================================
-1. DESIGN TOKENS & INDUSTRIAL CAM THEME (100% OFFLINE / ZERO EXTERNAL CALLS)
+   1. DESIGN TOKENS & INDUSTRIAL CAM THEME (100% OFFLINE / ZERO EXTERNAL CALLS)
    ========================================================================== */
 :root {
   --bg-app: #0d1015;
@@ -432,7 +432,7 @@ html, body {
           <button class="r-btn active" id="btn-toggle-assistant"><span>Left Dock</span></button>
           <button class="r-btn" id="btn-ribbon-tools" title="Manage Cutting Tools (Add / Edit / Delete)"><span>🛠 Tool Library</span></button>
           <button class="r-btn active" id="btn-toggle-backplot-main"><span>3D Sim View</span></button>
-          <button class="r-btn" id="btn-reset-workspace" title="Discard the autosaved workspace and start clean"><span>↺ Reset</span></button>
+          <button class="r-btn" id="btn-reset-workspace" title="Discard the autosaved workspace and reload the sample programs"><span>↺ Reset</span></button>
         </div>
         <div class="ribbon-group-title">Workspace</div>
       </div>
@@ -902,14 +902,14 @@ html, body {
 
 <script>
 /* ==========================================================================
-1. COLLISION-FREE 5-AXIS SPHERE-ON-5IN-BAR PROGRAM GENERATOR
+   1. DEFAULT & SAMPLE NC / 5-AXIS KLARTEXT PROGRAMS
    ========================================================================== */
 function buildSphereOn5InchBarProgram() {
   const lines = [
     '0 BEGIN PGM 5AX_SPHERE_5IN_BAR INCH',
     '1 ; NC PREVIEW: 5-AXIS TABLE-TABLE (B/C ROTARY TABLE + VERTICAL X/Y/Z SPINDLE)',
     '2 ; WORKPIECE: 2.000 IN DIA x 5.000 IN ROUND BAR IN 3-JAW CHUCK',
-    '3 ; FEATURE: 1.750 IN SPHERE + 0.900 IN NECK (COLLISION-FREE B+6 TO B+84 DEG)',
+    '3 ; FEATURE: 1.750 IN SPHERE + 0.900 IN UNDERCUT NECK (B+6 TO B+115 DEG)',
     '4 BLK FORM 0.1 Z X-1.000 Y-1.000 Z-5.000',
     '5 BLK FORM 0.2 X+1.000 Y+1.000 Z+0.000',
     '6 TOOL DEF 1 L+0.000 R+0.250 ; 0.500IN FLAT ROUGHING ENDMILL',
@@ -917,28 +917,28 @@ function buildSphereOn5InchBarProgram() {
     '8 ; --- STAGE 1: ROUGH BAR TOP FACE & STEPPED SPHERE / NECK CONTOUR ---',
     '9 TOOL CALL 1 Z S12000 F160.0 ; 0.500IN FLAT ROUGHING ENDMILL',
     '10 L X+0.000 Y+0.000 Z+1.250 B+0.0 C+0.0 R0 FMAX M03 M08',
-    '11 L X+1.250 Y+0.000 Z+0.200 FMAX',
+    '11 L X+1.180 Y+0.000 Z+0.200 FMAX',
     '12 L Z+0.000 F100.0',
-    '13 L X-1.150 Y+0.000 Z+0.000 F150.0 ; FACE ACROSS BAR TOP TO Z=0',
-    '14 L Z+0.350 FMAX'
+    '13 L X-1.050 Y+0.000 Z+0.000 F150.0 ; FACE ACROSS BAR TOP TO Z=0',
+    '14 L Z+0.250 FMAX'
   ];
 
   let blk = 15;
   const sphereR = 0.875;   // 1.750 in diameter sphere
-  const neckR = 0.450;     // 0.900 in diameter neck
+  const neckR = 0.450;     // 0.900 in diameter undercut neck
   const centerZ = -0.875;  // Top pole sits cleanly at Z = 0.000
 
   const roughLevels = [
-    { z: -0.06, r: 0.48 },
-    { z: -0.28, r: 0.80 },
+    { z: -0.06, r: 0.46 },
+    { z: -0.28, r: 0.79 },
     { z: -0.58, r: 0.96 },
     { z: -0.88, r: 1.02 },
-    { z: -1.32, r: 0.94 },
-    { z: -1.68, r: 0.78 },
-    { z: -1.92, r: 0.62 }
+    { z: -1.32, r: 0.85 },
+    { z: -1.68, r: 0.62 },
+    { z: -1.86, r: 0.52 }
   ];
   roughLevels.forEach(lv => {
-    lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 Z+${(lv.z + 0.25).toFixed(4)} FMAX`);
+    lines.push(`${blk++} L X+${(lv.r + 0.32).toFixed(4)} Y+0.000 Z+${(lv.z + 0.22).toFixed(4)} FMAX`);
     lines.push(`${blk++} L X+${lv.r.toFixed(4)} Y+0.000 Z${lv.z.toFixed(4)} F80.0`);
     const segs = 24;
     for (let i = 1; i <= segs; i++) {
@@ -947,31 +947,36 @@ function buildSphereOn5InchBarProgram() {
       const y = Math.sin(ang) * lv.r;
       lines.push(`${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} F150.0`);
     }
-    lines.push(`${blk++} L X+${(lv.r + 0.35).toFixed(4)} Y+0.000 FMAX`);
+    lines.push(`${blk++} L X+${(lv.r + 0.32).toFixed(4)} Y+0.000 FMAX`);
   });
-  lines.push(`${blk++} L Z+1.500 FMAX`);
+  lines.push(`${blk++} L Z+1.350 FMAX`);
 
-  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & NECK (B+6 TO B+84 DEG) ---`);
+  lines.push(`${blk++} ; --- STAGE 2: 5-AXIS TCPM BALL-NOSE SPHERE & UNDERCUT NECK (B+6 TO B+115 DEG) ---`);
   lines.push(`${blk++} TOOL CALL 2 Z S16500 F180.0 ; 0.375IN BALL NOSE FINISHING ENDMILL`);
   lines.push(`${blk++} FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS`);
 
-  // Cap B tilt at 84 deg so the spindle/holder never tilts behind the sphere into the bar
-  const bAngles = [6, 18, 30, 42, 54, 66, 76, 84];
+  // B tilt angles from B+6 deg near top pole through B+115 deg undercut neck
+  const bAngles = [6, 18, 30, 42, 54, 66, 78, 90, 102, 115];
   const stepsPerRev = 24;
 
   bAngles.forEach((bDeg, ringIdx) => {
     const phi = bDeg * (Math.PI / 180);
-    const rRing = sphereR * Math.sin(phi);
-    const zRing = centerZ + sphereR * Math.cos(phi);
-    const cStart = ringIdx * 360;
-
-    if (ringIdx === 0) {
-      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.4500 B+0.00 C+0.0 R0 FMAX M03 M08`);
-      lines.push(`${blk++} L X+${rRing.toFixed(4)} Y+0.0000 Z+0.0000 B+6.00 C+0.0 F100.0 ; ENGAGE TOP POLE`);
+    let rRing, zRing;
+    if (bDeg <= 102) {
+      rRing = sphereR * Math.sin(phi);
+      zRing = centerZ + sphereR * Math.cos(phi);
     } else {
-      lines.push(
-        `${blk++} L X+${rRing.toFixed(4)} Y+0.0000 Z${zRing >= 0 ? '+' : ''}${zRing.toFixed(4)} B+${bDeg.toFixed(2)} C+${cStart.toFixed(1)} F140.0`
-      );
+      const tUndercut = (bDeg - 102) / 13;
+      const rAt102 = sphereR * Math.sin(102 * Math.PI / 180);
+      const zAt102 = centerZ + sphereR * Math.cos(102 * Math.PI / 180);
+      rRing = rAt102 * (1 - tUndercut) + neckR * tUndercut;
+      zRing = zAt102 * (1 - tUndercut) + (-1.850) * tUndercut;
+    }
+
+    const cStart = ringIdx * 360;
+    if (ringIdx === 0) {
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.3500 B+0.00 C+0.0 R0 FMAX M03 M08`);
+      lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+0.0000 B+6.00 C+0.0 F100.0 ; ENGAGE TOP POLE`);
     }
 
     for (let s = 1; s <= stepsPerRev; s++) {
@@ -986,33 +991,142 @@ function buildSphereOn5InchBarProgram() {
     }
   });
 
-  // Radial clearance out to R=1.280 before dropping to the lower neck groove at Z=-1.920
-  const cNeckBase = bAngles.length * 360;
-  lines.push(`${blk++} ; --- STAGE 3: SAFE RADIAL STEP-OUT & 0.900 IN NECK GROOVE AT B+84 DEG ---`);
-  lines.push(`${blk++} L X+1.2800 Y+0.0000 Z-1.0500 B+84.00 C+${cNeckBase.toFixed(1)} FMAX`);
-  lines.push(`${blk++} L X+1.2800 Y+0.0000 Z-1.9200 B+84.00 C+${cNeckBase.toFixed(1)} FMAX`);
-  lines.push(`${blk++} L X+${neckR.toFixed(4)} Y+0.0000 Z-1.9200 B+84.00 C+${cNeckBase.toFixed(1)} F90.0`);
-
-  for (let s = 1; s <= 24; s++) {
+  lines.push(`${blk++} ; --- STAGE 3: 0.900 IN UNDERCUT NECK SHOULDER BLEND TO 2.000 IN BAR ---`);
+  const neckZ = -1.850;
+  const cBase = bAngles.length * 360;
+  for (let s = 0; s <= 24; s++) {
     const frac = s / 24;
     const theta = frac * Math.PI * 2;
-    const cDeg = cNeckBase + frac * 360;
+    const cDeg = cBase + frac * 360;
     const x = neckR * Math.cos(theta);
     const y = neckR * Math.sin(theta);
     lines.push(
-      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z-1.9200 B+84.00 C+${cDeg.toFixed(1)} F140.0`
+      `${blk++} L X${x >= 0 ? '+' : ''}${x.toFixed(4)} Y${y >= 0 ? '+' : ''}${y.toFixed(4)} Z${neckZ.toFixed(4)} B+115.00 C+${cDeg.toFixed(1)} F150.0`
     );
   }
 
-  // Retract radially outside the 2.000 in bar (R=1.350) BEFORE lifting Z and zeroing B/C
-  const cEnd = cNeckBase + 360;
-  lines.push(`${blk++} L X+1.3500 Y+0.0000 Z-1.9200 B+84.00 C+${cEnd.toFixed(1)} FMAX`);
-  lines.push(`${blk++} L X+1.3500 Y+0.0000 Z+1.8000 B+84.00 C+${cEnd.toFixed(1)} FMAX`);
+  lines.push(`${blk++} M140 MB MAX ; RETRACT ALONG SPINDLE AXIS`);
   lines.push(`${blk++} M129 ; CANCEL TCPM`);
-  lines.push(`${blk++} L X+0.0000 Y+0.0000 Z+2.2000 B+0.0 C+0.0 FMAX M09 M05`);
+  lines.push(`${blk++} L B+0.0 C+0.0 Z+1.800 FMAX M09 M05`);
   lines.push(`${blk++} END PGM 5AX_SPHERE_5IN_BAR INCH`);
   return lines.join('\n');
 }
+
+const SAMPLE_PROGRAMS = [
+  {
+    id: 'doc-5ax-sphere-bar',
+    mode: 'table-bc',
+    dirty: false,
+    name: '5AX_SPHERE_ON_5IN_BAR.h',
+    content: buildSphereOn5InchBarProgram()
+  },
+  {
+    id: 'doc-mill-1',
+    mode: 'vmc-3ax',
+    dirty: false,
+    name: 'O1001_POCKET_G41_MILL.nc',
+    content: `%
+O1001 (AEROSPACE BRACKET - 3D SOLID POCKET & G41 CONTOUR)
+(MATERIAL: 6061-T6 ALUMINUM | WORK OFFSET: G54)
+N10 G90 G17 G21 G40 G80
+N20 T01 M06 (12.0MM 3-FLUTE CARBIDE ENDMILL)
+N30 S12000 M03
+N40 G00 G54 X-55.000 Y-40.000
+N50 G43 H01 Z20.000 M08
+N60 G00 Z2.000
+N70 G01 Z-5.500 F450.0
+(ENGAGE G41 LEFT CUTTER COMPENSATION D01)
+N80 G41 D01 G01 X-45.000 Y-30.000 F1600.0
+N90 G01 X35.000 F2200.0
+N100 G03 X45.000 Y-20.000 I0.000 J10.000
+N110 G01 Y20.000
+N115 G03 X35.000 Y30.000 I-10.000 J0.000
+N120 G01 X-35.000
+N130 G03 X-45.000 Y20.000 I0.000 J-10.000
+N140 G01 Y-20.000
+N150 G03 X-35.000 Y-30.000 I10.000 J0.000
+N160 G40 G01 X-55.000 Y-40.000
+N170 G00 Z20.000 M09
+N180 M05
+N190 M30
+%`
+  },
+  {
+    id: 'doc-mill-revb',
+    mode: 'vmc-3ax',
+    dirty: false,
+    name: 'O1001_POCKET_REV_B.nc',
+    content: `%
+O1001 (AEROSPACE BRACKET - REV B UPDATED FEEDS & DEPTH)
+N10 G90 G17 G21 G40 G80
+N20 T01 M06 (12.0MM 3-FLUTE CARBIDE ENDMILL)
+N30 S14500 M03
+N40 G00 G54 X-55.000 Y-40.000
+N50 G43 H01 Z20.000 M08
+N60 G00 Z2.000
+N70 G01 Z-6.500 F550.0
+N80 G41 D01 G01 X-45.000 Y-30.000 F1950.0
+N90 G01 X35.000 F2600.0
+N100 G03 X45.000 Y-20.000 I0.000 J10.000
+N110 G01 Y20.000
+N115 G03 X35.000 Y30.000 I-10.000 J0.000
+N120 G01 X-35.000
+N130 G03 X-45.000 Y20.000 I0.000 J-10.000
+N140 G01 Y-20.000
+N150 G03 X-35.000 Y-30.000 I10.000 J0.000
+N160 G40 G01 X-55.000 Y-40.000
+N170 G00 Z20.000 M09
+N180 M05
+N190 M30
+%`
+  },
+  {
+    id: 'doc-crash-demo',
+    mode: 'vmc-3ax',
+    dirty: false,
+    name: 'O9911_COLLISION_CHECK_DEMO.nc',
+    content: `%
+O9911 (RAPID GOUGE & COLLISION VERIFICATION DEMO)
+N10 G90 G17 G21 G40
+N20 T01 M06 (12.0MM CARBIDE ENDMILL)
+N30 S10000 M03
+N40 G00 X-30.000 Y-20.000 Z15.000 M08
+N50 G01 Z-4.000 F500.0
+N60 G01 X30.000 F1500.0
+(DELIBERATE G00 RAPID CRASH THROUGH WORKPIECE!)
+N70 G00 X-20.000 Y15.000 Z-8.000
+N80 G01 X25.000 F1500.0
+N90 G00 Z20.000 M09
+N100 M30
+%`
+  },
+  {
+    id: 'doc-lathe-1',
+    mode: 'lathe-2ax',
+    dirty: false,
+    name: 'O3010_LATHE_STEPPED_SHAFT.nc',
+    content: `%
+O3010 (CNC LATHE STEPPED SHAFT - G71 ROUGH & G70 FINISH)
+(CHUCK OD: 66.0MM | Z0 AT PART FACE | DIAMETER MODE)
+N10 G90 G18 G21 G40 G99
+N20 T0101 (CNMG432 OD ROUGHING INSERT)
+N30 G96 S220 M03
+N40 G00 X68.000 Z2.000 M08
+N50 G71 U2.500 R1.000
+N60 G71 P70 Q130 U0.500 W0.100 F0.28
+N70 G00 X24.000
+N80 G01 Z0.000 F0.15
+N90 G01 X28.000 Z-2.000
+N100 G01 Z-28.000
+N110 G01 X44.000 Z-36.000
+N120 G01 Z-62.000
+N130 G01 X64.000 Z-72.000
+N140 G00 X80.000 Z50.000 M09
+N200 M05
+N210 M30
+%`
+  }
+];
 
 const DEFAULT_PROFILES = [
   { id: 'ncp-5ax-table-bc', name: 'NC Preview — 5-Axis Table-Table (B/C Cradle + X/Y/Z Spindle)', rapidRate: 40000, maxRpm: 20000, limX: 365, limY: 280, limZ: -280 },
@@ -1031,11 +1145,11 @@ const MATERIAL_SHADERS = {
 };
 
 /* ==========================================================================
-2. APPLICATION STATE
+   2. APPLICATION STATE
    ========================================================================== */
 const state = {
-  docs: [],
-  activeDocId: null,
+  docs: JSON.parse(JSON.stringify(SAMPLE_PROGRAMS)),
+  activeDocId: 'doc-5ax-sphere-bar',
   untitledCounter: 1,
   editorMode: 'direct',
   linesCache: [],
@@ -1057,9 +1171,9 @@ const state = {
   collisionLineSet: new Set(),
   warnLineSet: new Set(),
   holderCheck: true,
-  programMetric: false,
+  programMetric: true,
   extents: { minX: -1.0, maxX: 1.0, minY: -1.0, maxY: 1.0, minZ: -5.0, maxZ: 1.8 },
-  stats: { cutDist: 0, rapidDist: 0, totalTimeSec: 0, maxFeed: 0 },
+  stats: { cutDist: 0, rapidDist: 0, totalTimeSec: 0 },
 
   stock: {
     autoFit: true,
@@ -1071,19 +1185,21 @@ const state = {
     initialZ: null,
     currentZ: null,
     gougeFlags: null,
+    // Cylindrical radial heightfield r[thetaIdx][zIdx] (144 angular x 180 axial)
     cylThetaSegs: 144,
     cylZSegs: 180,
     cylMaxR: 1.0,
     cylInitialR: null,
     cylCurrentR: null,
     cylGougeFlags: null,
+    // Lathe profile heightfield along Z axis
     latheZSegs: 140,
     latheCurrentR: null,
     latheGougeFlags: null
   },
 
   sim: {
-    playing: false,
+    playing: true,
     currentTimeSec: 0,
     speedMultiplier: 1.0,
     lastFrameTs: 0,
@@ -1125,7 +1241,7 @@ const state = {
 };
 
 /* ==========================================================================
-3. DOM REFERENCES & UTILITIES
+   3. DOM REFERENCES & UTILITIES
    ========================================================================== */
 const el = {
   docTabsBar: document.getElementById('doc-tabs-bar'),
@@ -1220,6 +1336,26 @@ function saveWorkspace() {
   }
 }
 
+function loadWorkspace() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.docs)) return false;
+    const docs = d.docs.filter(x => x && typeof x.id === 'string' && typeof x.name === 'string' && typeof x.content === 'string')
+      .map(x => ({ id: x.id, name: x.name, mode: x.mode || 'vmc-3ax', dirty: !!x.dirty, content: x.content }));
+    if (!docs.length) return false;
+    state.docs = docs;
+    state.activeDocId = docs.some(x => x.id === d.activeDocId) ? d.activeDocId : docs[0].id;
+    if (Number.isFinite(d.untitledCounter)) state.untitledCounter = d.untitledCounter;
+    if (d.tools && typeof d.tools === 'object') state.tools = d.tools;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Segments are time-ordered, so lookups by time or by source line are binary searches.
 function findSegIdxByTime(t) {
   const segs = state.segments;
   let hi = segs.length - 1, lo = 0;
@@ -1242,6 +1378,7 @@ function findSegByLine(ln) {
   return segs[lo];
 }
 
+// HUD writes are cached per element and skipped when the text has not changed.
 const _hudEls = {};
 function hudSet(id, text) {
   let e = _hudEls[id];
@@ -1255,6 +1392,7 @@ function hudBar(id, pct) {
   if (e.v !== w) { e.v = w; e.node.style.width = w; }
 }
 
+// Executing-line highlight: follows the simulation in the editor (orange bar) without re-rendering the text.
 function positionExecHl() {
   const hl = el.execHl;
   if (!hl) return;
@@ -1264,6 +1402,7 @@ function positionExecHl() {
 }
 
 function setExecLine(line) {
+  // Follow-scroll only while playing / scrubbing, and never while the user is typing in the editor.
   const follow = (state.sim.playing || state.sim.scrollNext) && document.activeElement !== el.textarea;
   state.sim.scrollNext = false;
   if (line === state.execLine) return;
@@ -1287,6 +1426,7 @@ function setExecLine(line) {
   positionExecHl();
 }
 
+// Run fn on the code part of each line only (comments in (...) and after ';' are left alone).
 function mapCodeOnly(text, fn) {
   return text.split('\n').map(line =>
     line.split(/(\([^)]*\)|;[^\n]*)/).map((part, i) => (i % 2 === 1 ? part : fn(part))).join('')
@@ -1307,9 +1447,10 @@ function crc32(bytes) {
   return ((crc ^ 0xFFFFFFFF) >>> 0).toString(16).toUpperCase().padStart(8, '0');
 }
 
+/* --- Soft limits, tool lint and holder collision checks (run once per parse) --- */
 function holderDims(t) {
   const d = t.dia || 0.375;
-  return { rad: Math.max(d * 1.05, (t.holderDia || d * 2.6) * 0.5), fl: Math.max(t.overallLen || 0, t.fluteLen || 0) || d * 3.5 };
+  return { rad: Math.max(d * 1.05, (t.holderDia || d * 2.6) * 0.5), fl: Math.max(t.overallLen || 0, t.fluteLen || 0) || d * 3.5 };   // holder face sits at the stickout length
 }
 
 function toolUnitsPlausible(t) {
@@ -1317,6 +1458,7 @@ function toolUnitsPlausible(t) {
   return state.programMetric ? d >= 1.0 : d <= 4.0;
 }
 
+// Returns true when the tool is usable for the holder check; otherwise raises one warning per tool.
 function toolLint(seg, flagged) {
   const t = state.tools[seg.tool];
   const tn = `T${String(seg.tool).padStart(2, '0')}`;
@@ -1339,6 +1481,7 @@ function toolLint(seg, flagged) {
   return true;
 }
 
+// Consecutive blocks that touch with the same tool are reported as ONE alarm ("continues through Ln N").
 function noteHolder(seg, toolObj, where) {
   if (!where) { state._holderRun = null; return; }
   state.warnLineSet.add(seg.line);
@@ -1360,6 +1503,7 @@ function checkHolderCylinder(rGrid, seg, toolObj) {
   const hd = holderDims(toolObj);
   const stk = state.stock;
   const dz = Math.max(1e-4, (stk.maxZ - stk.minZ) / stk.cylZSegs);
+  // Only the underside of the holder can touch first: test a thin slab, at mid-block and block end (cheap).
   const pseudo = { dia: hd.rad * 2, shape: 'flat', cutLen: dz * 3, startH: hd.fl };
   return carveOrCheckCylinderGrid(rGrid, null, seg, pseudo, true, 0.48, 0.52)
       || carveOrCheckCylinderGrid(rGrid, null, seg, pseudo, true, 0.98, 1.0);
@@ -1367,7 +1511,7 @@ function checkHolderCylinder(rGrid, seg, toolObj) {
 
 function checkSoftLimits() {
   const prof = getActiveProfile();
-  const k = state.programMetric ? 1 : 1 / 25.4;
+  const k = state.programMetric ? 1 : 1 / 25.4;      // profile limits are in mm
   const lim = { X: (prof.limX || 0) * k, Y: (prof.limY || 0) * k, Z: (prof.limZ || 0) * k };
   const run = { X: null, Y: null, Z: null };
   let n = 0;
@@ -1393,7 +1537,7 @@ function checkSoftLimits() {
 }
 
 /* ==========================================================================
-4. 5-AXIS B/C ROTARY TABLE + VERTICAL SPINDLE KINEMATICS
+   4. 5-AXIS B/C ROTARY TABLE + VERTICAL SPINDLE KINEMATICS
    ========================================================================== */
 function degToRad(d) { return (d || 0) * (Math.PI / 180); }
 
@@ -1460,6 +1604,7 @@ function getToolAxisMachineVector(rot, plane) {
   return rotateVectorByEuler({ x: 0, y: 0, z: 1 }, aTot, bTot, cTot);
 }
 
+// Tool vector I/J/K in workpiece frame for 5-axis B/C table & head kinematics
 function getToolAxisWorkpieceVector(rot, plane) {
   if (state.kinematicsMode === 'table-bc') {
     const aTot = (rot.a || 0) + (plane && plane.spa ? plane.spa : 0);
@@ -1473,7 +1618,7 @@ function getToolAxisWorkpieceVector(rot, plane) {
 }
 
 /* ==========================================================================
-5. SYNTAX HIGHLIGHTER & EDITOR RENDERING (WITH VIRTUALIZATION >15K LINES)
+   5. SYNTAX HIGHLIGHTER & EDITOR RENDERING (WITH VIRTUALIZATION >15K LINES)
    ========================================================================== */
 const _hlMemo = new Map();
 function highlightLineHtml(line) {
@@ -1498,6 +1643,7 @@ function highlightLineHtmlRaw(line) {
   let s = escapeHtml(raw);
   s = s.replace(/\([^)]*\)/g, m => `<span class="tok-comm">${m}</span>`);
   s = s.replace(/\b(BEGIN\s+PGM|END\s+PGM|BLK\s+FORM|TOOL\s+CALL|TOOL\s+DEF|CYCL\s+DEF|CYCL\s+CALL|PLANE\s+SPATIAL|FUNCTION\s+TCPM|FMAX|RL|RR|R0)\b/g, '<span class="tok-kw">$1</span>');
+  // Heidenhain L / CC / CR / C are keywords only when standing alone (so the C axis word C+0.0 stays an axis).
   s = s.replace(/(^|\s)(L|CC|CR|C)(?=\s|$)/g, '$1<span class="tok-kw">$2</span>');
   s = s.replace(/^(\s*N\d+)/i, '<span class="tok-n">$1</span>');
   s = s.replace(/\b(G\d+(?:\.\d+)?)\b/gi, '<span class="tok-g">$1</span>');
@@ -1596,7 +1742,7 @@ function updateCursorLineFromTextarea() {
 }
 
 /* ==========================================================================
-6. CUTTING TOOL LIBRARY & INSPECTOR DOCK RENDERERS
+   6. CUTTING TOOL LIBRARY & INSPECTOR DOCK RENDERERS
    ========================================================================== */
 function updateInspectorDock() {
   const ln = state.activeLine;
@@ -1760,7 +1906,7 @@ function renderAlarmLogDock() {
 }
 
 /* ==========================================================================
-7. G-CODE & HEIDENHAIN KLARTEXT PARSER + SOLID MATERIAL REMOVAL
+   7. G-CODE & HEIDENHAIN KLARTEXT PARSER + SOLID MATERIAL REMOVAL
    ========================================================================== */
 function registerToolFromComment(tNum, desc, explicitDia = null) {
   const diaMatch = desc.match(/(\d+\.?\d*)\s*(?:MM|IN)/i);
@@ -2041,6 +2187,7 @@ function parseIsoGCode(lines, prof, rapidRate, fitView) {
     if (xm || ym || zm || bm || cm) {
       const nextPos = { ...pos };
       const nextRot = { ...rot };
+      // Lathe X is programmed as a diameter; the simulation works in radius.
       const valX = xm ? parseFloat(xm[1]) * (isLathe ? 0.5 : 1) : (absMode ? pos.x : 0);
       const valY = ym ? parseFloat(ym[1]) : (absMode ? pos.y : 0);
       const valZ = zm ? parseFloat(zm[1]) : (absMode ? pos.z : 0);
@@ -2254,6 +2401,7 @@ function initStockHeightmapAndVerifyCollisions(preserveBlkForm = false, isLathe 
     return;
   }
 
+  // Rectangular Billet Z-Map Initialization & G00 Rapid Gouge Pre-Verification
   const totalCells = stk.cols * stk.rows;
   stk.initialZ = new Float32Array(totalCells);
   stk.currentZ = new Float32Array(totalCells);
@@ -2357,6 +2505,7 @@ function carveOrCheckGrid(zGrid, gougeArr, pts, toolR, isRapid) {
   return firstHit;
 }
 
+// 3D Swept Flute & Ball-Nose Carving on Cylindrical Radial Heightfield r[thetaIdx][zIdx]
 function carveOrCheckCylinderGrid(rGrid, gougeArr, seg, toolObj, isRapid, minFrac = 0.0, maxFrac = 1.0) {
   const stk = state.stock;
   const nTheta = stk.cylThetaSegs;
@@ -2612,8 +2761,9 @@ function rebuildStockUpToTime(targetTimeSec, forceFullReset = false) {
 }
 
 /* ==========================================================================
-8. 3D RENDERER (B/C TABLE + SOLID CYLINDER/BILLET/LATHE + SPINDLE + HUD)
+   8. 3D RENDERER (B/C TABLE + SOLID CYLINDER/BILLET/LATHE + SPINDLE + HUD)
    ========================================================================== */
+// Camera trig is cached: it only changes when yaw/pitch change, not per projected point.
 const _pc = { yaw: NaN, pitch: NaN, cosY: 1, sinY: 0, cosP: 1, sinP: 0 };
 const _vc = { stamp: new Int32Array(0), objs: [], frame: 0 };
 const _fillCache = new Map();
@@ -2656,6 +2806,7 @@ function project3D(pt, cx, cy) {
 
 function isQuadDegenerateOrBackfacing(pts) {
   if (!pts || pts.length < 3) return true;
+  // Screen-space signed area / winding check + zero-area guard
   let twiceArea = 0;
   for (let i = 0; i < pts.length; i++) {
     const pA = pts[i];
@@ -2914,6 +3065,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
   const barCx = (stk.minX + stk.maxX) * 0.5;
   const barCy = (stk.minY + stk.maxY) * 0.5;
 
+  // Cylindrical radial heightfield r[thetaIdx][zIdx]
   if (stk.shape === 'cylinder' && stk.cylCurrentR) {
     const nTheta = stk.cylThetaSegs;
     const nZ = stk.cylZSegs;
@@ -2936,6 +3088,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
       z
     }), cx, cy);
 
+    // Each grid vertex is shared by up to 4 quads: project it once per frame instead of four times.
     const vcTk = Math.ceil(nTheta / tStep) + 2;
     const vcZk = Math.ceil(nZ / zStep) + 3;
     if (_vc.stamp.length < vcTk * vcZk) {
@@ -3042,6 +3195,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         }
       }
 
+      // Dynamic front cap at lastSolidIz
       const zFront = zMin + Math.min(nZ, lastSolidIz + zStep) * dz;
       const rF0 = rGrid[it * nZ + lastSolidIz];
       const rF1 = rGrid[itNext * nZ + lastSolidIz];
@@ -3060,6 +3214,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
         });
       }
 
+      // Dynamic back cap at firstSolidIz
       const zBack = zMin + firstSolidIz * dz;
       const rB0 = rGrid[it * nZ + firstSolidIz];
       const rB1 = rGrid[itNext * nZ + firstSolidIz];
@@ -3107,6 +3262,7 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
     return;
   }
 
+  // Rectangular billet heightfield
   if (!stk.currentZ) return;
   if (mode !== 'wireframe') {
     const [wr, wg, wb] = mat.wallRgb;
@@ -3237,11 +3393,9 @@ function drawSolidMillStock3D(ctx, cx, cy, activeRot, activePlane) {
 function draw3DSpindleAssembly(ctx, cx, cy, seg, machineTip, activeRot, activePlane) {
   if (!state.cam.show3DTool) return;
   const toolObj = state.tools[seg.tool] || { dia: 0.375, flutes: 4, shape: 'ball', holderDia: 1.15, fluteLen: 1.35 };
-  const partSpan = Math.max(0.5, state.stock.maxX - state.stock.minX, state.stock.maxY - state.stock.minY);
-  const visScale = Math.max(1.0, partSpan * 0.06);
-  const r = Math.max(0.06 * visScale, (toolObj.dia || 0.375) / 2);
-  const holderR = Math.max(r * 2.2, (toolObj.holderDia || r * 4.5) / 2, partSpan * 0.14);
-  const fluteH = Math.max(r * 4.0, toolObj.fluteLen || r * 5.5, partSpan * 0.28);
+  const r = Math.max(0.05, (toolObj.dia || 0.375) / 2);
+  const holderR = Math.max(r * 2.1, (toolObj.holderDia || r * 4.5) / 2);
+  const fluteH = Math.max(r * 3.5, toolObj.fluteLen || r * 5.5);
   const colletH = fluteH * 0.48;
   const taperH = fluteH * 0.78;
 
@@ -3336,7 +3490,7 @@ function draw3DSpindleAssembly(ctx, cx, cy, seg, machineTip, activeRot, activePl
 function updateAndDrawCoolant(ctx, cx, cy, machineTip, isActive) {
   if (!state.cam.showCoolant) return;
   const parts = state.sim.coolantParticles;
-  if (!state.sim.playing) { parts.length = 0; return; }
+  if (!state.sim.playing) { parts.length = 0; return; }   // no frozen spray while paused / scrubbing
   const scale = Math.max(0.25, (state.stock.maxX - state.stock.minX) * 0.25);
   if (isActive && state.sim.playing) {
     for (let i = 0; i < 3; i++) {
@@ -3509,7 +3663,7 @@ function drawBackplot() {
 
     const seg = playState.seg;
     const hudNow = performance.now();
-    const doHud = !state.sim.playing || hudNow - state.sim.lastHudTs > 90;
+    const doHud = !state.sim.playing || hudNow - state.sim.lastHudTs > 90;   // HUD text at ~10 Hz while playing
     if (doHud) state.sim.lastHudTs = hudNow;
     if (seg) {
       const machineTip = isTableMode ? workpieceToMachinePoint(playState.wpTip, activeRot, activePlane) : playState.wpTip;
@@ -3527,6 +3681,7 @@ function drawBackplot() {
         hudSet('hud-rot', `B${activeRot.b >= 0 ? '+' : ''}${activeRot.b.toFixed(2)}°  C${activeRot.c >= 0 ? '+' : ''}${activeRot.c.toFixed(2)}°`);
         hudSet('hud-ijk', `${ijk.x.toFixed(3)}, ${ijk.y.toFixed(3)}, ${ijk.z.toFixed(3)}`);
         hudSet('hud-feed', `${seg.feed.toFixed(1)}`);
+        // Feed bar is relative to the fastest cutting feed in the program (rapids show full).
         const feedRef = Math.max(1, state.stats.maxFeed || 1);
         hudBar('hud-feed-bar', seg.type === 'G00' ? 100 : Math.min(100, (seg.feed / feedRef) * 100));
         hudSet('hud-rpm', `${seg.spindle} RPM (${seg.spindleDir})`);
@@ -3536,7 +3691,7 @@ function drawBackplot() {
         hudSet('hud-sfm', `${sfm} SFM | ${chip}`);
       }
     } else if (doHud) {
-      hudSet('hud-modal', 'NO ACTIVE PROGRAM');
+      hudSet('hud-modal', 'IDLE / EMPTY PROGRAM');
       hudSet('hud-xyz', '0.000, 0.000, 0.000');
       hudSet('hud-rot', 'B+0.00°  C+0.00°');
       hudSet('hud-ijk', '0.000, 0.000, 1.000');
@@ -3566,6 +3721,7 @@ function animationLoop(ts) {
       if (fpsEl) fpsEl.textContent = `${avgFps} FPS`;
     }
 
+    // Work only while playing: no idle redraws and no spindle spin while paused.
     if (state.sim.playing && state.stats.totalTimeSec > 0) {
       const playState = getActivePlaybackState();
       if (playState.seg && playState.seg.spindleDir !== 'M05') {
@@ -3590,8 +3746,10 @@ function animationLoop(ts) {
 }
 
 /* ==========================================================================
-9. NC FUNCTIONS, FILE COMPARE, SETUP SHEET & WEB SERIAL DNC
+   9. NC FUNCTIONS, FILE COMPARE, SETUP SHEET & WEB SERIAL DNC
    ========================================================================== */
+// Applies a text transform through the textarea's own edit pipeline (execCommand insertText)
+// so Ctrl+Z / Ctrl+Y keep working. If the selection spans several lines, only those lines are transformed.
 function applyTransformToActiveDoc(transformFn, msg, opts = {}) {
   const doc = getActiveDoc();
   const ta = el.textarea;
@@ -3619,7 +3777,7 @@ function applyTransformToActiveDoc(transformFn, msg, opts = {}) {
     try { ok = document.execCommand('insertText', false, newPart); } catch (e) { ok = false; }
     if (ok && ta.value !== expected) ok = false;
   }
-  if (!ok) { ta.value = expected; }
+  if (!ok) { ta.value = expected; }          // fallback: works, but not undoable
   doc.content = expected;
   doc.dirty = true;
   renderDocTabs();
@@ -3635,7 +3793,6 @@ function runCncFileCompare() {
   const rightId = document.getElementById('cmp-right-select').value;
   const dL = state.docs.find(d => d.id === leftId) || state.docs[0];
   const dR = state.docs.find(d => d.id === rightId) || state.docs[Math.min(1, state.docs.length - 1)];
-  if (!dL || !dR) return;
 
   const ignN = document.getElementById('cmp-ign-n').checked;
   const ignWs = document.getElementById('cmp-ign-ws').checked;
@@ -3723,7 +3880,7 @@ function downloadSetupSheetHtml() {
 }
 
 /* ==========================================================================
-10. DOCUMENT TABS & EVENT WIRING
+   10. DOCUMENT TABS & EVENT WIRING
    ========================================================================== */
 function renderDocTabs() {
   scheduleWorkspaceSave();
@@ -3784,8 +3941,7 @@ function switchDoc(docId) {
   state.activeLine = 0;
   state.execLine = -1;
   const doc = getActiveDoc();
-  if (!doc) return;
-  if (doc.mode) {
+  if (doc && doc.mode) {
     state.kinematicsMode = doc.mode;
     el.kinematicsSelect.value = doc.mode;
   }
@@ -3845,10 +4001,12 @@ function saveActiveFileToDisk() {
 }
 
 function wireEvents() {
+  // Ribbon Tabs
   document.querySelectorAll('.ribbon-tab').forEach(btn => {
     btn.onclick = () => activateRibbonTab(btn.dataset.tab);
   });
 
+  // Left Dock Tabs
   document.querySelectorAll('.dock-tab').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.dock-tab').forEach(b => b.classList.remove('active'));
@@ -3859,6 +4017,7 @@ function wireEvents() {
   });
   document.getElementById('btn-dock-open-compare').onclick = () => activateRibbonTab('tab-compare');
 
+  // Kinematics & Theme
   el.kinematicsSelect.onchange = () => {
     state.kinematicsMode = el.kinematicsSelect.value;
     getActiveDoc().mode = state.kinematicsMode;
@@ -3875,12 +4034,13 @@ function wireEvents() {
     document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
   };
 
+  // Live Code Editor Input & Scroll
   el.textarea.addEventListener('input', () => {
     const doc = getActiveDoc();
     doc.content = el.textarea.value;
     const wasDirty = !!doc.dirty;
     doc.dirty = true;
-    if (!wasDirty) renderDocTabs();
+    if (!wasDirty) renderDocTabs();   // tab bar only changes on the clean -> dirty transition
     renderEditorView();
     scheduleWorkspaceSave();
     clearTimeout(parseTimer);
@@ -3891,6 +4051,7 @@ function wireEvents() {
   el.textarea.addEventListener('keyup', updateCursorLineFromTextarea);
   el.virtualEditor.addEventListener('scroll', renderVirtualRows);
 
+  // File I/O
   document.getElementById('btn-new-file').onclick = createBlankNewFile;
   document.getElementById('btn-open-file').onclick = () => document.getElementById('hidden-file-input').click();
   document.getElementById('hidden-file-input').onchange = (e) => {
@@ -3916,6 +4077,7 @@ function wireEvents() {
 
   document.getElementById('btn-save-file').onclick = saveActiveFileToDisk;
 
+  // Undo / Redo / Find & Replace
   document.getElementById('btn-undo').onclick = () => { el.textarea.focus(); document.execCommand('undo'); };
   document.getElementById('btn-redo').onclick = () => { el.textarea.focus(); document.execCommand('redo'); };
   document.getElementById('btn-toggle-find').onclick = () => {
@@ -3966,25 +4128,106 @@ function wireEvents() {
     }
   });
 
+  // Workspace Dock Toggles & 50k Stress Test
+  document.getElementById('btn-toggle-assistant').onclick = (e) => {
+    const dock = document.getElementById('left-dock');
+    dock.classList.toggle('collapsed');
+    e.currentTarget.classList.toggle('active', !dock.classList.contains('collapsed'));
+    drawBackplot();
+  };
+  document.getElementById('btn-toggle-backplot-main').onclick = (e) => {
+    const vp = document.getElementById('right-viewport');
+    vp.classList.toggle('hidden');
+    e.currentTarget.classList.toggle('active', !vp.classList.contains('hidden'));
+    drawBackplot();
+  };
+  document.getElementById('btn-stress-test-50k').onclick = () => {
+    const arr = ['%', 'O50000 (50,000-LINE 3D SURFACING STRESS TEST)', 'N10 G90 G17 G21 G40', 'N20 T02 M06', 'N30 S18000 M03', 'N40 G00 X-40.0 Y-40.0 Z10.0'];
+    for (let i = 0; i < 49990; i++) {
+      const t = i * 0.02;
+      const x = Math.cos(t) * (25 + Math.sin(t * 0.1) * 10);
+      const y = Math.sin(t) * (25 + Math.cos(t * 0.1) * 10);
+      const z = -2 - Math.abs(Math.sin(t * 0.05)) * 8;
+      arr.push(`N${50 + i} G01 X${x.toFixed(3)} Y${y.toFixed(3)} Z${z.toFixed(3)} F3500.0`);
+    }
+    arr.push('N50045 G00 Z25.0', 'N50050 M30', '%');
+    const id = 'doc-50k-' + Date.now();
+    state.docs.push({ id, mode: 'vmc-3ax', dirty: false, name: 'O50000_STRESS_TEST_50K.nc', content: arr.join('\n') });
+    switchDoc(id);
+    showToast('Loaded 50,000-line virtualized NC benchmark');
+  };
+
+  // Tool Library Modal & Dock Triggers
+  function openToolsDock() {
+    const dock = document.getElementById('left-dock');
+    dock.classList.remove('collapsed');
+    document.getElementById('btn-toggle-assistant').classList.add('active');
+    document.querySelectorAll('.dock-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.dock-pane').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-dock="dock-tools"]').classList.add('active');
+    document.getElementById('dock-tools').classList.add('active');
+  }
+  document.getElementById('btn-ribbon-tools').onclick = () => { openToolsDock(); openToolEditorModal(null); };
+  document.getElementById('btn-ribbon-tools-ed').onclick = () => { openToolsDock(); openToolEditorModal(null); };
+  document.getElementById('btn-ribbon-tools-sim').onclick = () => { openToolsDock(); openToolEditorModal(null); };
+  document.getElementById('btn-add-tool-dock').onclick = () => openToolEditorModal(null);
+
+  document.getElementById('btn-save-tool-modal').onclick = () => {
+    const origNumStr = document.getElementById('tool-edit-orig-num').value;
+    const newNum = parseInt(document.getElementById('tool-edit-num').value, 10) || 1;
+    const name = document.getElementById('tool-edit-name').value.trim() || `Tool ${newNum}`;
+    const shape = document.getElementById('tool-edit-shape').value;
+    const dia = parseFloat(document.getElementById('tool-edit-dia').value) || 0.25;
+    const cornerRad = parseFloat(document.getElementById('tool-edit-crad').value) || (shape === 'ball' ? dia / 2 : 0);
+    const fluteLen = parseFloat(document.getElementById('tool-edit-flen').value) || dia * 3.5;
+    const overallLen = parseFloat(document.getElementById('tool-edit-olen').value) || fluteLen * 2;
+    const flutes = parseInt(document.getElementById('tool-edit-flutes').value, 10) || 4;
+
+    if (origNumStr && parseInt(origNumStr, 10) !== newNum) {
+      delete state.tools[parseInt(origNumStr, 10)];
+    }
+    state.tools[newNum] = {
+      num: newNum,
+      name,
+      shape,
+      dia,
+      cornerRad,
+      flutes,
+      holderDia: Math.max(dia * 2.6, 1.0),
+      fluteLen,
+      overallLen
+    };
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+    renderToolTableDock();
+    parseAndBuildSimulation(getActiveDoc().content, false);
+    showToast(`Saved Tool T${String(newNum).padStart(2, '0')} (${name})`);
+  };
+
+  // NC Functions & Math Transforms
   document.getElementById('btn-open-renum').onclick = () => document.getElementById('modal-renum').classList.add('open');
   document.getElementById('btn-apply-renum').onclick = () => {
-    const startN = parseInt(document.getElementById('renum-start').value, 10) || 10;
-    const stepN = parseInt(document.getElementById('renum-step').value, 10) || 10;
-    let cur = startN;
+    let n = parseInt(document.getElementById('renum-start').value, 10) || 10;
+    const step = parseInt(document.getElementById('renum-step').value, 10) || 10;
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     applyTransformToActiveDoc(txt => txt.split('\n').map(line => {
-      if (!line.trim() || /^\s*[;%()]/.test(line)) return line;
-      const out = line.replace(/^\s*(?:N\d+|\d+)?\s*/, `${cur} `);
-      cur += stepN;
-      return out;
-    }).join('\n'), `Renumbered blocks starting at ${startN}`);
-    document.getElementById('modal-renum').classList.remove('open');
+      const trimmed = line.trim();
+      if (!trimmed || trimmed === '%' || trimmed.startsWith('(') || trimmed.startsWith(';') || /^O\d+/i.test(trimmed)) return line;
+      const body = line.replace(/^\s*N\d+\s*/i, '');
+      const res = `N${n} ${body}`;
+      n += step;
+      return res;
+    }).join('\n'), 'Renumbered N-blocks');
   };
 
   document.getElementById('btn-strip-n').onclick = () => {
-    applyTransformToActiveDoc(txt => txt.split('\n').map(line => line.replace(/^\s*(?:N\d+|\d+)\s+/, '')).join('\n'), 'Stripped sequence block numbers');
+    applyTransformToActiveDoc(txt => txt.split('\n').map(l => l.replace(/^\s*N\d+\s*/i, '')).join('\n'), 'Stripped sequence N-numbers');
   };
+
   document.getElementById('btn-format-spaces').onclick = () => {
-    applyTransformToActiveDoc(txt => mapCodeOnly(txt, line => line.trim().replace(/\s+/g, ' ').replace(/([XYZABCIJKFRS])([+-]?\d)/gi, '$1$2')), 'Formatted NC block spacing');
+    applyTransformToActiveDoc(txt => txt.split('\n').map(l => {
+      if (l.trim().startsWith('(') || l.trim().startsWith(';')) return l;
+      return l.replace(/([A-Z])([+-]?\d)/gi, ' $1$2').replace(/\s+/g, ' ').trim();
+    }).join('\n'), 'Formatted NC address spacing');
   };
 
   document.getElementById('btn-open-transform').onclick = () => document.getElementById('modal-transform').classList.add('open');
@@ -3993,107 +4236,54 @@ function wireEvents() {
     const dy = parseFloat(document.getElementById('tr-dy').value) || 0;
     const dz = parseFloat(document.getElementById('tr-dz').value) || 0;
     const sc = parseFloat(document.getElementById('tr-scale').value) || 1.0;
-    const fmt = (v, d) => (v * sc + d).toFixed(4);
-    applyTransformToActiveDoc(txt => mapCodeOnly(txt, line =>
-      line.replace(/\b([XYZ])([+-]?\d*\.?\d+)\b/gi, (_, ax, num) => {
-        const v = parseFloat(num);
-        if (/x/i.test(ax)) return `${ax}${fmt(v, dx)}`;
-        if (/y/i.test(ax)) return `${ax}${fmt(v, dy)}`;
-        return `${ax}${fmt(v, dz)}`;
-      })
-    ), `Applied shift (${dx}, ${dy}, ${dz}) and scale ${sc}x`);
-    document.getElementById('modal-transform').classList.remove('open');
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+    applyTransformToActiveDoc(txt => mapCodeOnly(txt, code => code.replace(/\b([XYZIJ])([+-]?\d*\.?\d+)\b/gi, (_, ax, num) => {
+      let v = parseFloat(num) * sc;
+      const u = ax.toUpperCase();
+      if (u === 'X') v += dx;
+      if (u === 'Y') v += dy;
+      if (u === 'Z') v += dz;
+      return `${ax}${v.toFixed(4)}`;
+    })), 'Applied Shift / Scale transform');
   };
 
-  const flipG23 = line => line.replace(/\bG0?2\b/gi, '@@G3@@').replace(/\bG0?3\b/gi, 'G02').replace(/@@G3@@/g, 'G03').replace(/\b(RL|RR)\b/g, m => (m === 'RL' ? 'RR' : 'RL'));
-  document.getElementById('btn-mirror-x').onclick = () => {
-    applyTransformToActiveDoc(txt => mapCodeOnly(txt, line => flipG23(line).replace(/\bX([+-]?\d*\.?\d+)\b/gi, (_, n) => `X${(-parseFloat(n)).toFixed(4)}`)), 'Mirrored across X (G02↔G03)');
+  const mirrorAxis = (axisChar) => {
+    applyTransformToActiveDoc(txt => mapCodeOnly(txt, code => {
+      let out = code.replace(new RegExp(`\\b(${axisChar})([+-]?\\d*\\.?\\d+)\\b`, 'gi'), (_, a, n) => `${a}${(-parseFloat(n)).toFixed(4)}`);
+      if (axisChar === 'X') out = out.replace(/\bI([+-]?\d*\.?\d+)\b/gi, (_, n) => `I${(-parseFloat(n)).toFixed(4)}`);
+      if (axisChar === 'Y') out = out.replace(/\bJ([+-]?\d*\.?\d+)\b/gi, (_, n) => `J${(-parseFloat(n)).toFixed(4)}`);
+      out = out.replace(/\bG0?2\b/gi, '__G03__').replace(/\bG0?3\b/gi, 'G02').replace(/__G03__/g, 'G03');
+      return out;
+    }), `Mirrored ${axisChar}-axis & inverted G02/G03 arcs`);
   };
-  document.getElementById('btn-mirror-y').onclick = () => {
-    applyTransformToActiveDoc(txt => mapCodeOnly(txt, line => flipG23(line).replace(/\bY([+-]?\d*\.?\d+)\b/gi, (_, n) => `Y${(-parseFloat(n)).toFixed(4)}`)), 'Mirrored across Y (G02↔G03)');
-  };
-  document.getElementById('btn-to-metric').onclick = () => {
-    applyTransformToActiveDoc(txt => mapCodeOnly(txt, line => line.replace(/\b([XYZ])([+-]?\d*\.?\d+)\b/gi, (_, ax, n) => `${ax}${(parseFloat(n) * 25.4).toFixed(3)}`).replace(/\bINCH\b/gi, 'MM').replace(/\bG20\b/gi, 'G21')), 'Converted Inch → Metric (mm)');
-  };
-  document.getElementById('btn-to-inch').onclick = () => {
-    applyTransformToActiveDoc(txt => mapCodeOnly(txt, line => line.replace(/\b([XYZ])([+-]?\d*\.?\d+)\b/gi, (_, ax, n) => `${ax}${(parseFloat(n) / 25.4).toFixed(4)}`).replace(/\bMM\b/gi, 'INCH').replace(/\bG21\b/gi, 'G20')), 'Converted Metric → Inch');
-  };
+  document.getElementById('btn-mirror-x').onclick = () => mirrorAxis('X');
+  document.getElementById('btn-mirror-y').onclick = () => mirrorAxis('Y');
 
-  document.getElementById('btn-stress-test-50k').onclick = () => {
-    const out = ['0 BEGIN PGM STRESS_50K MM', '1 BLK FORM 0.1 Z X-120 Y-120 Z-60', '2 BLK FORM 0.2 X+120 Y+120 Z+0', '3 TOOL CALL 2 Z S14000 F2400 ; 10MM BALL NOSE'];
-    let b = 4;
-    for (let i = 0; i < 49994; i++) {
-      const ang = i * 0.04;
-      const rad = 25 + (i % 60);
-      const x = (Math.cos(ang) * rad).toFixed(3);
-      const y = (Math.sin(ang) * rad).toFixed(3);
-      const z = (-((i % 200) * 0.15)).toFixed(3);
-      const c = ((i * 1.5) % 360).toFixed(1);
-      out.push(`${b++} L X${x} Y${y} Z${z} B+18.0 C+${c} F2400`);
-    }
-    out.push(`${b++} END PGM STRESS_50K MM`);
-    const id = 'doc-50k-' + Date.now();
-    state.docs.push({ id, mode: 'table-bc', dirty: true, name: 'stress_50k.h', content: out.join('\n') });
-    switchDoc(id);
-    showToast('Generated 50,000-line virtualized 5-axis file');
+  // Unit conversion touches code only (never comments), leaves zero values such as R0 untouched,
+  // and flips the Heidenhain BEGIN/END PGM unit tag.
+  const convertUnits = (toMetric) => {
+    const f = toMetric ? 25.4 : 1 / 25.4;
+    const dec = toMetric ? 3 : 4;
+    applyTransformToActiveDoc(txt => {
+      let out = mapCodeOnly(txt, code => code
+        .replace(toMetric ? /\bG20\b/gi : /\bG21\b/gi, toMetric ? 'G21' : 'G20')
+        .replace(/\b([XYZIJRF])([+-]?\d*\.?\d+)\b/gi, (m, a, n) => parseFloat(n) === 0 ? m : `${a}${(parseFloat(n) * f).toFixed(dec)}`));
+      out = out.replace(/^(\s*\d*\s*(?:BEGIN|END)\s+PGM\s+\S+\s+)(INCH|MM)\b/gim, (m, pre) => pre + (toMetric ? 'MM' : 'INCH'));
+      return out;
+    }, toMetric ? 'Converted Inch → Metric (G21)' : 'Converted Metric → Inch (G20)');
   };
+  document.getElementById('btn-to-metric').onclick = () => convertUnits(true);
+  document.getElementById('btn-to-inch').onclick = () => convertUnits(false);
 
-  const openToolLib = () => {
-    document.getElementById('left-dock').classList.remove('collapsed');
-    document.getElementById('btn-toggle-assistant').classList.add('active');
-    document.querySelectorAll('.dock-tab').forEach(b => b.classList.toggle('active', b.dataset.dock === 'dock-tools'));
-    document.querySelectorAll('.dock-pane').forEach(p => p.classList.toggle('active', p.id === 'dock-tools'));
-    renderToolTableDock();
-    showToast('Opened Cutting Tool Library');
-  };
-  document.getElementById('btn-ribbon-tools').onclick = openToolLib;
-  document.getElementById('btn-ribbon-tools-ed').onclick = openToolLib;
-  document.getElementById('btn-ribbon-tools-sim').onclick = openToolLib;
-  document.getElementById('btn-add-tool-dock').onclick = () => openToolEditorModal(null);
+  // Setup Sheet
+  document.getElementById('btn-setup-sheet').onclick = openSetupSheetModal;
+  document.getElementById('btn-open-setup-tab').onclick = openSetupSheetModal;
+  document.getElementById('btn-export-setup-tab').onclick = downloadSetupSheetHtml;
+  document.getElementById('btn-download-setup-sheet').onclick = downloadSetupSheetHtml;
 
-  document.getElementById('btn-save-tool-modal').onclick = () => {
-    const origNumStr = document.getElementById('tool-edit-orig-num').value;
-    const tNum = parseInt(document.getElementById('tool-edit-num').value, 10) || 1;
-    const name = document.getElementById('tool-edit-name').value.trim() || `Tool ${tNum}`;
-    const shape = document.getElementById('tool-edit-shape').value;
-    const dia = Math.max(0.01, parseFloat(document.getElementById('tool-edit-dia').value) || 0.25);
-    const cornerRad = Math.max(0, parseFloat(document.getElementById('tool-edit-crad').value) || 0);
-    const fluteLen = Math.max(0.05, parseFloat(document.getElementById('tool-edit-flen').value) || 1.0);
-    const overallLen = Math.max(0.1, parseFloat(document.getElementById('tool-edit-olen').value) || 2.25);
-    const flutes = Math.max(1, parseInt(document.getElementById('tool-edit-flutes').value, 10) || 4);
-
-    if (origNumStr) {
-      const origNum = parseInt(origNumStr, 10);
-      if (origNum !== tNum) delete state.tools[origNum];
-    }
-    state.tools[tNum] = {
-      num: tNum,
-      name,
-      shape,
-      dia,
-      cornerRad: shape === 'ball' ? dia / 2 : cornerRad,
-      flutes,
-      holderDia: Math.max(dia * 2.5, 0.85),
-      fluteLen,
-      overallLen
-    };
-    document.getElementById('modal-tool-editor').classList.remove('open');
-    renderToolTableDock();
-    parseAndBuildSimulation(getActiveDoc().content, false);
-    showToast(`Saved Tool T${String(tNum).padStart(2, '0')} (${name})`);
-  };
-
+  // Stock & Simulation Controls
   document.getElementById('btn-open-stock-modal').onclick = () => {
-    document.getElementById('stk-autofit').checked = state.stock.autoFit;
-    document.getElementById('stk-shape').value = state.stock.shape;
-    document.getElementById('stk-minx').value = state.stock.minX;
-    document.getElementById('stk-maxx').value = state.stock.maxX;
-    document.getElementById('stk-miny').value = state.stock.minY;
-    document.getElementById('stk-maxy').value = state.stock.maxY;
-    document.getElementById('stk-minz').value = state.stock.minZ;
-    document.getElementById('stk-maxz').value = state.stock.maxZ;
-    document.getElementById('stk-lathe-dia').value = state.stock.latheDia;
-    document.getElementById('stk-lathe-len').value = state.stock.latheLen;
+    document.getElementById('stk-shape').value = state.stock.shape || 'cylinder';
     document.getElementById('modal-stock').classList.add('open');
   };
   document.getElementById('btn-apply-stock').onclick = () => {
@@ -4105,152 +4295,249 @@ function wireEvents() {
     state.stock.maxY = parseFloat(document.getElementById('stk-maxy').value);
     state.stock.minZ = parseFloat(document.getElementById('stk-minz').value);
     state.stock.maxZ = parseFloat(document.getElementById('stk-maxz').value);
-    state.stock.latheDia = parseFloat(document.getElementById('stk-lathe-dia').value) || 66;
-    state.stock.latheLen = parseFloat(document.getElementById('stk-lathe-len').value) || 85;
-    document.getElementById('modal-stock').classList.remove('open');
+    state.stock.latheDia = parseFloat(document.getElementById('stk-lathe-dia').value);
+    state.stock.latheLen = parseFloat(document.getElementById('stk-lathe-len').value);
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     parseAndBuildSimulation(getActiveDoc().content, true);
-    showToast('Updated 3D solid workpiece stock');
   };
 
   document.getElementById('material-shader-select').onchange = (e) => {
     state.stock.material = e.target.value;
     drawBackplot();
-    showToast(`Material: ${MATERIAL_SHADERS[state.stock.material].name}`);
+  };
+  document.getElementById('btn-reset-stock').onclick = () => {
+    state.sim.currentTimeSec = 0;
+    el.scrubber.value = 0;
+    rebuildStockUpToTime(0, true);
+    drawBackplot();
   };
 
-  function setStockRenderMode(mode) {
+  const setStockRenderMode = (mode) => {
     state.cam.stockRenderMode = mode;
     document.getElementById('vp-btn-solid').classList.toggle('active', mode === 'solid');
     document.getElementById('vp-btn-glass').classList.toggle('active', mode === 'translucent');
     document.getElementById('vp-btn-wire').classList.toggle('active', mode === 'wireframe');
     drawBackplot();
-  }
+  };
   document.getElementById('vp-btn-solid').onclick = () => setStockRenderMode('solid');
   document.getElementById('vp-btn-glass').onclick = () => setStockRenderMode('translucent');
   document.getElementById('vp-btn-wire').onclick = () => setStockRenderMode('wireframe');
   document.getElementById('btn-cycle-stock-render').onclick = () => {
     const order = ['solid', 'translucent', 'wireframe'];
     setStockRenderMode(order[(order.indexOf(state.cam.stockRenderMode) + 1) % order.length]);
-    showToast(`Stock render: ${state.cam.stockRenderMode}`);
   };
 
-  const toggleGhost = () => {
+  const toggleRawGhost = () => {
     state.cam.showRawGhost = !state.cam.showRawGhost;
     document.getElementById('vp-btn-ghost').classList.toggle('active', state.cam.showRawGhost);
-    const b = document.getElementById('btn-toggle-raw-ghost');
-    b.classList.toggle('active', state.cam.showRawGhost);
-    b.innerHTML = `<span>👻 Ghost: ${state.cam.showRawGhost ? 'ON' : 'OFF'}</span>`;
+    const rBtn = document.getElementById('btn-toggle-raw-ghost');
+    rBtn.classList.toggle('active', state.cam.showRawGhost);
+    rBtn.innerHTML = `<span>👻 Ghost: ${state.cam.showRawGhost ? 'ON' : 'OFF'}</span>`;
     drawBackplot();
   };
-  document.getElementById('vp-btn-ghost').onclick = toggleGhost;
-  document.getElementById('btn-toggle-raw-ghost').onclick = toggleGhost;
+  document.getElementById('vp-btn-ghost').onclick = toggleRawGhost;
+  document.getElementById('btn-toggle-raw-ghost').onclick = toggleRawGhost;
 
-  document.getElementById('btn-reset-stock').onclick = () => {
-    state.sim.currentTimeSec = 0;
-    el.scrubber.value = 0;
-    rebuildStockUpToTime(0, true);
-    drawBackplot();
-    showToast('Reset solid stock to raw uncut state');
-  };
-
-  const togglePaths = () => {
+  document.getElementById('vp-btn-paths').onclick = (e) => {
     state.cam.showPaths = !state.cam.showPaths;
-    document.getElementById('vp-btn-paths').classList.toggle('active', state.cam.showPaths);
+    e.currentTarget.classList.toggle('active', state.cam.showPaths);
     document.getElementById('btn-toggle-paths').classList.toggle('active', state.cam.showPaths);
     drawBackplot();
   };
-  document.getElementById('vp-btn-paths').onclick = togglePaths;
-  document.getElementById('btn-toggle-paths').onclick = togglePaths;
+  document.getElementById('btn-toggle-paths').onclick = () => document.getElementById('vp-btn-paths').click();
 
-  const toggleTable = () => {
+  document.getElementById('vp-btn-table').onclick = (e) => {
     state.cam.showTrunnion = !state.cam.showTrunnion;
-    document.getElementById('vp-btn-table').classList.toggle('active', state.cam.showTrunnion);
+    e.currentTarget.classList.toggle('active', state.cam.showTrunnion);
     document.getElementById('btn-toggle-trunnion').classList.toggle('active', state.cam.showTrunnion);
     drawBackplot();
   };
-  document.getElementById('vp-btn-table').onclick = toggleTable;
-  document.getElementById('btn-toggle-trunnion').onclick = toggleTable;
+  document.getElementById('btn-toggle-trunnion').onclick = () => document.getElementById('vp-btn-table').click();
 
-  document.getElementById('btn-toggle-3d-tool').onclick = function () {
+  document.getElementById('btn-toggle-3d-tool').onclick = (e) => {
     state.cam.show3DTool = !state.cam.show3DTool;
-    this.classList.toggle('active', state.cam.show3DTool);
+    e.currentTarget.classList.toggle('active', state.cam.show3DTool);
     drawBackplot();
   };
-  document.getElementById('btn-toggle-swivel-b').onclick = function () {
+  document.getElementById('btn-toggle-swivel-b').onclick = (e) => {
     state.cam.swivelB45 = !state.cam.swivelB45;
-    this.classList.toggle('active', state.cam.swivelB45);
-    this.innerHTML = `<span>B-Axis: ${state.cam.swivelB45 ? '45° Swivel' : '90° Ortho'}</span>`;
-    parseAndBuildSimulation(getActiveDoc().content, false);
-    showToast(state.cam.swivelB45 ? 'Switched to 45° Swivel B-Axis kinematics' : 'Switched to Orthogonal 90° B-Axis kinematics');
+    e.currentTarget.classList.toggle('active', state.cam.swivelB45);
+    e.currentTarget.innerHTML = `<span>${state.cam.swivelB45 ? 'B-Axis: 45° Swivel' : 'B-Axis: 90° Ortho'}</span>`;
+    drawBackplot();
   };
-  document.getElementById('btn-toggle-cutter-comp').onclick = function () {
+  document.getElementById('btn-toggle-cutter-comp').onclick = (e) => {
     state.cam.showCutterComp = !state.cam.showCutterComp;
-    this.classList.toggle('active', state.cam.showCutterComp);
+    e.currentTarget.classList.toggle('active', state.cam.showCutterComp);
     drawBackplot();
   };
-  document.getElementById('btn-toggle-rapids').onclick = function () {
+  document.getElementById('btn-toggle-rapids').onclick = (e) => {
     state.cam.showRapids = !state.cam.showRapids;
-    this.classList.toggle('active', state.cam.showRapids);
+    e.currentTarget.classList.toggle('active', state.cam.showRapids);
     drawBackplot();
   };
-  document.getElementById('btn-toggle-coolant').onclick = function () {
-    state.cam.showCoolant = !state.cam.showCoolant;
-    this.classList.toggle('active', state.cam.showCoolant);
-    drawBackplot();
-  };
-  document.getElementById('btn-toggle-holder-check').onclick = function () {
+  document.getElementById('btn-toggle-holder-check').onclick = (e) => {
     state.holderCheck = !state.holderCheck;
-    this.classList.toggle('active', state.holderCheck);
+    e.currentTarget.classList.toggle('active', state.holderCheck);
     parseAndBuildSimulation(getActiveDoc().content, false);
-    showToast(state.holderCheck ? 'Holder / shank check ON' : 'Holder / shank check OFF');
+    showToast(`Holder check ${state.holderCheck ? 'ON' : 'OFF'}`);
+  };
+  document.getElementById('btn-reset-workspace').onclick = () => {
+    if (!confirm('Discard the autosaved workspace (all open programs and tool edits) and reload the sample programs?')) return;
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    location.reload();
+  };
+  document.getElementById('btn-toggle-coolant').onclick = (e) => {
+    state.cam.showCoolant = !state.cam.showCoolant;
+    e.currentTarget.classList.toggle('active', state.cam.showCoolant);
+    drawBackplot();
   };
 
+  // Camera Views & Orbit/Pan/Zoom
   document.querySelectorAll('[data-view]').forEach(btn => {
     btn.onclick = () => {
       const v = btn.dataset.view;
       if (v === 'iso') { state.cam.yaw = -0.62; state.cam.pitch = 0.42; }
       else if (v === 'top') { state.cam.yaw = 0; state.cam.pitch = Math.PI / 2 - 0.01; }
-      else if (v === 'front') { state.cam.yaw = 0; state.cam.pitch = 0.05; }
-      else if (v === 'side') { state.cam.yaw = Math.PI / 2; state.cam.pitch = 0.05; }
+      else if (v === 'front') { state.cam.yaw = 0; state.cam.pitch = 0; }
+      else if (v === 'side') { state.cam.yaw = -Math.PI / 2; state.cam.pitch = 0; }
       fitCameraToExtents();
     };
   });
   document.getElementById('btn-fit-view').onclick = fitCameraToExtents;
   document.getElementById('vp-btn-fit').onclick = fitCameraToExtents;
 
-  document.getElementById('btn-toggle-assistant').onclick = function () {
-    const dock = document.getElementById('left-dock');
-    dock.classList.toggle('collapsed');
-    this.classList.toggle('active', !dock.classList.contains('collapsed'));
-    setTimeout(fitCameraToExtents, 50);
+  el.canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 2 || e.shiftKey) state.cam.panning = true;
+    else state.cam.dragging = true;
+    state.cam.lastX = e.clientX;
+    state.cam.lastY = e.clientY;
+  });
+  el.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  window.addEventListener('mousemove', (e) => {
+    if (!state.cam.dragging && !state.cam.panning) return;
+    const dx = e.clientX - state.cam.lastX;
+    const dy = e.clientY - state.cam.lastY;
+    state.cam.lastX = e.clientX;
+    state.cam.lastY = e.clientY;
+    if (state.cam.panning) {
+      state.cam.panX += dx;
+      state.cam.panY += dy;
+    } else {
+      state.cam.yaw += dx * 0.008;
+      state.cam.pitch = Math.max(-1.5, Math.min(1.5, state.cam.pitch + dy * 0.008));
+    }
+    drawBackplot();
+  });
+  window.addEventListener('mouseup', () => { state.cam.dragging = false; state.cam.panning = false; });
+  el.canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.89;
+    state.cam.zoom = Math.max(0.2, Math.min(1200, state.cam.zoom * factor));
+    drawBackplot();
+  }, { passive: false });
+
+  // Playback Controls (Play/Pause, Stop/Rewind, Step, Scrubber, Speed)
+  document.getElementById('btn-sim-play').onclick = (e) => {
+    state.sim.playing = !state.sim.playing;
+    if (state.sim.playing && state.sim.currentTimeSec >= state.stats.totalTimeSec) {
+      state.sim.currentTimeSec = 0;
+    }
+    e.currentTarget.textContent = state.sim.playing ? '⏸ Pause' : '▶ Play';
   };
-  document.getElementById('btn-toggle-backplot-main').onclick = function () {
-    const vp = document.getElementById('right-viewport');
-    vp.classList.toggle('hidden');
-    this.classList.toggle('active', !vp.classList.contains('hidden'));
-    setTimeout(fitCameraToExtents, 50);
-  };
-  document.getElementById('btn-reset-workspace').onclick = () => {
-    if (!confirm('Reset the autosaved workspace (tabs and tool edits) and start with a blank program?')) return;
-    clearTimeout(saveTimer);
-    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    state.docs = [{
-      id: 'doc-blank-1',
-      mode: state.kinematicsMode || 'table-bc',
-      dirty: false,
-      name: 'untitled_1.nc',
-      content: ''
-    }];
-    state.activeDocId = 'doc-blank-1';
-    state.untitledCounter = 1;
+  document.getElementById('btn-sim-stop').onclick = () => {
+    state.sim.scrollNext = true;
     state.sim.playing = false;
     document.getElementById('btn-sim-play').textContent = '▶ Play';
-    switchDoc('doc-blank-1');
-    const stEl = document.getElementById('st-autosave');
-    if (stEl) stEl.textContent = 'Autosave: clean workspace';
-    showToast('Reset workspace to blank file');
+    state.sim.currentTimeSec = 0;
+    el.scrubber.value = 0;
+    rebuildStockUpToTime(0, true);
+    drawBackplot();
+  };
+  document.getElementById('btn-sim-step').onclick = () => {
+    state.sim.playing = false;
+    document.getElementById('btn-sim-play').textContent = '▶ Play';
+    const nextSeg = state.segments.find(s => s.endTimeSec > state.sim.currentTimeSec + 0.001);
+    if (nextSeg) {
+      state.sim.scrollNext = true;
+      state.sim.currentTimeSec = nextSeg.endTimeSec;
+      el.scrubber.value = Math.round((state.sim.currentTimeSec / Math.max(0.01, state.stats.totalTimeSec)) * 1000);
+      rebuildStockUpToTime(state.sim.currentTimeSec, false);
+      drawBackplot();
+    }
+  };
+  el.scrubber.oninput = () => {
+    state.sim.playing = false;
+    document.getElementById('btn-sim-play').textContent = '▶ Play';
+    state.sim.scrollNext = true;
+    state.sim.currentTimeSec = (parseInt(el.scrubber.value, 10) / 1000) * state.stats.totalTimeSec;
+    rebuildStockUpToTime(state.sim.currentTimeSec, false);
+    drawBackplot();
+  };
+  document.getElementById('sim-speed').onchange = (e) => {
+    state.sim.speedMultiplier = parseFloat(e.target.value) || 1.0;
   };
 
+  // Compare Controls
+  document.getElementById('btn-run-compare').onclick = runCncFileCompare;
+  ['cmp-left-select', 'cmp-right-select', 'cmp-ign-n', 'cmp-ign-ws', 'cmp-ign-zero', 'cmp-ign-comm'].forEach(id => {
+    document.getElementById(id).onchange = runCncFileCompare;
+  });
+
+  // Web Serial DNC
+  document.getElementById('btn-dnc-connect').onclick = async () => {
+    if (!('serial' in navigator)) {
+      logDNC('Web Serial API unavailable in this context. Use Virtual Loopback Test.');
+      return;
+    }
+    try {
+      const port = await navigator.serial.requestPort();
+      const baudRate = parseInt(document.getElementById('dnc-baud').value, 10) || 115200;
+      const parity = document.getElementById('dnc-parity').value;
+      const flowControl = document.getElementById('dnc-flow').value === 'hardware' ? 'hardware' : 'none';
+      await port.open({ baudRate, dataBits: 8, stopBits: 1, parity, flowControl });
+      state.dnc.port = port;
+      document.getElementById('dnc-port-status').textContent = `Port: Connected @ ${baudRate} Baud`;
+      document.getElementById('dnc-port-status').style.color = 'var(--accent-green)';
+      logDNC(`Serial port opened at ${baudRate} baud.`);
+    } catch (err) {
+      logDNC(`Serial connection cancelled/error: ${err.message}`);
+    }
+  };
+
+  document.getElementById('btn-dnc-send').onclick = async () => {
+    const doc = getActiveDoc();
+    if (!state.dnc.port || !state.dnc.port.writable) {
+      logDNC('No physical COM port connected — running simulated DNC drip-feed preview...');
+      logDNC(`TX [${doc.name}]: ${doc.content.split('\n').length} blocks ready.`);
+      return;
+    }
+    const writer = state.dnc.port.writable.getWriter();
+    const enc = new TextEncoder();
+    for (const line of doc.content.split('\n')) {
+      await writer.write(enc.encode(line.replace(/\r$/, '') + '\r\n'));
+    }
+    writer.releaseLock();
+    logDNC(`Completed transmitting ${doc.name}.`);
+  };
+
+  document.getElementById('btn-dnc-loopback').onclick = () => {
+    // Software-only self-test: encode the file exactly as Drip-Feed would send it, decode it, compare block by block.
+    const doc = getActiveDoc();
+    const lines = doc.content.split('\n').map(l => l.replace(/\r$/, ''));
+    logDNC(`SELF-TEST START: ${lines.length} blocks of ${doc.name} (software only, no serial hardware involved).`);
+    const tx = new TextEncoder().encode(lines.map(l => l + '\r\n').join(''));
+    const rx = new TextDecoder().decode(tx).split('\r\n');
+    rx.pop();
+    let bad = 0, firstBad = -1;
+    if (rx.length !== lines.length) { bad = Math.abs(rx.length - lines.length); firstBad = 0; }
+    for (let i = 0; i < lines.length; i++) {
+      if (rx[i] !== lines[i]) { bad++; if (firstBad < 0) firstBad = i; }
+    }
+    if (bad === 0) logDNC(`SELF-TEST OK: ${lines.length} blocks, ${tx.length} bytes, CRC-32 ${crc32(tx)}.`);
+    else logDNC(`SELF-TEST FAILED: ${bad} block(s) differ, first at Ln ${firstBad + 1}.`);
+  };
+
+  // Profile Modal
   document.getElementById('btn-open-profile-modal').onclick = () => {
     const p = getActiveProfile();
     document.getElementById('prof-name').value = p.name;
@@ -4269,200 +4556,30 @@ function wireEvents() {
     p.limX = parseFloat(document.getElementById('prof-limx').value) || 365;
     p.limY = parseFloat(document.getElementById('prof-limy').value) || 280;
     p.limZ = parseFloat(document.getElementById('prof-limz').value) || -280;
-    localStorage.setItem('nc_preview_profiles_v2', JSON.stringify(state.profiles));
+    try { localStorage.setItem('nc_preview_profiles_v2', JSON.stringify(state.profiles)); } catch {}
     loadProfiles();
-    document.getElementById('modal-profile').classList.remove('open');
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
     parseAndBuildSimulation(getActiveDoc().content, false);
-    showToast('Saved NC Preview machine profile');
+    showToast('Saved NC Preview machine profile & soft limits');
   };
 
-  document.getElementById('btn-setup-sheet').onclick = openSetupSheetModal;
-  document.getElementById('btn-open-setup-tab').onclick = openSetupSheetModal;
-  document.getElementById('btn-export-setup-tab').onclick = downloadSetupSheetHtml;
-  document.getElementById('btn-download-setup-sheet').onclick = downloadSetupSheetHtml;
+  document.querySelectorAll('.modal-close').forEach(b => b.onclick = () => document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open')));
 
-  document.getElementById('btn-run-compare').onclick = runCncFileCompare;
-
-  document.getElementById('btn-dnc-connect').onclick = async () => {
-    if (!('serial' in navigator)) {
-      logDNC('ERROR: Web Serial API requires Chromium/Edge over HTTPS or localhost.');
-      showToast('Web Serial unavailable in this browser');
-      return;
-    }
-    try {
-      const port = await navigator.serial.requestPort();
-      await port.open({
-        baudRate: parseInt(document.getElementById('dnc-baud').value, 10),
-        parity: document.getElementById('dnc-parity').value,
-        flowControl: document.getElementById('dnc-flow').value
-      });
-      state.dnc.port = port;
-      document.getElementById('dnc-port-status').textContent = 'Port: Connected';
-      document.getElementById('dnc-port-status').style.color = 'var(--accent-green)';
-      logDNC('Serial port opened successfully.');
-    } catch (err) {
-      logDNC(`Port open cancelled/failed: ${err.message}`);
-    }
-  };
-  document.getElementById('btn-dnc-send').onclick = async () => {
-    const doc = getActiveDoc();
-    if (!state.dnc.port || !state.dnc.port.writable) {
-      logDNC(`Drip-feed staged for ${doc.name} (${doc.content.split('\n').length} blocks). Connect serial port to stream hardware blocks.`);
-      return;
-    }
-    const writer = state.dnc.port.writable.getWriter();
-    const enc = new TextEncoder();
-    const blocks = doc.content.split('\n');
-    for (let i = 0; i < blocks.length; i++) {
-      await writer.write(enc.encode(blocks[i] + '\r\n'));
-    }
-    writer.releaseLock();
-    logDNC(`Streamed ${blocks.length} blocks of ${doc.name}.`);
-  };
-  document.getElementById('btn-dnc-loopback').onclick = () => {
-    const doc = getActiveDoc();
-    const wire = doc.content.replace(/\r?\n/g, '\r\n') + '\r\n';
-    const bytes = new TextEncoder().encode(wire);
-    const decoded = new TextDecoder().decode(bytes).replace(/\r\n/g, '\n');
-    const origLines = doc.content.split('\n');
-    const gotLines = decoded.slice(0, -1).split('\n');
-    const n = Math.max(origLines.length, gotLines.length);
-    let mismatches = 0;
-    for (let i = 0; i < n; i++) if (origLines[i] !== gotLines[i]) mismatches++;
-    const tag = `CRC32 ${crc32(bytes)} | ${bytes.length} B | ${origLines.length} lines | ${mismatches} mismatches`;
-    if (mismatches === 0) {
-      logDNC(`Encoding self-test OK (software only, no serial port): ${tag}`);
-      showToast('Encoding self-test passed (0 mismatches)');
-    } else {
-      logDNC(`Encoding self-test MISMATCH: ${tag}`);
-      showToast(`${mismatches} line(s) differed after CRLF round-trip`);
-    }
-  };
-
-  document.getElementById('btn-sim-play').onclick = () => {
-    if (state.segments.length === 0) return;
-    if (state.sim.currentTimeSec >= state.stats.totalTimeSec - 1e-4) {
-      state.sim.currentTimeSec = 0;
-      rebuildStockUpToTime(0, true);
-    }
-    state.sim.playing = !state.sim.playing;
-    state.sim.scrollNext = state.sim.playing;
-    state.sim.lastFrameTs = performance.now();
-    document.getElementById('btn-sim-play').textContent = state.sim.playing ? '⏸ Pause' : '▶ Play';
-  };
-  document.getElementById('btn-sim-stop').onclick = () => {
-    state.sim.playing = false;
-    state.sim.scrollNext = true;
-    document.getElementById('btn-sim-play').textContent = '▶ Play';
-    state.sim.currentTimeSec = 0;
-    el.scrubber.value = 0;
-    rebuildStockUpToTime(0, true);
-    drawBackplot();
-  };
-  document.getElementById('btn-sim-step').onclick = () => {
-    if (state.segments.length === 0) return;
-    state.sim.playing = false;
-    state.sim.scrollNext = true;
-    document.getElementById('btn-sim-play').textContent = '▶ Play';
-    const nextSeg = state.segments.find(s => s.endTimeSec > state.sim.currentTimeSec + 1e-4);
-    state.sim.currentTimeSec = nextSeg ? nextSeg.endTimeSec : state.stats.totalTimeSec;
-    el.scrubber.value = state.stats.totalTimeSec > 0 ? Math.round((state.sim.currentTimeSec / state.stats.totalTimeSec) * 1000) : 0;
-    rebuildStockUpToTime(state.sim.currentTimeSec, false);
-    drawBackplot();
-  };
-  el.scrubber.oninput = () => {
-    state.sim.playing = false;
-    state.sim.scrollNext = true;
-    document.getElementById('btn-sim-play').textContent = '▶ Play';
-    const ratio = parseInt(el.scrubber.value, 10) / 1000;
-    state.sim.currentTimeSec = ratio * state.stats.totalTimeSec;
-    rebuildStockUpToTime(state.sim.currentTimeSec, false);
-    drawBackplot();
-  };
-  document.getElementById('sim-speed').onchange = (e) => {
-    state.sim.speedMultiplier = parseFloat(e.target.value) || 1.0;
-  };
-
-  el.canvas.addEventListener('mousedown', (e) => {
-    state.cam.dragging = true;
-    state.cam.panning = e.shiftKey || e.button === 1 || e.button === 2;
-    state.cam.lastX = e.clientX;
-    state.cam.lastY = e.clientY;
-  });
-  el.canvas.addEventListener('contextmenu', e => e.preventDefault());
-  window.addEventListener('mousemove', (e) => {
-    if (!state.cam.dragging) return;
-    const dx = e.clientX - state.cam.lastX;
-    const dy = e.clientY - state.cam.lastY;
-    state.cam.lastX = e.clientX;
-    state.cam.lastY = e.clientY;
-    if (state.cam.panning) {
-      state.cam.panX += dx;
-      state.cam.panY += dy;
-    } else {
-      state.cam.yaw += dx * 0.008;
-      state.cam.pitch = Math.max(-1.45, Math.min(1.45, state.cam.pitch + dy * 0.008));
-    }
-    drawBackplot();
-  });
-  window.addEventListener('mouseup', () => { state.cam.dragging = false; state.cam.panning = false; });
-  el.canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.12 : 0.89;
-    state.cam.zoom = Math.max(2, Math.min(450, state.cam.zoom * factor));
-    drawBackplot();
-  }, { passive: false });
-
-  document.querySelectorAll('.modal-close').forEach(btn => {
-    btn.onclick = () => btn.closest('.modal-backdrop').classList.remove('open');
-  });
-  window.addEventListener('resize', () => {
-    drawBackplot();
-    if (state.editorMode === 'virtual') renderVirtualRows();
-    else positionExecHl();
-  });
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(() => drawBackplot());
+    ro.observe(el.canvasContainer);
+  }
+  window.addEventListener('resize', () => { renderEditorView(); drawBackplot(); });
 }
 
 window.onload = function () {
   loadProfiles();
   wireEvents();
-  let restored = false;
-  const stEl = document.getElementById('st-autosave');
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) {
-      const p = JSON.parse(raw);
-      if (p && p.v === 1 && Array.isArray(p.docs) && p.docs.length > 0) {
-        state.docs = p.docs.map((d, i) => ({
-          id: d.id || ('doc-rest-' + i),
-          name: d.name || `untitled_${i + 1}.nc`,
-          mode: d.mode || state.kinematicsMode || 'table-bc',
-          dirty: !!d.dirty,
-          content: typeof d.content === 'string' ? d.content : ''
-        }));
-        state.activeDocId = p.activeDocId && state.docs.some(d => d.id === p.activeDocId) ? p.activeDocId : state.docs[0].id;
-        state.untitledCounter = Math.max(1, parseInt(p.untitledCounter, 10) || (state.docs.length + 1));
-        if (p.tools && typeof p.tools === 'object') state.tools = p.tools;
-        restored = true;
-        if (stEl) stEl.textContent = 'Autosave: restored';
-      }
-    }
-  } catch (e) {}
-  if (!restored) {
-    state.docs = [{
-      id: 'doc-blank-1',
-      mode: state.kinematicsMode || 'table-bc',
-      dirty: false,
-      name: 'untitled_1.nc',
-      content: ''
-    }];
-    state.activeDocId = 'doc-blank-1';
-    if (stEl) stEl.textContent = 'Autosave: on';
-  }
-  state.sim.playing = false;
-  document.getElementById('btn-sim-play').textContent = '▶ Play';
+  const restored = loadWorkspace();
+  document.getElementById('btn-sim-play').textContent = '⏸ Pause';
   switchDoc(state.activeDocId);
-  logDNC('NC Preview ready.');
+  logDNC('NC Preview — 5-Axis Table-Table (B/C) & Solid Material Engine ready.');
+  if (restored) showToast('Restored your last session');
   requestAnimationFrame(animationLoop);
 };
 </script>
